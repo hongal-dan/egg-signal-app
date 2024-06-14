@@ -13,8 +13,8 @@ assignees: ''
 
 # Todos
 
-- [ ] 1 - todo1
-- [ ] 1 - todo2
+- [ ] todo1
+- [ ] todo2
 
 # References
 - Related Issue: #
