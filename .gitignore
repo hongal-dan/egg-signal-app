@@ -4,3 +4,4 @@ out
 gen
 .env
 node_modules
+.next
