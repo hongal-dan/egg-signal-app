@@ -1,5 +1,5 @@
 {
-  "name": "onion-chat-app",
+  "name": "egg-signal-app",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -9,16 +9,21 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "formik": "^2.4.6",
+    "next": "^14.2.4",
     "react": "^18",
     "react-dom": "^18",
-    "next": "14.2.4"
+    "yup": "^1.4.0"
   },
   "devDependencies": {
-    "typescript": "^5",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "autoprefixer": "^10.4.19",
     "eslint": "^8",
-    "eslint-config-next": "14.2.4"
+    "eslint-config-next": "14.2.4",
+    "postcss": "^8.4.38",
+    "tailwindcss": "^3.4.4",
+    "typescript": "^5"
   }
 }
