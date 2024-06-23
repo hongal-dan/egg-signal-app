@@ -1,6 +1,8 @@
 "use client";
+import { useRouter } from "next/navigation";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
+import { createUser } from "@/services/auth";
 
 interface FormValues {
   id: string;
@@ -33,12 +35,34 @@ const validationSchema = Yup.object().shape({
 });
 
 export default function Signup() {
+  const router = useRouter();
+
   const initialValues: FormValues = {
     id: "",
     userName: "",
-    gender: "",
+    gender: "MALE",
     password: "",
     confirmPassword: "",
+  };
+
+  const handleSignUp = async (values: FormValues) => {
+    const request = {
+      id: values.id,
+      nickname: values.userName,
+      password: values.password,
+      gender: values.gender,
+    };
+    try {
+      const response = await createUser(request);
+      console.log(response);
+      if (response.status) {
+        router.push("/login");
+      } else if (response.request.status === 500) {
+        alert("중복된 아이디 입니다.");
+      }
+    } catch (error) {
+      console.error("Error fetching data: ", error);
+    }
   };
 
   return (
@@ -51,7 +75,7 @@ export default function Signup() {
           initialValues={initialValues}
           validationSchema={validationSchema}
           onSubmit={(values, { setSubmitting }) => {
-            console.log(values);
+            handleSignUp(values);
             setSubmitting(false);
           }}
         >
@@ -76,8 +100,8 @@ export default function Signup() {
               <div>
                 <label>Gender</label>
                 <Field name="gender" as="select" className="ml-5">
-                  <option value="male">남성</option>
-                  <option value="female">여성</option>
+                  <option value="MALE">남성</option>
+                  <option value="FEMALE">여성</option>
                 </Field>
               </div>
               <div>
