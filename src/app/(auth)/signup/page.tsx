@@ -5,6 +5,7 @@ import * as Yup from "yup";
 interface FormValues {
   id: string;
   userName: string;
+  gender: string;
   password: string;
   confirmPassword: string;
 }
@@ -23,7 +24,7 @@ const validationSchema = Yup.object().shape({
     .max(10, "비밀번호는 10자를 넘을 수 없습니다.")
     .matches(
       /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,10}$/,
-      "4~10자의 영문, 숫자를 조합해서 입력하세요"
+      "4~10자의 영문, 숫자를 조합해서 입력하세요",
     )
     .required("비밀번호는 필수 항목입니다."),
   confirmPassword: Yup.string()
@@ -35,6 +36,7 @@ export default function Signup() {
   const initialValues: FormValues = {
     id: "",
     userName: "",
+    gender: "",
     password: "",
     confirmPassword: "",
   };
@@ -70,6 +72,13 @@ export default function Signup() {
                   className="border border-gray-300 text-gray-900 rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
                 />
                 <ErrorMessage className="error" name="userName" />
+              </div>
+              <div>
+                <label>Gender</label>
+                <Field name="gender" as="select" className="ml-5">
+                  <option value="male">남성</option>
+                  <option value="female">여성</option>
+                </Field>
               </div>
               <div>
                 <label>Password</label>
