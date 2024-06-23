@@ -4,6 +4,15 @@ import * as THREE from "three";
 import { GLTFLoader, GLTF } from "three/examples/jsm/loaders/GLTFLoader";
 import { MindARThree } from "mind-ar/dist/mindar-face-three.prod.js";
 
+interface BlendshapeCategory {
+  categoryName: string;
+  score: number;
+}
+
+interface Blendshapes {
+  categories: BlendshapeCategory[];
+}
+
 class Avatar {
   scene: THREE.Scene | null = null;
   gltf: GLTF | null = null;
@@ -17,13 +26,13 @@ class Avatar {
 
   async init() {
     const url = "https://assets.codepen.io/9177687/raccoon_head.glb";
-    const gltf: GLTF = await new Promise((resolve) => {
+    const gltf: GLTF = await new Promise(resolve => {
       const loader = new GLTFLoader();
       loader.load(url, (gltf: GLTF) => {
         resolve(gltf);
       });
     });
-    gltf.scene.traverse((object) => {
+    gltf.scene.traverse(object => {
       if ((object as THREE.Bone).isBone && !this.root) {
         this.root = object as THREE.Bone; // as THREE.Bone;
       }
@@ -35,9 +44,9 @@ class Avatar {
     this.gltf = gltf;
   }
 
-  updateBlendshapes(blendshapes: any) {
+  updateBlendshapes(blendshapes: Blendshapes) {
     const categories = blendshapes.categories;
-    let coefsMap = new Map();
+    const coefsMap = new Map();
     for (let i = 0; i < categories.length; ++i) {
       coefsMap.set(categories[i].categoryName, categories[i].score);
     }
@@ -59,7 +68,7 @@ class Avatar {
 function UserVideoComponent() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [avatar] = useState<Avatar | null>(new Avatar());
-  const mindarThreeRef = useRef<any>(null);
+  const mindarThreeRef = useRef<MindARThree | null>(null);
 
   useEffect(() => {
     const setup = async () => {
