@@ -17,7 +17,7 @@ const authUrl = process.env.NEXT_PUBLIC_API_SERVER + "/auth";
 const createUser = async (request: CreateUser) => {
   try {
     const response = await axios.post(`${authUrl}/signUp`, request);
-    return response.data;
+    return response;
   } catch (error) {
     return error;
   }
@@ -28,7 +28,7 @@ const loginUser = async (request: LoginUser) => {
     const response = await axios.post(`${authUrl}/signIn`, request, {
       withCredentials: true,
     });
-    return response.data;
+    return response;
   } catch (error) {
     return error;
   }
