@@ -1,8 +1,10 @@
 "use client";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import UserVideoComponent from "./UserVideo";
 import FriendList from "./FriendList";
 import Notifications from "./Notifications";
+import io from "socket.io-client";
+import { start } from "repl";
 
 const MainContent = () => {
   const [avatarOn, setAvatarOn] = useState<boolean>(true);
@@ -10,6 +12,10 @@ const MainContent = () => {
   const [isFriendListVisible, setIsFriendListVisible] =
     useState<boolean>(false);
   const [isNotiVisible, setIsNotiVisible] = useState<boolean>(false);
+  const startButton = useRef<HTMLButtonElement>(null);
+  const socket = io("http://localhost:5002/meeting", {
+    transports: ["websocket"],
+  });
 
   const toggleCamera = () => {
     const canvas = document.querySelector("canvas");
@@ -25,13 +31,25 @@ const MainContent = () => {
     }
   };
 
+  // 토큰에서 유저 닉네임 가져오기
+  const getUserName = () => {
+    const userName = "dummy";
+    return userName;
+  }
+
   const handleLoadingOn: React.MouseEventHandler<HTMLButtonElement> = () => {
-    setIsLoading(prev => !prev);
     // todo: 매칭 api 요청
+    socket.emit('ready', { participantName: getUserName()});
+    if(startButton.current)
+      startButton.current.disabled = true;
+    setIsLoading(true);
   };
 
   const handleLoadingCancel = () => {
-    setIsLoading(prev => !prev);
+    socket.emit('cancel')
+    if(startButton.current)
+      startButton.current.disabled = false;
+    setIsLoading(false);
     // todo: 매칭 취소 api 요청
   };
 
@@ -76,6 +94,7 @@ const MainContent = () => {
         <div>
           <button
             className="w-96 h-12 bg-amber-400 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mb-1"
+            ref={startButton}
             onClick={handleLoadingOn}
           >
             {isLoading ? (
