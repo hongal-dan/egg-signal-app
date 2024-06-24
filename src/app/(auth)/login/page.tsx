@@ -10,19 +10,8 @@ interface FormValues {
 }
 
 const validationSchema = Yup.object().shape({
-  id: Yup.string()
-    .min(4, "아이디는 최소 4자여야 합니다")
-    .max(10, "아이디는 10자를 넘을 수 없습니다.")
-    .required("아이디는 필수 항목입니다")
-    .required("아이디를 입력하세요."),
-  password: Yup.string()
-    .min(4, "비밀번호는 최소 4자 이상이어야 합니다.")
-    .max(10, "비밀번호는 10자를 넘을 수 없습니다.")
-    .matches(
-      /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,10}$/,
-      "4~10자의 영문, 숫자 조합만 입력하세요",
-    )
-    .required("비밀번호를 입력하세요."),
+  id: Yup.string().required("아이디를 입력하세요."),
+  password: Yup.string().required("비밀번호를 입력하세요."),
 });
 
 export default function Login() {
