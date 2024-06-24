@@ -1,19 +1,17 @@
 "use client";
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import UserVideoComponent from "./UserVideo";
 import FriendList from "./FriendList";
 import Notifications from "./Notifications";
 import io from "socket.io-client";
 import { useRouter } from "next/navigation";
 
-
-interface OVInfo {
-  session: string;
-  token: string;
-  participantName: string;
+interface MainContentProps {
+  // userId: string;
+  nickname: string;
 }
 
-const MainContent = () => {
+const MainContent = ({nickname}: MainContentProps) => {
   const [avatarOn, setAvatarOn] = useState<boolean>(true);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isFriendListVisible, setIsFriendListVisible] =
@@ -24,11 +22,10 @@ const MainContent = () => {
     transports: ["websocket"],
   });
   // const [OVInfo, setOVInfo] = useState<OVInfo>({
-  //   session: "",
+  //   sessionId: "",
   //   token: "",
   //   participantName: "",
   // });
-
 
   const router = useRouter();
 
@@ -47,25 +44,27 @@ const MainContent = () => {
   };
 
   // 토큰에서 유저 닉네임 가져오기
-  const getUserName = () => {
-    const userName = "dummy";
-    return userName;
-  };
+  // const getUserName = () => {
+  //   return nickname;
+  // };
 
   const handleLoadingOn: React.MouseEventHandler<HTMLButtonElement> = () => {
     // todo: 매칭 api 요청
-    socket.emit("ready", { participantName: getUserName() });
+    socket.emit("ready", { participantName: nickname });
     if (startButton.current) startButton.current.disabled = true;
     setIsLoading(true);
-    socket.on("startCall", async (ovInfo) => {
+    socket.on("startCall", async ovInfo => {
+      console.log(ovInfo);
       // setOVInfo(ovInfo);
+      sessionStorage.setItem('ovInfo', JSON.stringify(ovInfo)); // 세션 스토리지에 저장
+      // sessionStorage.setItem('session', JSON.stringify(socket));
       setIsLoading(false);
-      router.push(`/meeting/${ovInfo.session}`);
+      router.push(`/meeting/${ovInfo.sessionId}`);
     });
   };
 
   const handleLoadingCancel = () => {
-    socket.emit("cancel");
+    socket.emit("cancel", { participantName: nickname });
     if (startButton.current) startButton.current.disabled = false;
     setIsLoading(false);
     // todo: 매칭 취소 api 요청
@@ -102,9 +101,11 @@ const MainContent = () => {
             value=""
             className="sr-only peer"
             checked={avatarOn}
-            onClick={toggleCamera}
           />
-          <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+          <div 
+            className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"
+            onClick={toggleCamera}
+          ></div>
           <span className="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">
             {avatarOn ? "아바타 off" : " 아바타 on"}
           </span>
