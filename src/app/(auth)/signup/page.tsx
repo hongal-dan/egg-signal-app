@@ -54,7 +54,7 @@ export default function Signup() {
     };
     try {
       const response = await createUser(request);
-      console.log(response);
+      console.log(response.status);
       if (response.status) {
         router.push("/login");
       } else if (response.request.status === 500) {

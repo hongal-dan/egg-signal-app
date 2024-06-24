@@ -24,8 +24,11 @@ export default function Login() {
 
   const handleLogIn = async (values: FormValues) => {
     try {
-      await loginUser(values);
-      router.replace("/main");
+      const response = await loginUser(values);
+      console.log(response);
+      if (response.status == 200) {
+        router.replace("/main");
+      }
     } catch (error) {
       console.error("Error fetching data: ", error);
     }

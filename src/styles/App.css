@@ -1,0 +1,157 @@
+.stream-container {
+  padding: 0;
+}
+
+.video-hidden {
+  display: none;
+}
+
+video {
+  display: none;
+  width: 100%;
+  height: auto;
+  float: left;
+  cursor: pointer;
+  transform: rotateY(180deg);
+}
+
+.streamcomponent {
+  position: relative;
+  border: 1px solid white;
+  border-radius: 10px;
+}
+
+.chosen-stream {
+  border: 5px solid pink;
+  border-radius: 10px;
+}
+
+.video-container {
+  display: grid;
+  padding-top: 30px;
+  grid-template-rows: repeat(2, 1fr);
+  grid-template-columns: repeat(3, 1fr);
+  row-gap: 20px;
+  column-gap: 20px;
+  margin: 0 10vw;
+}
+
+.love-stick {
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr 1fr;
+  gap: 20px 20vw;
+  margin: 0 25vw;
+  margin-bottom: 10vh;
+}
+
+.one-one-four {
+  grid-template-columns: repeat(8, 1fr);
+  grid-template-rows: 1fr 1fr 1fr;
+  grid-template-areas:
+    "a a a a b b b b"
+    "a a a a b b b b"
+    ". . c d e f . .";
+}
+
+.a {
+  grid-area: a;
+}
+
+.b {
+  grid-area: b;
+}
+
+.c {
+  grid-area: c;
+}
+.d {
+  grid-area: d;
+}
+.e {
+  grid-area: e;
+}
+.f {
+  grid-area: f;
+}
+
+.arrow-container {
+  position: absolute;
+  transform-origin: left center;
+  z-index: -1;
+}
+.arrow-body {
+  background-color: #fa3689;
+  height: 10px;
+  transform-origin: left center;
+  position: relative;
+}
+.arrow-head {
+  width: 0;
+  height: 0;
+  border-left: 20px solid transparent;
+  border-right: 20px solid transparent;
+  border-bottom: 20px solid #fa3689;
+  position: absolute;
+  top: -5px;
+  right: -15px;
+  transform: rotate(90deg);
+}
+
+.keyword-wrapper {
+  width: 100%;
+  height: 100px;
+}
+
+.keyword {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 50px;
+  font-weight: bold;
+  height: 100%;
+}
+
+.cam-wrapper {
+  height: 100%;
+  width: 100%;
+  padding-bottom: 75%;
+}
+
+.choose-btn {
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  z-index: 2;
+}
+
+.choose-btn:hover {
+  background: rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+}
+
+.hidden {
+  display: none;
+}
+
+.black-white {
+  filter: grayscale(100%);
+}
+
+.btn-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+}
+
+.streamcomponent .nickname {
+  position: absolute;
+  padding-left: 5px;
+  padding-right: 5px;
+  color: #777777;
+  font-weight: bold;
+  border-bottom-right-radius: 4px;
+}
+p {
+  margin: 0;
+}
