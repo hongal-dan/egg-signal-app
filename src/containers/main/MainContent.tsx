@@ -4,7 +4,14 @@ import UserVideoComponent from "./UserVideo";
 import FriendList from "./FriendList";
 import Notifications from "./Notifications";
 import io from "socket.io-client";
-import { start } from "repl";
+import { useRouter } from "next/navigation";
+
+
+interface OVInfo {
+  session: string;
+  token: string;
+  participantName: string;
+}
 
 const MainContent = () => {
   const [avatarOn, setAvatarOn] = useState<boolean>(true);
@@ -16,6 +23,14 @@ const MainContent = () => {
   const socket = io("http://localhost:5002/meeting", {
     transports: ["websocket"],
   });
+  // const [OVInfo, setOVInfo] = useState<OVInfo>({
+  //   session: "",
+  //   token: "",
+  //   participantName: "",
+  // });
+
+
+  const router = useRouter();
 
   const toggleCamera = () => {
     const canvas = document.querySelector("canvas");
@@ -35,20 +50,23 @@ const MainContent = () => {
   const getUserName = () => {
     const userName = "dummy";
     return userName;
-  }
+  };
 
   const handleLoadingOn: React.MouseEventHandler<HTMLButtonElement> = () => {
     // todo: 매칭 api 요청
-    socket.emit('ready', { participantName: getUserName()});
-    if(startButton.current)
-      startButton.current.disabled = true;
+    socket.emit("ready", { participantName: getUserName() });
+    if (startButton.current) startButton.current.disabled = true;
     setIsLoading(true);
+    socket.on("startCall", async (ovInfo) => {
+      // setOVInfo(ovInfo);
+      setIsLoading(false);
+      router.push(`/meeting/${ovInfo.session}`);
+    });
   };
 
   const handleLoadingCancel = () => {
-    socket.emit('cancel')
-    if(startButton.current)
-      startButton.current.disabled = false;
+    socket.emit("cancel");
+    if (startButton.current) startButton.current.disabled = false;
     setIsLoading(false);
     // todo: 매칭 취소 api 요청
   };
