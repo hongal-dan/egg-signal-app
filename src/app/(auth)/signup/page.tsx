@@ -22,12 +22,12 @@ const validationSchema = Yup.object().shape({
     .max(10, "닉네임은 10자를 넘을 수 없습니다.")
     .required("닉네임은 필수 항목입니다"),
   password: Yup.string()
-    .min(4, "비밀번호는 최소 4자 이상이어야 합니다.")
-    .max(10, "비밀번호는 10자를 넘을 수 없습니다.")
     .matches(
-      /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,10}$/,
+      /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{4,10}$/,
       "4~10자의 영문, 숫자를 조합해서 입력하세요",
     )
+    .min(4, "비밀번호는 최소 4자 이상이어야 합니다.")
+    .max(10, "비밀번호는 10자를 넘을 수 없습니다.")
     .required("비밀번호는 필수 항목입니다."),
   confirmPassword: Yup.string()
     .oneOf([Yup.ref("password")], "비밀번호가 일치하지 않습니다")
