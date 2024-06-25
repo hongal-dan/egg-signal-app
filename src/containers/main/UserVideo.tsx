@@ -102,7 +102,7 @@ function UserVideoComponent2() {
     setup();
     const canvas = document.querySelector("canvas");
     if (canvas) {
-      canvas.style.backgroundColor = "black";
+      canvas.style.backgroundColor = "#fae4c9";
     }
   });
 
