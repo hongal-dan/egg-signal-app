@@ -1,7 +1,8 @@
 "use client";
 import axios from "axios";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import UserVideoComponent from "@/containers/meeting/UserVideoComponent";
+import UserVideoComponent2 from "../../../containers/main/UserVideo";
 import {
   OpenVidu,
   Session,
@@ -35,6 +36,7 @@ const Meeting = (props: Props) => {
   const [isMatched, setIsMatched] = useState<boolean>(true);
   const [isChooseMode, setIsChooseMode] = useState<boolean>(false);
   const [isOneToOneMode, setIsOneToOneMode] = useState<boolean>(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   // const socket = io("http://localhost:5002/meeting", {
   //   transports: ["websocket"],
@@ -66,23 +68,44 @@ const Meeting = (props: Props) => {
     );
   };
 
+  // const captureCanvas = () => {
+  //   const canvas = document.querySelector("canvas");
+  //   if (!canvas) {
+  //     console.error("Canvas element not found");
+  //     return;
+  //   }
+  //   const stream = canvas.captureStream(30); // 30 FPS로 캡처
+  //   if (!stream) {
+  //     console.error("Stream not found");
+  //   }
+  //   const videoTracks = stream.getVideoTracks();
+  //   if (videoTracks.length === 0) {
+  //     console.error("No video tracks found in the stream");
+  //     return;
+  //   }
+  //   return videoTracks[0]; // 비디오 트랙을 반환
+  // };
+
+
   const captureCanvas = () => {
     const canvas = document.querySelector("canvas");
-    if (!canvas) {
-      console.error("Canvas element not found");
-      return;
-    }
-    const stream = canvas.captureStream(30); // 30 FPS로 캡처
-    if (!stream) {
-      console.error("Stream not found");
-    }
-    const videoTracks = stream.getVideoTracks();
-    if (videoTracks.length === 0) {
-      console.error("No video tracks found in the stream");
-      return;
-    }
-    return videoTracks[0]; // 비디오 트랙을 반환
+    const stream = canvas?.captureStream(5); // 30 FPS로 캡처
+    console.log('Captured video track:', stream!.getVideoTracks()[0]);
+    return stream?.getVideoTracks()[0]; // 비디오 트랙을 반환
+
   };
+
+  const startStreamingCanvas = () => {
+    const videoTrack = captureCanvas();
+    if (videoTrack && videoRef.current) {
+      const stream = new MediaStream([videoTrack]);
+      videoRef.current.srcObject = stream;
+      videoRef.current.play();
+    }
+  };
+  useEffect(() => {
+    startStreamingCanvas();
+  }, []);
 
   const joinSession = () => {
     const OV = new OpenVidu();
@@ -390,6 +413,8 @@ const Meeting = (props: Props) => {
         <div className="keyword-wrapper">
           <p className="keyword"></p>
         </div>
+        <UserVideoComponent2 />
+        <video ref={videoRef}></video>
 
         <div className="col-md-6 video-container">
           {publisher !== undefined ? (

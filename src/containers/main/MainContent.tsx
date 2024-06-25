@@ -1,6 +1,6 @@
 "use client";
 import React, { useRef, useState, useEffect } from "react";
-import UserVideoComponent from "./UserVideo";
+import UserVideoComponent2 from "./UserVideo";
 import FriendList from "./FriendList";
 import Notifications from "./Notifications";
 import io from "socket.io-client";
@@ -118,7 +118,7 @@ const MainContent = ({nickname}: MainContentProps) => {
           )}
         </div>
       </div>
-      <UserVideoComponent />
+      <UserVideoComponent2 />
       <video ref={videoRef}></video>
       <div className="grid grid-rows-2">
         <label className="inline-flex items-center justify-center cursor-pointer">
