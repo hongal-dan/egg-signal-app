@@ -16,6 +16,10 @@ const Meeting = () => {
   const [session, setSession] = useState<Session | undefined>(undefined);
   const [publisher, setPublisher] = useState<Publisher | undefined>(undefined);
   const [subscribers, setSubscribers] = useState<StreamManager[]>([]);
+  const [mainStreamManager, setMainStreamManager] = useState<StreamManager>();
+  const [currentVideoDevice, setCurrentVideoDevice] = useState<Device | null>(
+    null,
+  );
 
   // const [isAvatar, setIsAvatar] = useState<boolean>(true);
   const [isLoveMode, setIsLoveMode] = useState<boolean>(false);
