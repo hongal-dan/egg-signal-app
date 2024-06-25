@@ -37,6 +37,7 @@ const Meeting = (props: Props) => {
   const [isChooseMode, setIsChooseMode] = useState<boolean>(false);
   const [isOneToOneMode, setIsOneToOneMode] = useState<boolean>(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const captureRef = useRef<HTMLDivElement>(null);
 
   // const socket = io("http://localhost:5002/meeting", {
   //   transports: ["websocket"],
@@ -86,7 +87,6 @@ const Meeting = (props: Props) => {
   //   return videoTracks[0]; // 비디오 트랙을 반환
   // };
 
-
   const captureCanvas = () => {
     const canvas = document.querySelector("canvas");
     if (!canvas) {
@@ -102,7 +102,7 @@ const Meeting = (props: Props) => {
       console.error("No video tracks found in the stream");
       return;
     }
-    console.log('Captured video track:', stream!.getVideoTracks()[0]);
+    console.log("Captured video track:", stream!.getVideoTracks()[0]);
     canvas!.style.display = "none";
     canvas!.style.backgroundColor = "transparent";
     if (videoTracks.length === 0) {
@@ -110,7 +110,6 @@ const Meeting = (props: Props) => {
       return;
     }
     return videoTracks[0]; // 비디오 트랙을 반환
-
   };
 
   const startStreamingCanvas = () => {
@@ -319,6 +318,21 @@ const Meeting = (props: Props) => {
     setIsLoveMode(false);
   };
 
+  const captureCamInit = () => {
+    const videoElement = captureRef.current?.querySelector(
+      "video",
+    ) as HTMLVideoElement;
+    const canvasElement = captureRef.current?.querySelector(
+      "canvas",
+    ) as HTMLCanvasElement;
+    if (videoElement) {
+      videoElement.style.display = "none";
+    }
+    if (canvasElement) {
+      canvasElement.style.display = "none";
+    }
+  };
+
   const openKeyword = () => {
     const keyword = [
       "사랑",
@@ -401,6 +415,7 @@ const Meeting = (props: Props) => {
 
   useEffect(() => {
     joinSession();
+    captureCamInit();
   }, []);
 
   useEffect(() => {
@@ -431,7 +446,9 @@ const Meeting = (props: Props) => {
         <div className="keyword-wrapper">
           <p className="keyword"></p>
         </div>
-        <UserVideoComponent2 />
+        <div ref={captureRef} className="hidden">
+          <UserVideoComponent2 />
+        </div>
         {/* <video ref={videoRef}></video> */}
 
         <div className="col-md-6 video-container">
