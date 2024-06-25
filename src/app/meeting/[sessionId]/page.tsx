@@ -137,10 +137,10 @@ const Meeting = (props: Props) => {
     newSession
       .connect(token, { clientData: participantName })
       .then(async () => {
-        // const arStream = captureCanvas();
+        const arStream = captureCanvas();
         const publisher = await OV.initPublisherAsync(undefined, {
           audioSource: undefined,
-          videoSource: undefined,
+          videoSource: arStream,
           publishAudio: true,
           publishVideo: true,
           resolution: "640x480",
@@ -431,7 +431,7 @@ const Meeting = (props: Props) => {
         <div className="keyword-wrapper">
           <p className="keyword"></p>
         </div>
-        {/* <UserVideoComponent2 /> */}
+        <UserVideoComponent2 />
         {/* <video ref={videoRef}></video> */}
 
         <div className="col-md-6 video-container">
