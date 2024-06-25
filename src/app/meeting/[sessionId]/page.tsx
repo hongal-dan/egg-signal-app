@@ -54,7 +54,7 @@ const Meeting = (props: Props) => {
       window.removeEventListener("beforeunload", handleBeforeUnload);
       console.log("메인이 종료되었습니다.");
     };
-  });
+  }, []);
 
   // 메인 비디오 스트림을 변경
   // const handleMainVideoStream = (stream: StreamManager) => {
