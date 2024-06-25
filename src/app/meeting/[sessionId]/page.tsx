@@ -18,6 +18,11 @@ import { useRouter } from "next/navigation";
 //   participantName: string;
 // };
 
+type chooseResult = {
+  sender: string;
+  receiver: string;
+};
+
 const Meeting = () => {
   const [session, setSession] = useState<Session | undefined>(undefined);
   const [publisher, setPublisher] = useState<Publisher | undefined>(undefined);
@@ -34,14 +39,24 @@ const Meeting = () => {
   const [isOneToOneMode, setIsOneToOneMode] = useState<boolean>(false);
   // const videoRef = useRef<HTMLVideoElement>(null);
   const captureRef = useRef<HTMLDivElement>(null);
+  const keywordRef = useRef<HTMLParagraphElement>(null);
 
   const url = process.env.NEXT_PUBLIC_API_SERVER;
   const socket = io(`${url}/meeting`, {
     transports: ["websocket"],
   });
-  console.log(socket, mainStreamManager, currentVideoDevice);
+
+  // const [socket, setSocket] = useState<WebSocket | null>(null);
+
+  // useEffect(() => {
+  //   const newSocket = io(`${url}/meeting`, {
+  //     transports: ["websocket"],
+  //   });
+  //   setSocket(newSocket);
+  // }, []);
+
+  console.log(mainStreamManager, currentVideoDevice);
   const router = useRouter();
-  // const socket = JSON.parse(sessionStorage.getItem('session')!)
 
   // 어떻게든 종료 하면 세션에서 나가게함.
   useEffect(() => {
@@ -122,24 +137,41 @@ const Meeting = () => {
   //   startStreamingCanvas();
   // }, []);
 
-  const handleSignal = () => {
+  const openCam = () => {
     if (publisher) {
-      navigator.mediaDevices
-        .getUserMedia({ video: true })
-        .then(stream => {
-          const webcamTrack = stream.getVideoTracks()[0];
-          publisher
-            .replaceTrack(webcamTrack)
-            .then(() => {
-              console.log("Track replaced with webcam track");
-            })
-            .catch(error => {
-              console.error("Error replacing track:", error);
-            });
-        })
-        .catch(error => {
-          console.error("Error accessing webcam:", error);
-        });
+      navigator.mediaDevices.getUserMedia({ video: true }).then(stream => {
+        const webcamTrack = stream.getVideoTracks()[0];
+        publisher
+          .replaceTrack(webcamTrack)
+          .then(() => {
+            console.log("Track replaced with webcam track");
+          })
+          .catch(error => {
+            console.error("Error replacing track:", error);
+          });
+      });
+    }
+  };
+
+  const muteAudio = () => {
+    if (publisher) {
+      // 오디오 트랙 비활성화
+      const audioTracks = publisher.stream.getMediaStream().getAudioTracks();
+      audioTracks.forEach(track => {
+        track.enabled = false;
+        track.stop();
+      });
+      console.log("Audio tracks disabled");
+    }
+  };
+
+  const unMuteAudio = () => {
+    if (publisher) {
+      const audioTracks = publisher.stream.getMediaStream().getAudioTracks();
+      audioTracks.forEach(track => {
+        track.enabled = true;
+      });
+      console.log("Audio tracks enabled");
     }
   };
 
@@ -211,6 +243,73 @@ const Meeting = () => {
     newSession.on("exception", exception => {
       console.warn(exception);
     });
+
+    socket.on("keyword", message => {
+      try {
+        const parseData = JSON.parse(message) as string;
+        console.log("keyword Event: ", parseData);
+        openKeyword(parseInt(parseData));
+      } catch (e: any) {
+        console.error(e);
+      }
+    });
+
+    socket.on("cam", message => {
+      try {
+        const parseData = JSON.parse(message) as string;
+        console.log("cam Event: ", parseData);
+        if (keywordRef.current) {
+          keywordRef.current.innerText = "5초 뒤 얼굴이 공개됩니다.";
+        }
+        setTimeout(() => {
+          openCam();
+        }, 5000);
+      } catch (e: any) {
+        console.error(e);
+      }
+    });
+
+    socket.on("finish", message => {
+      try {
+        const parseData = JSON.parse(message);
+        console.log(parseData);
+        // 1차: 모든 참여자 세션 종료
+        if (keywordRef.current) {
+          keywordRef.current.innerText = "5초 뒤 세션이 종료됩니다.";
+        }
+        setTimeout(() => {
+          if (session) {
+            session.disconnect();
+            router.push("/main");
+          }
+        }, 5000);
+      } catch (e: any) {
+        console.error(e);
+      }
+    });
+
+    socket.on("chooseResult", (message: string) => {
+      try {
+        const parseData = JSON.parse(message) as Array<chooseResult>;
+        console.log(parseData);
+        changeLoveStickMode(parseData);
+      } catch (e: any) {
+        console.error(e);
+      }
+    });
+
+    socket.on("cupidResult", message => {
+      try {
+        const parseData = JSON.parse(message) as string;
+        console.log(parseData);
+        if (parseData != "0") {
+          setOneToOneMode(parseData); // Todo: 마이크 음소거 추가해야함
+          setTimeout(() => setOneToOneMode(parseData), 60000); // 1분 후 원 위치
+        }
+      } catch (e: any) {
+        console.error(e);
+      }
+    });
   };
 
   const leaveSession = () => {
@@ -247,32 +346,18 @@ const Meeting = () => {
   //   setIsAvatar(true);
   // };
 
-  type showArrowProps = {
-    from: string;
-    to: string;
-  };
-
-  const datass: Array<showArrowProps> = [
-    { from: "a", to: "d" },
-    { from: "b", to: "e" },
-    { from: "c", to: "f" },
-    { from: "d", to: "a" },
-    { from: "e", to: "b" },
-    { from: "f", to: "c" },
-  ];
-
-  const showArrow = (datas: Array<showArrowProps>) => {
+  const showArrow = (datas: Array<chooseResult>) => {
     const acc = [-2, -1, 0, 1, 2, 3];
-    datas.forEach(({ from, to }, idx) => {
-      const fromUser = document.getElementById(from) as HTMLDivElement;
-      const toUser = document.getElementById(to) as HTMLDivElement;
+    datas.forEach(({ sender, receiver }, idx) => {
+      const fromUser = document.getElementById(sender) as HTMLDivElement;
+      const toUser = document.getElementById(receiver) as HTMLDivElement;
       const arrowContainer = fromUser?.querySelector(
         ".arrow-container",
       ) as HTMLDivElement;
       const arrowBody = arrowContainer?.querySelector(
         ".arrow-body",
       ) as HTMLDivElement;
-      console.log(from, to);
+      console.log(sender, receiver);
       console.log(fromUser, toUser, arrowContainer, arrowBody);
 
       const rect1 = fromUser.getBoundingClientRect();
@@ -313,7 +398,7 @@ const Meeting = () => {
     });
   };
 
-  const changeLoveStickMode = () => {
+  const changeLoveStickMode = (datas: Array<chooseResult>) => {
     const videoContainer =
       document.getElementsByClassName("video-container")[0];
     const videoElements = document.querySelectorAll("video");
@@ -328,7 +413,7 @@ const Meeting = () => {
     });
     if (!isLoveMode) {
       videoContainer.classList.add("love-stick");
-      showArrow(datass);
+      showArrow(datas);
       setIsLoveMode(true);
       return;
     }
@@ -352,7 +437,7 @@ const Meeting = () => {
     }
   };
 
-  const openKeyword = () => {
+  const openKeyword = (random: number) => {
     const keyword = [
       "사랑",
       "행복",
@@ -365,10 +450,19 @@ const Meeting = () => {
       "힘듦",
       "평화",
       "음주",
+      "이상형",
+      "결혼",
+      "데이트 장소",
+      "연상 연하",
+      "MBTI",
+      "혈액형",
+      "취미",
+      "좋아하는 음식",
+      "민트초코",
     ];
-    const randomNum = Math.floor(Math.random() * 11);
-    const keywordElement = document.getElementsByClassName("keyword")[0];
-    keywordElement.innerHTML = keyword[randomNum];
+    if (keywordRef.current) {
+      keywordRef.current.innerText = keyword[random];
+    }
   };
 
   const setGrayScale = () => {
@@ -401,12 +495,13 @@ const Meeting = () => {
     setIsChooseMode(true);
   };
 
-  const setOneToOneMode = () => {
+  const setOneToOneMode = (lover: string) => {
     const videoContainer =
       document.getElementsByClassName("video-container")[0];
     const videoElements = document.querySelectorAll("video");
     const canvasElements = document.querySelectorAll("canvas");
     const streamElements = document.getElementsByClassName("stream-container");
+    const loverElement = document.getElementById(lover);
     videoElements.forEach(video => {
       video.style.width = "100%";
       video.style.height = "100%";
@@ -417,18 +512,32 @@ const Meeting = () => {
     });
     if (!isOneToOneMode) {
       videoContainer.classList.add("one-one-four");
-      for (let i = 0; i < streamElements.length; i++) {
-        const className = String.fromCharCode(97 + i);
+      streamElements[0].classList.add("a");
+      loverElement?.classList.add("b");
+      let acc = 2;
+      for (let i = 1; i < streamElements.length; i++) {
+        if (streamElements[i].classList.contains("b")) {
+          continue;
+        }
+        const className = String.fromCharCode(97 + acc);
         streamElements[i].classList.add(className);
+        acc += 1;
       }
       setIsOneToOneMode(true);
       return;
     }
     videoContainer.classList.remove("one-one-four");
-    for (let i = 0; i < streamElements.length; i++) {
-      const className = String.fromCharCode(97 + i);
+    streamElements[0].classList.remove("a");
+    let acc = 2;
+    for (let i = 1; i < streamElements.length; i++) {
+      if (streamElements[i].classList.contains("b")) {
+        continue;
+      }
+      const className = String.fromCharCode(97 + acc);
       streamElements[i].classList.remove(className);
+      acc += 1;
     }
+    loverElement?.classList.remove("b");
     setIsOneToOneMode(false);
   };
 
@@ -454,16 +563,16 @@ const Meeting = () => {
           />
           <div className="btn-container">
             <button onClick={handleSignal}>캠 오픈</button>
-            <button onClick={changeLoveStickMode}>사랑의 작대기</button>
+            {/* <button onClick={changeLoveStickMode}>사랑의 작대기</button> */}
             <button onClick={openKeyword}>키워드</button>
             <button onClick={setGrayScale}>흑백으로 만들기</button>
             <button onClick={setChooseMode}>선택모드</button>
-            <button onClick={setOneToOneMode}>1:1모드</button>
-            <button onClick={() => showArrow(datass)}>그냥 연결</button>
+            {/* <button onClick={setOneToOneMode}>1:1모드</button> */}
+            {/* <button onClick={() => showArrow(datass)}>그냥 연결</button> */}
           </div>
         </div>
         <div className="keyword-wrapper">
-          <p className="keyword"></p>
+          <p className="keyword" ref={keywordRef}></p>
         </div>
         <div ref={captureRef} className="hidden">
           <UserVideoComponent2 />
@@ -476,7 +585,7 @@ const Meeting = () => {
               className="stream-container col-md-6 col-xs-6 pub"
               // onClick={() => handleMainVideoStream(publisher)}
             >
-              <UserVideoComponent streamManager={publisher} />
+              <UserVideoComponent streamManager={publisher} socket={socket} />
             </div>
           ) : null}
           {subscribers.map(sub => (
@@ -489,6 +598,7 @@ const Meeting = () => {
               <UserVideoComponent
                 key={sub.stream.streamId}
                 streamManager={sub}
+                socket={socket}
               />
             </div>
           ))}
