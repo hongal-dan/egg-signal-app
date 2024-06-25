@@ -25,7 +25,7 @@ class Avatar {
   }
 
   async init() {
-    const url = "/avatar/raccoon_head.glb";
+    const url = "/avatar/rabbit.glb";
     const gltf: GLTF = await new Promise(resolve => {
       const loader = new GLTFLoader();
       loader.load(url, (gltf: GLTF) => {
