@@ -65,7 +65,7 @@ class Avatar {
   }
 }
 
-function UserVideoComponent() {
+function UserVideoComponent2() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [avatar] = useState<Avatar | null>(new Avatar());
   const mindarThreeRef = useRef<MindARThree | null>(null);
@@ -113,4 +113,4 @@ function UserVideoComponent() {
   );
 }
 
-export default React.memo(UserVideoComponent);
+export default React.memo(UserVideoComponent2);
