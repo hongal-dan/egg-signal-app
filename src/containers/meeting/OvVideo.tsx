@@ -1,6 +1,6 @@
 import React from "react";
 import { StreamManager } from "openvidu-browser";
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import "../../styles/App.css";
 
 type Props = {
@@ -14,7 +14,7 @@ const OpenViduVideoComponent = (props: Props) => {
 
   useEffect(() => {
     if (props.streamManager && videoRef.current) {
-      console.log('Adding video element to stream manager:', videoRef.current);
+      console.log("Adding video element to stream manager:", videoRef.current);
       props.streamManager.addVideoElement(videoRef.current);
     }
   }, [videoRef, props.streamManager]);
@@ -23,7 +23,11 @@ const OpenViduVideoComponent = (props: Props) => {
     <>
       <div className="cam-wrapper" ref={containerRef}>
         <video autoPlay={true} ref={videoRef}></video>
-        <div className="choose-btn hidden" onClick={()=>{}} ref={btnRef}></div>
+        <div
+          className="choose-btn hidden"
+          onClick={() => {}}
+          ref={btnRef}
+        ></div>
       </div>
     </>
   );

@@ -1,47 +1,34 @@
 "use client";
-import axios from "axios";
 import React, { useEffect, useState, useRef } from "react";
 import UserVideoComponent from "@/containers/meeting/UserVideoComponent";
 import UserVideoComponent2 from "../../../containers/main/UserVideo";
-import {
-  OpenVidu,
-  Session,
-  Publisher,
-  StreamManager,
-  Device,
-  Subscriber,
-} from "openvidu-browser";
+import { OpenVidu, Session, Publisher, StreamManager } from "openvidu-browser";
 import io from "socket.io-client";
 
-type Props = {
-  sessionId: string;
-  token: string;
-  participantName: string;
-};
+// type Props = {
+//   sessionId: string;
+//   token: string;
+//   participantName: string;
+// };
 
-const Meeting = (props: Props) => {
-  const [myUserName, setMyUserName] = useState<string>(
-    "Participant" + Math.floor(Math.random() * 100),
-  );
+const Meeting = () => {
   const [session, setSession] = useState<Session | undefined>(undefined);
-  const [mainStreamManager, setMainStreamManager] = useState<any>(undefined);
   const [publisher, setPublisher] = useState<Publisher | undefined>(undefined);
   const [subscribers, setSubscribers] = useState<StreamManager[]>([]);
-  const [currentVideoDevice, setCurrentVideoDevice] = useState<Device | null>(
-    null,
-  );
-  const [isAvatar, setIsAvatar] = useState<boolean>(true);
+
+  // const [isAvatar, setIsAvatar] = useState<boolean>(true);
   const [isLoveMode, setIsLoveMode] = useState<boolean>(false);
   const [isMatched, setIsMatched] = useState<boolean>(true);
   const [isChooseMode, setIsChooseMode] = useState<boolean>(false);
   const [isOneToOneMode, setIsOneToOneMode] = useState<boolean>(false);
-  const videoRef = useRef<HTMLVideoElement>(null);
+  // const videoRef = useRef<HTMLVideoElement>(null);
   const captureRef = useRef<HTMLDivElement>(null);
 
   const url = process.env.NEXT_PUBLIC_API_SERVER;
   const socket = io(`${url}/meeting`, {
     transports: ["websocket"],
   });
+  console.log(socket);
 
   // const socket = JSON.parse(sessionStorage.getItem('session')!)
 
@@ -112,14 +99,14 @@ const Meeting = (props: Props) => {
     return videoTracks[0]; // 비디오 트랙을 반환
   };
 
-  const startStreamingCanvas = () => {
-    const videoTrack = captureCanvas();
-    if (videoTrack && videoRef.current) {
-      const stream = new MediaStream([videoTrack]);
-      videoRef.current.srcObject = stream;
-      videoRef.current.play();
-    }
-  };
+  // const startStreamingCanvas = () => {
+  //   const videoTrack = captureCanvas();
+  //   if (videoTrack && videoRef.current) {
+  //     const stream = new MediaStream([videoTrack]);
+  //     videoRef.current.srcObject = stream;
+  //     videoRef.current.play();
+  //   }
+  // };
   // useEffect(() => {
   //   startStreamingCanvas();
   // }, []);
@@ -153,6 +140,7 @@ const Meeting = (props: Props) => {
     const { sessionId, token, participantName } = JSON.parse(
       sessionStorage.getItem("ovInfo")!,
     );
+    console.log(sessionId);
     // Connect to the session
     newSession
       .connect(token, { clientData: participantName })
@@ -221,33 +209,31 @@ const Meeting = (props: Props) => {
 
     setSession(undefined);
     setSubscribers([]);
-    setMyUserName("Participant" + Math.floor(Math.random() * 100));
-    // setMainStreamManager(undefined);
     setPublisher(undefined);
   };
 
-  const openReal = () => {
-    console.log("openReal");
-    const videoElements = document.querySelectorAll("video");
-    const canvasElements = document.querySelectorAll("canvas");
-    if (isAvatar) {
-      videoElements.forEach(video => {
-        video.style.display = "block";
-      });
-      canvasElements.forEach(canvas => {
-        canvas.style.display = "none";
-      });
-      setIsAvatar(false);
-      return;
-    }
-    videoElements.forEach(video => {
-      video.style.display = "none";
-    });
-    canvasElements.forEach(canvas => {
-      canvas.style.display = "block";
-    });
-    setIsAvatar(true);
-  };
+  // const openReal = () => {
+  //   console.log("openReal");
+  //   const videoElements = document.querySelectorAll("video");
+  //   const canvasElements = document.querySelectorAll("canvas");
+  //   if (isAvatar) {
+  //     videoElements.forEach(video => {
+  //       video.style.display = "block";
+  //     });
+  //     canvasElements.forEach(canvas => {
+  //       canvas.style.display = "none";
+  //     });
+  //     setIsAvatar(false);
+  //     return;
+  //   }
+  //   videoElements.forEach(video => {
+  //     video.style.display = "none";
+  //   });
+  //   canvasElements.forEach(canvas => {
+  //     canvas.style.display = "block";
+  //   });
+  //   setIsAvatar(true);
+  // };
 
   type showArrowProps = {
     from: string;
@@ -284,12 +270,12 @@ const Meeting = (props: Props) => {
       const centerY1 = rect1.top + rect1.height / 2 + acc[idx] * 10;
       const centerX2 = rect2.left + rect2.width / 2 + acc[idx] * 10;
       const centerY2 = rect2.top + rect2.height / 2 + acc[idx] * 10;
-      const halfWidth = Math.abs(rect1.right - rect1.left) * (3 / 4);
+      // const halfWidth = Math.abs(rect1.right - rect1.left) * (3 / 4);
 
       const deltaX = centerX2 - centerX1;
       const deltaY = centerY2 - centerY1;
       const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-      const arrowWidth = distance - halfWidth;
+      // const arrowWidth = distance - halfWidth;
 
       if (idx > 2) {
         arrowBody.style.backgroundColor = "#33C4D7";
