@@ -1,8 +1,9 @@
 'use client';
 import React, { useRef, useEffect } from 'react';
 import OpenViduVideoComponent from './OvVideo';
+import { StreamManager } from 'openvidu-browser';
 
-export default function UserVideoComponent(props: any) {
+export default function UserVideoComponent(props: {streamManager: StreamManager}) {
   const streamComponentRef = useRef<HTMLDivElement>(null);
   const rawData = props.streamManager.stream.connection.data;
 
