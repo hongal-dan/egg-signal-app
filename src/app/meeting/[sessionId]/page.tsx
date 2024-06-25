@@ -2,7 +2,13 @@
 import React, { useEffect, useState, useRef } from "react";
 import UserVideoComponent from "@/containers/meeting/UserVideoComponent";
 import UserVideoComponent2 from "../../../containers/main/UserVideo";
-import { OpenVidu, Session, Publisher, StreamManager } from "openvidu-browser";
+import {
+  OpenVidu,
+  Session,
+  Publisher,
+  StreamManager,
+  Device,
+} from "openvidu-browser";
 import io from "socket.io-client";
 import { useRouter } from "next/navigation";
 
@@ -33,7 +39,7 @@ const Meeting = () => {
   const socket = io(`${url}/meeting`, {
     transports: ["websocket"],
   });
-  console.log(socket);
+  console.log(socket, mainStreamManager, currentVideoDevice);
   const router = useRouter();
   // const socket = JSON.parse(sessionStorage.getItem('session')!)
 
