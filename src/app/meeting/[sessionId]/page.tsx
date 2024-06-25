@@ -402,7 +402,7 @@ const Meeting = (props: Props) => {
           ) : null}
           {subscribers.map((sub, i) => (
             <div
-              key={sub.id}
+              key={i}
               className="stream-container col-md-6 col-xs-6 sub"
               // onClick={() => handleMainVideoStream(sub)}
             >
