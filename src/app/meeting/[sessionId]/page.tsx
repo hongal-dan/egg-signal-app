@@ -124,6 +124,23 @@ const Meeting = (props: Props) => {
   //   startStreamingCanvas();
   // }, []);
 
+  const handleSignal = () => {
+    if (publisher) {
+      navigator.mediaDevices.getUserMedia({ video: true })
+        .then(stream => {
+          const webcamTrack = stream.getVideoTracks()[0];
+          publisher.replaceTrack(webcamTrack).then(() => {
+            console.log('Track replaced with webcam track');
+          }).catch(error => {
+            console.error('Error replacing track:', error);
+          });
+        })
+        .catch(error => {
+          console.error('Error accessing webcam:', error);
+        });
+    }
+  };
+
   const joinSession = () => {
     const OV = new OpenVidu();
 
@@ -434,7 +451,7 @@ const Meeting = (props: Props) => {
             value="Leave session"
           />
           <div className="btn-container">
-            <button onClick={openReal}>캠 오픈</button>
+            <button onClick={handleSignal}>캠 오픈</button>
             <button onClick={changeLoveStickMode}>사랑의 작대기</button>
             <button onClick={openKeyword}>키워드</button>
             <button onClick={setGrayScale}>흑백으로 만들기</button>
