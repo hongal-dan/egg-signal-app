@@ -1,5 +1,5 @@
 "use client";
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState } from "react";
 import UserVideoComponent2 from "./UserVideo";
 import FriendList from "./FriendList";
 import Notifications from "./Notifications";
@@ -7,7 +7,6 @@ import io from "socket.io-client";
 import { useRouter } from "next/navigation";
 
 interface MainContentProps {
-  // userId: string;
   nickname: string;
 }
 
@@ -22,12 +21,6 @@ const MainContent = ({ nickname }: MainContentProps) => {
   const socket = io(`${url}/meeting`, {
     transports: ["websocket"],
   });
-  const videoRef = useRef<HTMLVideoElement>(null);
-  // const [OVInfo, setOVInfo] = useState<OVInfo>({
-  //   sessionId: "",
-  //   token: "",
-  //   participantName: "",
-  // });
 
   const router = useRouter();
 
@@ -45,40 +38,13 @@ const MainContent = ({ nickname }: MainContentProps) => {
     }
   };
 
-  const captureCanvas = () => {
-    const canvas = document.querySelector("canvas");
-    const stream = canvas?.captureStream(30); // 30 FPS로 캡처
-    console.log("Captured video track:", stream!.getVideoTracks()[0]);
-    return stream?.getVideoTracks()[0]; // 비디오 트랙을 반환
-  };
-
-  const startStreamingCanvas = () => {
-    const videoTrack = captureCanvas();
-    if (videoTrack && videoRef.current) {
-      const stream = new MediaStream([videoTrack]);
-      videoRef.current.srcObject = stream;
-      videoRef.current.play();
-    }
-  };
-  useEffect(() => {
-    startStreamingCanvas();
-  }, []);
-
-  // 토큰에서 유저 닉네임 가져오기
-  // const getUserName = () => {
-  //   return nickname;
-  // };
-
   const handleLoadingOn: React.MouseEventHandler<HTMLButtonElement> = () => {
-    // todo: 매칭 api 요청
     socket.emit("ready", { participantName: nickname });
     if (startButton.current) startButton.current.disabled = true;
     setIsLoading(true);
     socket.on("startCall", async ovInfo => {
       console.log(ovInfo);
-      // setOVInfo(ovInfo);
       sessionStorage.setItem("ovInfo", JSON.stringify(ovInfo)); // 세션 스토리지에 저장
-      // sessionStorage.setItem('session', JSON.stringify(socket));
       setIsLoading(false);
       socket.disconnect();
       router.push(`/meeting/${ovInfo.sessionId}`);
@@ -89,7 +55,6 @@ const MainContent = ({ nickname }: MainContentProps) => {
     socket.emit("cancel", { participantName: nickname });
     if (startButton.current) startButton.current.disabled = false;
     setIsLoading(false);
-    // todo: 매칭 취소 api 요청
   };
 
   const toggleFriendList = () => {
@@ -116,7 +81,6 @@ const MainContent = ({ nickname }: MainContentProps) => {
         </div>
       </div>
       <UserVideoComponent2 />
-      <video className=" w-5 h-5" ref={videoRef}></video>
       <div className="grid grid-rows-2">
         <label className="inline-flex items-center justify-center cursor-pointer">
           <input
