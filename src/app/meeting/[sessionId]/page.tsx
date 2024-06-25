@@ -306,6 +306,10 @@ const Meeting = () => {
           setOneToOneMode(parseData); // Todo: 마이크 음소거 추가해야함
           setTimeout(() => setOneToOneMode(parseData), 60000); // 1분 후 원 위치
         }
+        else {
+          muteAudio();
+          setTimeout(() => unMuteAudio(), 60000); // 1분 후 음소거 해제
+        }
       } catch (e: any) {
         console.error(e);
       }
@@ -562,9 +566,9 @@ const Meeting = () => {
             value="Leave session"
           />
           <div className="btn-container">
-            <button onClick={handleSignal}>캠 오픈</button>
+            {/* <button onClick={handleSignal}>캠 오픈</button> */}
             {/* <button onClick={changeLoveStickMode}>사랑의 작대기</button> */}
-            <button onClick={openKeyword}>키워드</button>
+            {/* <button onClick={openKeyword}>키워드</button> */}
             <button onClick={setGrayScale}>흑백으로 만들기</button>
             <button onClick={setChooseMode}>선택모드</button>
             {/* <button onClick={setOneToOneMode}>1:1모드</button> */}
