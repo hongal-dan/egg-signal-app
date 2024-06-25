@@ -49,8 +49,6 @@ const MainContent = ({nickname}: MainContentProps) => {
     const canvas = document.querySelector("canvas");
     const stream = canvas?.captureStream(30); // 30 FPS로 캡처
     console.log('Captured video track:', stream!.getVideoTracks()[0]);
-    canvas!.style.display = "none";
-    canvas!.style.backgroundColor = "transparent";
     return stream?.getVideoTracks()[0]; // 비디오 트랙을 반환
 
   };
