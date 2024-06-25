@@ -18,7 +18,7 @@ const MainContent = ({nickname}: MainContentProps) => {
     useState<boolean>(false);
   const [isNotiVisible, setIsNotiVisible] = useState<boolean>(false);
   const startButton = useRef<HTMLButtonElement>(null);
-  const url = process.env.NEXT_PUBLIC_SOCKET_URL;
+  const url = process.env.NEXT_PUBLIC_API_SERVER;
   const socket = io(`${url}/meeting`, {
     transports: ["websocket"],
   });
