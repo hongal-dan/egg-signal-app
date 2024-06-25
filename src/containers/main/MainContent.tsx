@@ -47,8 +47,10 @@ const MainContent = ({nickname}: MainContentProps) => {
 
   const captureCanvas = () => {
     const canvas = document.querySelector("canvas");
-    const stream = canvas?.captureStream(5); // 30 FPS로 캡처
+    const stream = canvas?.captureStream(30); // 30 FPS로 캡처
     console.log('Captured video track:', stream!.getVideoTracks()[0]);
+    canvas!.style.display = "none";
+    canvas!.style.backgroundColor = "transparent";
     return stream?.getVideoTracks()[0]; // 비디오 트랙을 반환
 
   };
@@ -59,6 +61,7 @@ const MainContent = ({nickname}: MainContentProps) => {
       const stream = new MediaStream([videoTrack]);
       videoRef.current.srcObject = stream;
       videoRef.current.play();
+      
     }
   };
   useEffect(() => {
@@ -119,7 +122,7 @@ const MainContent = ({nickname}: MainContentProps) => {
         </div>
       </div>
       <UserVideoComponent2 />
-      <video ref={videoRef}></video>
+      <video className=" w-5 h-5" ref={videoRef}></video>
       <div className="grid grid-rows-2">
         <label className="inline-flex items-center justify-center cursor-pointer">
           <input
