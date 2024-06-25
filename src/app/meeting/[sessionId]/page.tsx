@@ -34,7 +34,7 @@ const Meeting = () => {
 
   // const [isAvatar, setIsAvatar] = useState<boolean>(true);
   const [isLoveMode, setIsLoveMode] = useState<boolean>(false);
-  const [isMatched, setIsMatched] = useState<boolean>(true);
+  // const [isMatched, setIsMatched] = useState<boolean>(true);
   const [isChooseMode, setIsChooseMode] = useState<boolean>(false);
   const [isOneToOneMode, setIsOneToOneMode] = useState<boolean>(false);
   // const videoRef = useRef<HTMLVideoElement>(null);
@@ -305,6 +305,8 @@ const Meeting = () => {
       try {
         const parseData = JSON.parse(message) as string;
         console.log(parseData);
+        
+        // 매칭 된 사람의 경우
         if (parseData != "0") {
           const loverElement = document.getElementById(
             parseData,
@@ -331,6 +333,7 @@ const Meeting = () => {
             }, 60000); // 1분 후 원 위치
           });
         } 
+        // 매칭 안된 사람들의 경우
         else // Todo: 매칭 안된 사람들은 누가 매칭되었는 지 알아야되는데 ,, 그래야 흑백 처리를 하는데 ,,,,
         {
           muteAudio();
