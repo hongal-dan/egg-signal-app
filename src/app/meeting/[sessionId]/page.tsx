@@ -137,10 +137,10 @@ const Meeting = (props: Props) => {
     newSession
       .connect(token, { clientData: participantName })
       .then(async () => {
-        const arStream = captureCanvas();
+        // const arStream = captureCanvas();
         const publisher = await OV.initPublisherAsync(undefined, {
           audioSource: undefined,
-          videoSource: arStream,
+          videoSource: undefined,
           publishAudio: true,
           publishVideo: true,
           resolution: "640x480",
