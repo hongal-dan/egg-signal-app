@@ -121,9 +121,9 @@ const Meeting = (props: Props) => {
       videoRef.current.play();
     }
   };
-  useEffect(() => {
-    startStreamingCanvas();
-  }, []);
+  // useEffect(() => {
+  //   startStreamingCanvas();
+  // }, []);
 
   const joinSession = () => {
     const OV = new OpenVidu();
@@ -431,8 +431,8 @@ const Meeting = (props: Props) => {
         <div className="keyword-wrapper">
           <p className="keyword"></p>
         </div>
-        <UserVideoComponent2 />
-        <video ref={videoRef}></video>
+        {/* <UserVideoComponent2 /> */}
+        {/* <video ref={videoRef}></video> */}
 
         <div className="col-md-6 video-container">
           {publisher !== undefined ? (
