@@ -66,6 +66,13 @@ const Meeting = (props: Props) => {
     );
   };
 
+  const captureCanvas = () => {
+    const canvas = document.querySelector("canvas");
+    const stream = canvas?.captureStream(30); // 30 FPS로 캡처
+    return stream?.getVideoTracks()[0]; // 비디오 트랙을 반환
+
+  };
+
   const joinSession = () => {
     const OV = new OpenVidu();
 
@@ -74,15 +81,14 @@ const Meeting = (props: Props) => {
     const { sessionId, token, participantName } = JSON.parse(
       sessionStorage.getItem("ovInfo")!,
     );
-    console.log("===========세션에 저장된 오픈비두 ===============")
-    console.log(sessionId, token, participantName);
     // Connect to the session
     newSession
       .connect(token, { clientData: participantName })
       .then(async () => {
+        const arStream = captureCanvas();
         const publisher = await OV.initPublisherAsync(undefined, {
           audioSource: undefined,
-          videoSource: undefined,
+          videoSource: arStream,
           publishAudio: true,
           publishVideo: true,
           resolution: "640x480",
@@ -124,7 +130,6 @@ const Meeting = (props: Props) => {
       const subscriber = newSession.subscribe(event.stream, undefined);
       // 구독한 스트림을 구독자 목록에 추가
       setSubscribers(prevSubscribers => [...prevSubscribers, subscriber]);
-      console.log("setSubscribers", subscribers);
     });
 
     newSession.on("streamDestroyed", event => {
@@ -343,7 +348,11 @@ const Meeting = (props: Props) => {
 
   useEffect(() => {
     joinSession();
-  });
+  }, []);
+
+  useEffect(() => {
+    console.log('subscribers', subscribers);
+  }, [subscribers])
 
   return (
     <div className="container">

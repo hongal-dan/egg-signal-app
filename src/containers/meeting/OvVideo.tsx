@@ -141,6 +141,7 @@ const OpenViduVideoComponent = (props: Props) => {
   return (
     <>
       <div className="cam-wrapper" ref={containerRef}>
+        <video autoPlay={true} ref={videoRef}></video>
         <div className="choose-btn hidden" onClick={()=>{}} ref={btnRef}></div>
       </div>
     </>
