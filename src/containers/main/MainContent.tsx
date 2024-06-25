@@ -22,6 +22,7 @@ const MainContent = ({nickname}: MainContentProps) => {
   const socket = io(`${url}/meeting`, {
     transports: ["websocket"],
   });
+  const videoRef = useRef<HTMLVideoElement>(null)
   // const [OVInfo, setOVInfo] = useState<OVInfo>({
   //   sessionId: "",
   //   token: "",
@@ -43,6 +44,28 @@ const MainContent = ({nickname}: MainContentProps) => {
       setAvatarOn(true);
     }
   };
+
+  const captureCanvas = () => {
+    const canvas = document.querySelector("canvas");
+    const stream = canvas?.captureStream(5); // 30 FPS로 캡처
+    console.log('Captured video track:', stream!.getVideoTracks()[0]);
+    return stream?.getVideoTracks()[0]; // 비디오 트랙을 반환
+
+  };
+
+  const startStreamingCanvas = () => {
+    const videoTrack = captureCanvas();
+    if (videoTrack && videoRef.current) {
+      const stream = new MediaStream([videoTrack]);
+      videoRef.current.srcObject = stream;
+      videoRef.current.play();
+    }
+  };
+  useEffect(() => {
+    startStreamingCanvas();
+  }, []);
+
+
 
   // 토큰에서 유저 닉네임 가져오기
   // const getUserName = () => {
@@ -95,6 +118,7 @@ const MainContent = ({nickname}: MainContentProps) => {
         </div>
       </div>
       <UserVideoComponent />
+      <video ref={videoRef}></video>
       <div className="grid grid-rows-2">
         <label className="inline-flex items-center justify-center cursor-pointer">
           <input
