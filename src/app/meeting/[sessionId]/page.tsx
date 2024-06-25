@@ -4,6 +4,7 @@ import UserVideoComponent from "@/containers/meeting/UserVideoComponent";
 import UserVideoComponent2 from "../../../containers/main/UserVideo";
 import { OpenVidu, Session, Publisher, StreamManager } from "openvidu-browser";
 import io from "socket.io-client";
+import { useRouter } from "next/navigation";
 
 // type Props = {
 //   sessionId: string;
@@ -29,7 +30,7 @@ const Meeting = () => {
     transports: ["websocket"],
   });
   console.log(socket);
-
+  const router = useRouter();
   // const socket = JSON.parse(sessionStorage.getItem('session')!)
 
   // 어떻게든 종료 하면 세션에서 나가게함.
@@ -80,7 +81,7 @@ const Meeting = () => {
       console.error("Canvas element not found");
       return;
     }
-    const stream = canvas?.captureStream(30); // 30 FPS로 캡처
+    const stream = canvas?.captureStream(15); // 30 FPS로 캡처
     if (!stream) {
       console.error("Stream not found");
     }
@@ -210,6 +211,7 @@ const Meeting = () => {
     setSession(undefined);
     setSubscribers([]);
     setPublisher(undefined);
+    router.push("/main");
   };
 
   // const openReal = () => {
