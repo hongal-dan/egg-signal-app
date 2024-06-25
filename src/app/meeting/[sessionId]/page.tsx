@@ -69,16 +69,16 @@ const Meeting = (props: Props) => {
   const captureCanvas = () => {
     const canvas = document.querySelector("canvas");
     if (!canvas) {
-      console.error('Canvas element not found');
+      console.error("Canvas element not found");
       return;
     }
     const stream = canvas.captureStream(30); // 30 FPS로 캡처
     if (!stream) {
-      console.error('Stream not found');
+      console.error("Stream not found");
     }
     const videoTracks = stream.getVideoTracks();
     if (videoTracks.length === 0) {
-      console.error('No video tracks found in the stream');
+      console.error("No video tracks found in the stream");
       return;
     }
     return videoTracks[0]; // 비디오 트랙을 반환
@@ -108,7 +108,7 @@ const Meeting = (props: Props) => {
           mirror: true,
         });
 
-        console.log('Publisher created:', publisher);
+        console.log("Publisher created:", publisher);
         newSession.publish(publisher);
 
         const devices = await OV.getDevices();
@@ -166,24 +166,24 @@ const Meeting = (props: Props) => {
   };
 
   const openReal = () => {
-    console.log('openReal');
-    const videoElements = document.querySelectorAll('video');
-    const canvasElements = document.querySelectorAll('canvas');
+    console.log("openReal");
+    const videoElements = document.querySelectorAll("video");
+    const canvasElements = document.querySelectorAll("canvas");
     if (isAvatar) {
-      videoElements.forEach((video) => {
-        video.style.display = 'block';
+      videoElements.forEach(video => {
+        video.style.display = "block";
       });
-      canvasElements.forEach((canvas) => {
-        canvas.style.display = 'none';
+      canvasElements.forEach(canvas => {
+        canvas.style.display = "none";
       });
       setIsAvatar(false);
       return;
     }
-    videoElements.forEach((video) => {
-      video.style.display = 'none';
+    videoElements.forEach(video => {
+      video.style.display = "none";
     });
-    canvasElements.forEach((canvas) => {
-      canvas.style.display = 'block';
+    canvasElements.forEach(canvas => {
+      canvas.style.display = "block";
     });
     setIsAvatar(true);
   };
@@ -194,12 +194,12 @@ const Meeting = (props: Props) => {
   };
 
   const datass: Array<showArrowProps> = [
-    { from: 'a', to: 'd' },
-    { from: 'b', to: 'e' },
-    { from: 'c', to: 'f' },
-    { from: 'd', to: 'a' },
-    { from: 'e', to: 'b' },
-    { from: 'f', to: 'c' },
+    { from: "a", to: "d" },
+    { from: "b", to: "e" },
+    { from: "c", to: "f" },
+    { from: "d", to: "a" },
+    { from: "e", to: "b" },
+    { from: "f", to: "c" },
   ];
 
   const showArrow = (datas: Array<showArrowProps>) => {
@@ -208,10 +208,10 @@ const Meeting = (props: Props) => {
       const fromUser = document.getElementById(from) as HTMLDivElement;
       const toUser = document.getElementById(to) as HTMLDivElement;
       const arrowContainer = fromUser?.querySelector(
-        '.arrow-container'
+        ".arrow-container",
       ) as HTMLDivElement;
       const arrowBody = arrowContainer?.querySelector(
-        '.arrow-body'
+        ".arrow-body",
       ) as HTMLDivElement;
       console.log(from, to);
       console.log(fromUser, toUser, arrowContainer, arrowBody);
@@ -231,118 +231,118 @@ const Meeting = (props: Props) => {
       const arrowWidth = distance - halfWidth;
 
       if (idx > 2) {
-        arrowBody.style.backgroundColor = '#33C4D7';
+        arrowBody.style.backgroundColor = "#33C4D7";
         const arrowHead = arrowBody.querySelector(
-          '.arrow-head'
+          ".arrow-head",
         ) as HTMLDivElement;
-        arrowHead.style.borderBottom = '20px solid #33C4D7';
+        arrowHead.style.borderBottom = "20px solid #33C4D7";
       }
-      arrowBody.style.width = distance + 'px';
-      arrowContainer.style.top = centerY1 - rect1.top + 'px';
-      arrowContainer.style.left = centerX1 - rect1.left + 'px';
+      arrowBody.style.width = distance + "px";
+      arrowContainer.style.top = centerY1 - rect1.top + "px";
+      arrowContainer.style.left = centerX1 - rect1.left + "px";
       arrowContainer.style.transform = `rotate(${
         (Math.atan2(deltaY, deltaX) * 180) / Math.PI
       }deg)`;
-      arrowContainer.classList.remove('hidden');
+      arrowContainer.classList.remove("hidden");
     });
   };
 
   const hideArrow = () => {
-    const arrowContainers = document.querySelectorAll('.arrow-container');
-    arrowContainers.forEach((arrowContainer) => {
-      arrowContainer.classList.add('hidden');
+    const arrowContainers = document.querySelectorAll(".arrow-container");
+    arrowContainers.forEach(arrowContainer => {
+      arrowContainer.classList.add("hidden");
     });
   };
 
   const changeLoveStickMode = () => {
     const videoContainer =
-      document.getElementsByClassName('video-container')[0];
-    const videoElements = document.querySelectorAll('video');
-    const canvasElements = document.querySelectorAll('canvas');
-    videoElements.forEach((video) => {
-      video.style.width = '100%';
-      video.style.height = '100%';
+      document.getElementsByClassName("video-container")[0];
+    const videoElements = document.querySelectorAll("video");
+    const canvasElements = document.querySelectorAll("canvas");
+    videoElements.forEach(video => {
+      video.style.width = "100%";
+      video.style.height = "100%";
     });
-    canvasElements.forEach((canvas) => {
-      canvas.style.width = '100%';
-      canvas.style.height = '100%';
+    canvasElements.forEach(canvas => {
+      canvas.style.width = "100%";
+      canvas.style.height = "100%";
     });
     if (!isLoveMode) {
-      videoContainer.classList.add('love-stick');
+      videoContainer.classList.add("love-stick");
       showArrow(datass);
       setIsLoveMode(true);
       return;
     }
-    videoContainer.classList.remove('love-stick');
+    videoContainer.classList.remove("love-stick");
     hideArrow();
     setIsLoveMode(false);
   };
 
   const openKeyword = () => {
     const keyword = [
-      '사랑',
-      '행복',
-      '기쁨',
-      '슬픔',
-      '화남',
-      '놀람',
-      '두려움',
-      '짜증',
-      '힘듦',
-      '평화',
-      '음주',
+      "사랑",
+      "행복",
+      "기쁨",
+      "슬픔",
+      "화남",
+      "놀람",
+      "두려움",
+      "짜증",
+      "힘듦",
+      "평화",
+      "음주",
     ];
     const randomNum = Math.floor(Math.random() * 11);
-    const keywordElement = document.getElementsByClassName('keyword')[0];
+    const keywordElement = document.getElementsByClassName("keyword")[0];
     keywordElement.innerHTML = keyword[randomNum];
   };
 
   const setGrayScale = () => {
-    const camElement = document.getElementsByClassName('cam-wrapper')[0];
+    const camElement = document.getElementsByClassName("cam-wrapper")[0];
     if (isMatched) {
-      camElement.classList.add('black-white');
+      camElement.classList.add("black-white");
       setIsMatched(false);
       return;
     }
-    camElement.classList.remove('black-white');
+    camElement.classList.remove("black-white");
     setIsMatched(true);
   };
 
   const setChooseMode = () => {
     // 선택 모드 일 때는 마우스 하버시에 선택 가능한 상태로 변경
     // 클릭 시에 선택된 상태로 변경
-    const chooseBtns = document.getElementsByClassName('choose-btn');
+    const chooseBtns = document.getElementsByClassName("choose-btn");
     const btnArray = Array.from(chooseBtns);
     if (isChooseMode) {
-      btnArray.forEach((btn) => {
-        btn.classList.add('hidden');
+      btnArray.forEach(btn => {
+        btn.classList.add("hidden");
       });
 
       setIsChooseMode(false);
       return;
     }
-    btnArray.forEach((btn) => {
-      btn.classList.remove('hidden');
+    btnArray.forEach(btn => {
+      btn.classList.remove("hidden");
     });
     setIsChooseMode(true);
   };
 
   const setOneToOneMode = () => {
     const videoContainer =
-      document.getElementsByClassName('video-container')[0];
-    const videoElements = document.querySelectorAll('video');
-    const canvasElements = document.querySelectorAll('canvas');
-    const streamElements = document.getElementsByClassName('stream-container');
-    videoElements.forEach((video) => {
-      video.style.width = '100%';
-      video.style.height = '100%';
+      document.getElementsByClassName("video-container")[0];
+    const videoElements = document.querySelectorAll("video");
+    const canvasElements = document.querySelectorAll("canvas");
+    const streamElements = document.getElementsByClassName("stream-container");
+    videoElements.forEach(video => {
+      video.style.width = "100%";
+      video.style.height = "100%";
     });
-    canvasElements.forEach((canvas) => {
-      canvas.style.width = '100%';
-      canvas.style.height = '100%';
+    canvasElements.forEach(canvas => {
+      canvas.style.width = "100%";
+      canvas.style.height = "100%";
     });
     if (!isOneToOneMode) {
-      videoContainer.classList.add('one-one-four');
+      videoContainer.classList.add("one-one-four");
       for (let i = 0; i < streamElements.length; i++) {
         const className = String.fromCharCode(97 + i);
         streamElements[i].classList.add(className);
@@ -350,7 +350,7 @@ const Meeting = (props: Props) => {
       setIsOneToOneMode(true);
       return;
     }
-    videoContainer.classList.remove('one-one-four');
+    videoContainer.classList.remove("one-one-four");
     for (let i = 0; i < streamElements.length; i++) {
       const className = String.fromCharCode(97 + i);
       streamElements[i].classList.remove(className);
@@ -363,8 +363,8 @@ const Meeting = (props: Props) => {
   }, []);
 
   useEffect(() => {
-    console.log('subscribers', subscribers);
-  }, [subscribers])
+    console.log("subscribers", subscribers);
+  }, [subscribers]);
 
   return (
     <div className="container">
@@ -397,7 +397,7 @@ const Meeting = (props: Props) => {
               className="stream-container col-md-6 col-xs-6 pub"
               // onClick={() => handleMainVideoStream(publisher)}
             >
-              <UserVideoComponent streamManager={publisher}/>
+              <UserVideoComponent streamManager={publisher} />
             </div>
           ) : null}
           {subscribers.map((sub, i) => (
@@ -407,7 +407,10 @@ const Meeting = (props: Props) => {
               // onClick={() => handleMainVideoStream(sub)}
             >
               <span>{sub.id}</span>
-              <UserVideoComponent streamManager={sub}/>
+              <UserVideoComponent
+                key={sub.stream.streamId}
+                streamManager={sub}
+              />
             </div>
           ))}
         </div>
