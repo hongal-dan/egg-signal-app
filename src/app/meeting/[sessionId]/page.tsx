@@ -11,8 +11,7 @@ import {
   Device,
   Subscriber,
 } from "openvidu-browser";
-
-// import io from "socket.io-client";
+import io from "socket.io-client";
 
 type Props = {
   sessionId: string;
@@ -39,9 +38,10 @@ const Meeting = (props: Props) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const captureRef = useRef<HTMLDivElement>(null);
 
-  // const socket = io("http://localhost:5002/meeting", {
-  //   transports: ["websocket"],
-  // });
+  const url = process.env.NEXT_PUBLIC_API_SERVER;
+  const socket = io(`${url}/meeting`, {
+    transports: ["websocket"],
+  });
 
   // const socket = JSON.parse(sessionStorage.getItem('session')!)
 
@@ -126,17 +126,21 @@ const Meeting = (props: Props) => {
 
   const handleSignal = () => {
     if (publisher) {
-      navigator.mediaDevices.getUserMedia({ video: true })
+      navigator.mediaDevices
+        .getUserMedia({ video: true })
         .then(stream => {
           const webcamTrack = stream.getVideoTracks()[0];
-          publisher.replaceTrack(webcamTrack).then(() => {
-            console.log('Track replaced with webcam track');
-          }).catch(error => {
-            console.error('Error replacing track:', error);
-          });
+          publisher
+            .replaceTrack(webcamTrack)
+            .then(() => {
+              console.log("Track replaced with webcam track");
+            })
+            .catch(error => {
+              console.error("Error replacing track:", error);
+            });
         })
         .catch(error => {
-          console.error('Error accessing webcam:', error);
+          console.error("Error accessing webcam:", error);
         });
     }
   };
