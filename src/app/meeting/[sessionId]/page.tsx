@@ -288,25 +288,51 @@ const Meeting = () => {
       }
     });
 
+    // 선택 결과 받고 사랑의 작대기 모드로 변경
     socket.on("chooseResult", (message: string) => {
       try {
         const parseData = JSON.parse(message) as Array<chooseResult>;
         console.log(parseData);
         changeLoveStickMode(parseData);
+        setTimeout(() => changeLoveStickMode(parseData), 10000); // 10초 후 원 위치
       } catch (e: any) {
         console.error(e);
       }
     });
 
+    // 선택 결과 받고 1:1 모드로 변경
     socket.on("cupidResult", message => {
       try {
         const parseData = JSON.parse(message) as string;
         console.log(parseData);
         if (parseData != "0") {
-          setOneToOneMode(parseData); // Todo: 마이크 음소거 추가해야함
-          setTimeout(() => setOneToOneMode(parseData), 60000); // 1분 후 원 위치
-        }
-        else {
+          const loverElement = document.getElementById(
+            parseData,
+          ) as HTMLDivElement;
+          const subElements = Array.from(
+            document.getElementsByClassName("sub"),
+          );
+          // sub들 흑백으로 만들기
+          subElements.forEach(subElement => {
+            if (subElement === loverElement) {
+              return;
+            }
+            subElement.classList.toggle("black-white");
+          });
+
+          setOneToOneMode(loverElement);
+          setTimeout(() => {
+            setOneToOneMode(loverElement);
+            subElements.forEach(subElement => {
+              if (subElement === loverElement) {
+                return;
+              }
+              subElement.classList.toggle("black-white");
+            }, 60000); // 1분 후 원 위치
+          });
+        } 
+        else // Todo: 매칭 안된 사람들은 누가 매칭되었는 지 알아야되는데 ,, 그래야 흑백 처리를 하는데 ,,,,
+        {
           muteAudio();
           setTimeout(() => unMuteAudio(), 60000); // 1분 후 음소거 해제
         }
@@ -469,17 +495,7 @@ const Meeting = () => {
     }
   };
 
-  const setGrayScale = () => {
-    const camElement = document.getElementsByClassName("cam-wrapper")[0];
-    if (isMatched) {
-      camElement.classList.add("black-white");
-      setIsMatched(false);
-      return;
-    }
-    camElement.classList.remove("black-white");
-    setIsMatched(true);
-  };
-
+  // Todo: 선택 시간이라고 서버에서 emit해주면 실행(현재 서버에서 신호 안옴)
   const setChooseMode = () => {
     // 선택 모드 일 때는 마우스 하버시에 선택 가능한 상태로 변경
     // 클릭 시에 선택된 상태로 변경
@@ -499,13 +515,12 @@ const Meeting = () => {
     setIsChooseMode(true);
   };
 
-  const setOneToOneMode = (lover: string) => {
+  const setOneToOneMode = (loverElement: HTMLDivElement) => {
     const videoContainer =
       document.getElementsByClassName("video-container")[0];
     const videoElements = document.querySelectorAll("video");
     const canvasElements = document.querySelectorAll("canvas");
     const streamElements = document.getElementsByClassName("stream-container");
-    const loverElement = document.getElementById(lover);
     videoElements.forEach(video => {
       video.style.width = "100%";
       video.style.height = "100%";
@@ -547,7 +562,7 @@ const Meeting = () => {
 
   useEffect(() => {
     joinSession();
-    captureCamInit();
+    captureCamInit(); // 캡쳐용 비디오, 캔버스 display none
   }, []);
 
   useEffect(() => {
@@ -569,7 +584,7 @@ const Meeting = () => {
             {/* <button onClick={handleSignal}>캠 오픈</button> */}
             {/* <button onClick={changeLoveStickMode}>사랑의 작대기</button> */}
             {/* <button onClick={openKeyword}>키워드</button> */}
-            <button onClick={setGrayScale}>흑백으로 만들기</button>
+            {/* <button onClick={setGrayScale}>흑백으로 만들기</button> */}
             <button onClick={setChooseMode}>선택모드</button>
             {/* <button onClick={setOneToOneMode}>1:1모드</button> */}
             {/* <button onClick={() => showArrow(datass)}>그냥 연결</button> */}
