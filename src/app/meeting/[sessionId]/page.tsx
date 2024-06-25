@@ -400,7 +400,7 @@ const Meeting = (props: Props) => {
               <UserVideoComponent streamManager={publisher} />
             </div>
           ) : null}
-          {subscribers.map((sub, i) => (
+          {subscribers.map(sub => (
             <div
               key={sub.stream.streamId}
               className="stream-container col-md-6 col-xs-6 sub"
