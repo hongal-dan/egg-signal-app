@@ -11,7 +11,7 @@ interface MainContentProps {
   nickname: string;
 }
 
-const MainContent = ({nickname}: MainContentProps) => {
+const MainContent = ({ nickname }: MainContentProps) => {
   const [avatarOn, setAvatarOn] = useState<boolean>(true);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isFriendListVisible, setIsFriendListVisible] =
@@ -22,7 +22,7 @@ const MainContent = ({nickname}: MainContentProps) => {
   const socket = io(`${url}/meeting`, {
     transports: ["websocket"],
   });
-  const videoRef = useRef<HTMLVideoElement>(null)
+  const videoRef = useRef<HTMLVideoElement>(null);
   // const [OVInfo, setOVInfo] = useState<OVInfo>({
   //   sessionId: "",
   //   token: "",
@@ -48,9 +48,8 @@ const MainContent = ({nickname}: MainContentProps) => {
   const captureCanvas = () => {
     const canvas = document.querySelector("canvas");
     const stream = canvas?.captureStream(30); // 30 FPS로 캡처
-    console.log('Captured video track:', stream!.getVideoTracks()[0]);
+    console.log("Captured video track:", stream!.getVideoTracks()[0]);
     return stream?.getVideoTracks()[0]; // 비디오 트랙을 반환
-
   };
 
   const startStreamingCanvas = () => {
@@ -59,14 +58,11 @@ const MainContent = ({nickname}: MainContentProps) => {
       const stream = new MediaStream([videoTrack]);
       videoRef.current.srcObject = stream;
       videoRef.current.play();
-      
     }
   };
   useEffect(() => {
     startStreamingCanvas();
   }, []);
-
-
 
   // 토큰에서 유저 닉네임 가져오기
   // const getUserName = () => {
@@ -81,9 +77,10 @@ const MainContent = ({nickname}: MainContentProps) => {
     socket.on("startCall", async ovInfo => {
       console.log(ovInfo);
       // setOVInfo(ovInfo);
-      sessionStorage.setItem('ovInfo', JSON.stringify(ovInfo)); // 세션 스토리지에 저장
+      sessionStorage.setItem("ovInfo", JSON.stringify(ovInfo)); // 세션 스토리지에 저장
       // sessionStorage.setItem('session', JSON.stringify(socket));
       setIsLoading(false);
+      socket.disconnect();
       router.push(`/meeting/${ovInfo.sessionId}`);
     });
   };
@@ -102,7 +99,6 @@ const MainContent = ({nickname}: MainContentProps) => {
   const toggleNotiList = () => {
     setIsNotiVisible(prev => !prev);
   };
-
 
   return (
     <div className="grid grid-rows-3 justify-center px-6 py-8 md:h-screen">
@@ -128,8 +124,9 @@ const MainContent = ({nickname}: MainContentProps) => {
             value=""
             className="sr-only peer"
             checked={avatarOn}
+            onChange={() => {}}
           />
-          <div 
+          <div
             className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"
             onClick={toggleCamera}
           ></div>
