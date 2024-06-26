@@ -9,9 +9,8 @@ import {
   StreamManager,
   Device,
 } from "openvidu-browser";
-import io from "socket.io-client";
 import { useRouter } from "next/navigation";
-import { useRecoilState } from "recoil";
+import { useRecoilValue } from "recoil";
 import { meetingSocketState } from "@/app/store/socket";
 
 // type Props = {
@@ -34,17 +33,13 @@ const Meeting = () => {
     null,
   );
 
-  // const [isAvatar, setIsAvatar] = useState<boolean>(true);
   const [isLoveMode, setIsLoveMode] = useState<boolean>(false);
-  // const [isMatched, setIsMatched] = useState<boolean>(true);
   const [isChooseMode, setIsChooseMode] = useState<boolean>(false);
   const [isOneToOneMode, setIsOneToOneMode] = useState<boolean>(false);
-  // const videoRef = useRef<HTMLVideoElement>(null);
   const captureRef = useRef<HTMLDivElement>(null);
   const keywordRef = useRef<HTMLParagraphElement>(null);
 
-  const url = process.env.NEXT_PUBLIC_API_SERVER;
-  const [socket] = useRecoilState(meetingSocketState);
+  const socket = useRecoilValue(meetingSocketState);
 
   // const socket = io(`${url}/meeting`, {
   //   transports: ["websocket"],
