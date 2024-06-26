@@ -1,8 +1,11 @@
 "use client";
+
 import React, { useRef, useEffect, useState } from "react";
 import * as THREE from "three";
 import { GLTFLoader, GLTF } from "three/examples/jsm/loaders/GLTFLoader";
 import { MindARThree } from "mind-ar/dist/mindar-face-three.prod.js";
+import { useRecoilValue } from "recoil";
+import { avatarState } from "@/app/store/avatar";
 
 interface BlendshapeCategory {
   categoryName: string;
@@ -18,14 +21,16 @@ class Avatar {
   gltf: GLTF | null = null;
   root: THREE.Bone | null = null;
   morphTargetMeshes: THREE.Mesh[] = [];
+  avatarName: string | null = null;
 
-  constructor() {
+  constructor(avatarName: string | null) {
     this.gltf = null;
     this.morphTargetMeshes = [];
+    this.avatarName = avatarName;
   }
 
   async init() {
-    const url = "/avatar/oldman.glb";
+    const url = `/avatar/${this.avatarName}.glb`;
     const gltf: GLTF = await new Promise(resolve => {
       const loader = new GLTFLoader();
       loader.load(url, (gltf: GLTF) => {
@@ -66,8 +71,9 @@ class Avatar {
 }
 
 function UserVideoComponent2() {
+  const avatarName = useRecoilValue(avatarState);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [avatar] = useState<Avatar | null>(new Avatar());
+  const [avatar] = useState<Avatar | null>(new Avatar(avatarName));
   const mindarThreeRef = useRef<MindARThree | null>(null);
 
   useEffect(() => {

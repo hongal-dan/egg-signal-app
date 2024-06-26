@@ -6,8 +6,10 @@ import FriendList from "./FriendList";
 import Notifications from "./Notifications";
 import io from "socket.io-client";
 import { useRouter } from "next/navigation";
-import { useRecoilState } from "recoil";
+import { useRecoilState, useRecoilValue } from "recoil";
 import { meetingSocketState } from "@/app/store/socket";
+import { avatarState } from "@/app/store/avatar";
+import AvatarCollection from "./AvatarCollection";
 
 interface MainContentProps {
   nickname: string;
@@ -26,6 +28,7 @@ const MainContent = ({ nickname }: MainContentProps) => {
   // });
 
   const [socket, setSocket] = useRecoilState(meetingSocketState);
+  const avatar = useRecoilValue(avatarState);
 
   useEffect(() => {
     if (!socket) {
@@ -78,7 +81,9 @@ const MainContent = ({ nickname }: MainContentProps) => {
     setIsNotiVisible(prev => !prev);
   };
 
-  return (
+  return avatar == null ? (
+    <AvatarCollection />
+  ) : (
     <div className="grid grid-rows-3 justify-center px-6 py-8 md:h-screen">
       <div className="w-full flex items-end justify-end gap-[10px] mb-5">
         <div className="w-10 h-10 flex items-center justify-center text-xl bg-white rounded-2xl shadow">
