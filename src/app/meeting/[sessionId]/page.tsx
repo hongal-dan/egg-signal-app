@@ -9,7 +9,6 @@ import {
   StreamManager,
   Device,
 } from "openvidu-browser";
-import io from "socket.io-client";
 import { useRouter } from "next/navigation";
 import { useRecoilState } from "recoil";
 import { meetingSocketState } from "@/app/store/socket";
@@ -43,7 +42,7 @@ const Meeting = () => {
   const captureRef = useRef<HTMLDivElement>(null);
   const keywordRef = useRef<HTMLParagraphElement>(null);
 
-  const url = process.env.NEXT_PUBLIC_API_SERVER;
+  // const url = process.env.NEXT_PUBLIC_API_SERVER;
   const [socket] = useRecoilState(meetingSocketState);
 
   // const socket = io(`${url}/meeting`, {
@@ -201,7 +200,7 @@ const Meeting = () => {
           resolution: "640x480",
           frameRate: 30,
           insertMode: "APPEND",
-          mirror: true,
+          mirror: false,
         });
 
         console.log("Publisher created:", publisher);
@@ -248,50 +247,6 @@ const Meeting = () => {
       console.warn(exception);
     });
 
-    socket?.on("keyword", message => {
-      try {
-        const parseData = JSON.parse(message) as string;
-        console.log("keyword Event: ", parseData);
-        openKeyword(parseInt(parseData));
-      } catch (e: any) {
-        console.error(e);
-      }
-    });
-
-    socket?.on("cam", message => {
-      try {
-        const parseData = JSON.parse(message) as string;
-        console.log("cam Event: ", parseData);
-        if (keywordRef.current) {
-          keywordRef.current.innerText = "5초 뒤 얼굴이 공개됩니다.";
-        }
-        setTimeout(() => {
-          openCam();
-        }, 5000);
-      } catch (e: any) {
-        console.error(e);
-      }
-    });
-
-    socket?.on("finish", message => {
-      try {
-        const parseData = JSON.parse(message);
-        console.log(parseData);
-        // 1차: 모든 참여자 세션 종료
-        if (keywordRef.current) {
-          keywordRef.current.innerText = "5초 뒤 세션이 종료됩니다.";
-        }
-        setTimeout(() => {
-          if (session) {
-            session.disconnect();
-            router.push("/main");
-          }
-        }, 5000);
-      } catch (e: any) {
-        console.error(e);
-      }
-    });
-
     // 선택 결과 받고 사랑의 작대기 모드로 변경
     socket?.on("chooseResult", (message: string) => {
       try {
@@ -307,19 +262,17 @@ const Meeting = () => {
     type cupidResult = {
       lover: string;
       winners: Array<string>;
-    }
+    };
 
     // 선택 결과 받고 1:1 모드로 변경
     socket?.on("cupidResult", message => {
       try {
-        const {lover, winners} = JSON.parse(message) as cupidResult;
+        const { lover, winners } = JSON.parse(message) as cupidResult;
         console.log(lover, winners);
-        
+
         // 매칭 된 사람의 경우
         if (lover != "0") {
-          const loverElement = document.getElementById(
-            lover,
-          ) as HTMLDivElement;
+          const loverElement = document.getElementById(lover) as HTMLDivElement;
           const subElements = Array.from(
             document.getElementsByClassName("sub"),
           );
@@ -341,16 +294,19 @@ const Meeting = () => {
               subElement.classList.toggle("black-white");
             }, 60000); // 1분 후 원 위치
           });
-        } 
+        }
         // 매칭 안된 사람들의 경우
-        else // Todo: 매칭 안된 사람들은 누가 매칭되었는 지 알아야되는데 ,, 그래야 흑백 처리를 하는데 ,,,,
-        {
+        // Todo: 매칭 안된 사람들은 누가 매칭되었는 지 알아야되는데 ,, 그래야 흑백 처리를 하는데 ,,,,
+        else {
           winners.forEach(winner => {
             const winnerElement = document.getElementById(
               winner,
             ) as HTMLDivElement;
             winnerElement.classList.toggle("black-white");
-            setTimeout(() => winnerElement.classList.toggle("black-white"), 60000); // 1분 후 흑백 해제
+            setTimeout(
+              () => winnerElement.classList.toggle("black-white"),
+              60000,
+            ); // 1분 후 흑백 해제
           });
           muteAudio();
           setTimeout(() => unMuteAudio(), 60000); // 1분 후 음소거 해제
@@ -363,7 +319,7 @@ const Meeting = () => {
 
   // 선택시간 신호 받고 선택 모드로 변경
   socket?.on("cupidTime", message => {
-    try{
+    try {
       const parseData = JSON.parse(message) as number;
       console.log(parseData);
       setChooseMode();
@@ -371,10 +327,10 @@ const Meeting = () => {
         setChooseMode();
         removeChooseSign();
       }, 10000);
-    } catch(e: any){
+    } catch (e: any) {
       console.error(e);
     }
-  })
+  });
 
   // 선택된 표시 제거
   const removeChooseSign = () => {
@@ -382,11 +338,14 @@ const Meeting = () => {
     Array.from(chosenElements).forEach(chosenElement => {
       chosenElement.classList.remove("chosen-stream");
     });
-  }
+  };
 
   const leaveSession = () => {
     if (session) {
       session.disconnect();
+    }
+    if (socket) {
+      socket.disconnect();
     }
 
     setSession(undefined);
@@ -602,10 +561,60 @@ const Meeting = () => {
     setIsOneToOneMode(false);
   };
 
+  const meetingEvent = () => {
+    socket?.on("keyword", message => {
+      try {
+        console.log("keyword Event: ", message);
+        openKeyword(parseInt(message.message));
+      } catch (e: any) {
+        console.error(e);
+      }
+    });
+
+    socket?.on("cam", message => {
+      try {
+        console.log("cam Event: ", message);
+        if (keywordRef.current) {
+          keywordRef.current.innerText = "5초 뒤 얼굴이 공개됩니다.";
+        }
+        setTimeout(() => {
+          if (keywordRef.current) {
+            keywordRef.current.innerText = "";
+          }
+          openCam();
+        }, 5000);
+      } catch (e: any) {
+        console.error(e);
+      }
+    });
+
+    socket?.on("finish", message => {
+      try {
+        console.log(message);
+        // 1차: 모든 참여자 세션 종료
+        if (keywordRef.current) {
+          keywordRef.current.innerText = "5초 뒤 세션이 종료됩니다.";
+        }
+        setTimeout(() => {
+          if (keywordRef.current) {
+            keywordRef.current.innerText = "";
+          }
+          leaveSession();
+        }, 5000);
+      } catch (e: any) {
+        console.error(e);
+      }
+    });
+  };
+
   useEffect(() => {
     joinSession();
     captureCamInit(); // 캡쳐용 비디오, 캔버스 display none
   }, []);
+
+  useEffect(() => {
+    meetingEvent();
+  }, [publisher]);
 
   useEffect(() => {
     console.log("subscribers", subscribers);
@@ -623,7 +632,7 @@ const Meeting = () => {
             value="Leave session"
           />
           <div className="btn-container">
-            {/* <button onClick={handleSignal}>캠 오픈</button> */}
+            {/* <button onClick={openCam}>캠 오픈</button> */}
             {/* <button onClick={changeLoveStickMode}>사랑의 작대기</button> */}
             {/* <button onClick={openKeyword}>키워드</button> */}
             {/* <button onClick={setGrayScale}>흑백으로 만들기</button> */}
