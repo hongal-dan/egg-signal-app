@@ -300,16 +300,21 @@ const Meeting = () => {
       }
     });
 
+    type cupidResult = {
+      lover: string;
+      winners: Array<string>;
+    }
+
     // 선택 결과 받고 1:1 모드로 변경
     socket.on("cupidResult", message => {
       try {
-        const parseData = JSON.parse(message) as string;
-        console.log(parseData);
+        const {lover, winners} = JSON.parse(message) as cupidResult;
+        console.log(lover, winners);
         
         // 매칭 된 사람의 경우
-        if (parseData != "0") {
+        if (lover != "0") {
           const loverElement = document.getElementById(
-            parseData,
+            lover,
           ) as HTMLDivElement;
           const subElements = Array.from(
             document.getElementsByClassName("sub"),
@@ -336,6 +341,13 @@ const Meeting = () => {
         // 매칭 안된 사람들의 경우
         else // Todo: 매칭 안된 사람들은 누가 매칭되었는 지 알아야되는데 ,, 그래야 흑백 처리를 하는데 ,,,,
         {
+          winners.forEach(winner => {
+            const winnerElement = document.getElementById(
+              winner,
+            ) as HTMLDivElement;
+            winnerElement.classList.toggle("black-white");
+            setTimeout(() => winnerElement.classList.toggle("black-white"), 60000); // 1분 후 흑백 해제
+          });
           muteAudio();
           setTimeout(() => unMuteAudio(), 60000); // 1분 후 음소거 해제
         }
