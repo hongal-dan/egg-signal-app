@@ -11,6 +11,8 @@ import {
 } from "openvidu-browser";
 import io from "socket.io-client";
 import { useRouter } from "next/navigation";
+import { useRecoilState } from "recoil";
+import { meetingSocketState } from "@/app/store/socket";
 
 // type Props = {
 //   sessionId: string;
@@ -42,9 +44,11 @@ const Meeting = () => {
   const keywordRef = useRef<HTMLParagraphElement>(null);
 
   const url = process.env.NEXT_PUBLIC_API_SERVER;
-  const socket = io(`${url}/meeting`, {
-    transports: ["websocket"],
-  });
+  const [socket] = useRecoilState(meetingSocketState);
+
+  // const socket = io(`${url}/meeting`, {
+  //   transports: ["websocket"],
+  // });
 
   // const [socket, setSocket] = useState<WebSocket | null>(null);
 
@@ -244,7 +248,7 @@ const Meeting = () => {
       console.warn(exception);
     });
 
-    socket.on("keyword", message => {
+    socket?.on("keyword", message => {
       try {
         const parseData = JSON.parse(message) as string;
         console.log("keyword Event: ", parseData);
@@ -254,7 +258,7 @@ const Meeting = () => {
       }
     });
 
-    socket.on("cam", message => {
+    socket?.on("cam", message => {
       try {
         const parseData = JSON.parse(message) as string;
         console.log("cam Event: ", parseData);
@@ -269,7 +273,7 @@ const Meeting = () => {
       }
     });
 
-    socket.on("finish", message => {
+    socket?.on("finish", message => {
       try {
         const parseData = JSON.parse(message);
         console.log(parseData);
@@ -289,7 +293,7 @@ const Meeting = () => {
     });
 
     // 선택 결과 받고 사랑의 작대기 모드로 변경
-    socket.on("chooseResult", (message: string) => {
+    socket?.on("chooseResult", (message: string) => {
       try {
         const parseData = JSON.parse(message) as Array<chooseResult>;
         console.log(parseData);
@@ -306,7 +310,7 @@ const Meeting = () => {
     }
 
     // 선택 결과 받고 1:1 모드로 변경
-    socket.on("cupidResult", message => {
+    socket?.on("cupidResult", message => {
       try {
         const {lover, winners} = JSON.parse(message) as cupidResult;
         console.log(lover, winners);
@@ -356,6 +360,29 @@ const Meeting = () => {
       }
     });
   };
+
+  // 선택시간 신호 받고 선택 모드로 변경
+  socket?.on("cupidTime", message => {
+    try{
+      const parseData = JSON.parse(message) as number;
+      console.log(parseData);
+      setChooseMode();
+      setTimeout(() => {
+        setChooseMode();
+        removeChooseSign();
+      }, 10000);
+    } catch(e: any){
+      console.error(e);
+    }
+  })
+
+  // 선택된 표시 제거
+  const removeChooseSign = () => {
+    const chosenElements = document.getElementsByClassName("chosen-stream");
+    Array.from(chosenElements).forEach(chosenElement => {
+      chosenElement.classList.remove("chosen-stream");
+    });
+  }
 
   const leaveSession = () => {
     if (session) {
