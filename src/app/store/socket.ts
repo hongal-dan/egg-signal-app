@@ -8,3 +8,4 @@ export const meetingSocketState = atom<Socket | null>({
   default: null,
   dangerouslyAllowMutability: true,
 });
+
