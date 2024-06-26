@@ -1,10 +1,12 @@
 "use client";
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import UserVideoComponent2 from "./UserVideo";
 import FriendList from "./FriendList";
 import Notifications from "./Notifications";
 import io from "socket.io-client";
 import { useRouter } from "next/navigation";
+import { useRecoilState } from "recoil";
+import { meetingSocketState } from "@/app/store/socket";
 
 interface MainContentProps {
   nickname: string;
@@ -18,9 +20,20 @@ const MainContent = ({ nickname }: MainContentProps) => {
   const [isNotiVisible, setIsNotiVisible] = useState<boolean>(false);
   const startButton = useRef<HTMLButtonElement>(null);
   const url = process.env.NEXT_PUBLIC_API_SERVER;
-  const socket = io(`${url}/meeting`, {
-    transports: ["websocket"],
-  });
+  // const socket = io(`${url}/meeting`, {
+  //   transports: ["websocket"],
+  // });
+
+  const [socket, setSocket] = useRecoilState(meetingSocketState);
+
+  useEffect(() => {
+    if (!socket) {
+      const newSocket = io(`${url}/meeting`, {
+        transports: ["websocket"],
+      });
+      setSocket(newSocket);
+    }
+  }, [socket, setSocket]);
 
   const router = useRouter();
 
@@ -39,20 +52,19 @@ const MainContent = ({ nickname }: MainContentProps) => {
   };
 
   const handleLoadingOn: React.MouseEventHandler<HTMLButtonElement> = () => {
-    socket.emit("ready", { participantName: nickname });
+    socket?.emit("ready", { participantName: nickname });
     if (startButton.current) startButton.current.disabled = true;
     setIsLoading(true);
-    socket.on("startCall", async ovInfo => {
+    socket?.on("startCall", async ovInfo => {
       console.log(ovInfo);
       sessionStorage.setItem("ovInfo", JSON.stringify(ovInfo)); // 세션 스토리지에 저장
       setIsLoading(false);
-      socket.disconnect();
       router.push(`/meeting/${ovInfo.sessionId}`);
     });
   };
 
   const handleLoadingCancel = () => {
-    socket.emit("cancel", { participantName: nickname });
+    socket?.emit("cancel", { participantName: nickname });
     if (startButton.current) startButton.current.disabled = false;
     setIsLoading(false);
   };
