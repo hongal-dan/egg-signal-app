@@ -79,16 +79,16 @@ function UserVideoComponent2() {
   useEffect(() => {
     const setup = async () => {
       const mindarThree = new MindARThree({
-        container: containerRef.current!, // 예시로 containerRef를 사용하고 있습니다. 실제 사용하는 요소에 맞게 변경해야 합니다.
+        container: containerRef.current!, 
       });
 
-      // MindARThree 객체를 참조할 때, renderer 속성에 접근합니다.
+
       const { renderer, scene, camera } = mindarThree;
 
       // 기본 배경색으로 변경
-      renderer.setClearColor(0xfae4c9, 1); // 0xffffff은 흰색의 16진수 코드입니다. 두 번째 매개변수는 투명도를 나타내며, 1은 완전 불투명을 의미합니다.
+      renderer.setClearColor(0xfae4c9, 1); 
 
-      const light = new THREE.HemisphereLight(0xffffff, 0xbbbbff, 1);
+      const light = new THREE.HemisphereLight(0xffffff, 0xbbbbff, 2);
       scene.add(light);
 
       const anchor = mindarThree.addAnchor(1);
