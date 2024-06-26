@@ -245,12 +245,13 @@ const Meeting = () => {
     });
 
     // 선택 결과 받고 사랑의 작대기 모드로 변경
-    socket?.on("chooseResult", (message: string) => {
+    socket?.on("chooseResult", message => {
       try {
-        const parseData = JSON.parse(message) as Array<chooseResult>;
-        console.log(parseData);
-        changeLoveStickMode(parseData);
-        setTimeout(() => changeLoveStickMode(parseData), 10000); // 10초 후 원 위치
+        console.log("chooseResult = ", message);
+        setChooseMode(); // 선택모드 해제
+        removeChooseSign(); // 선택된 사람 표시 제거
+        changeLoveStickMode(message as Array<chooseResult>);
+        setTimeout(() => changeLoveStickMode(message), 10000); // 10초 후 원 위치
       } catch (e: any) {
         console.error(e);
       }
@@ -262,9 +263,9 @@ const Meeting = () => {
     };
 
     // 선택 결과 받고 1:1 모드로 변경
-    socket?.on("cupidResult", message => {
+    socket?.on("cupidResult", (message: cupidResult) => {
       try {
-        const { lover, winners } = JSON.parse(message) as cupidResult;
+        const { lover, winners } = message;
         console.log(lover, winners);
 
         // 매칭 된 사람의 경우
@@ -315,15 +316,10 @@ const Meeting = () => {
   };
 
   // 선택시간 신호 받고 선택 모드로 변경
-  socket?.on("cupidTime", message => {
+  socket?.on("cupidTime", (message: number) => {
     try {
-      const parseData = JSON.parse(message) as number;
-      console.log(parseData);
+      console.log(message);
       setChooseMode();
-      setTimeout(() => {
-        setChooseMode();
-        removeChooseSign();
-      }, 10000);
     } catch (e: any) {
       console.error(e);
     }
