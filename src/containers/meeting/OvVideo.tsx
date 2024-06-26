@@ -1,3 +1,5 @@
+'use client';
+
 import React from "react";
 import { StreamManager } from "openvidu-browser";
 import { useEffect, useState } from "react";
