@@ -571,15 +571,21 @@ const Meeting = () => {
     socket?.on("cam", message => {
       try {
         console.log("cam Event: ", message);
-        if (keywordRef.current) {
-          keywordRef.current.innerText = "5초 뒤 얼굴이 공개됩니다.";
-        }
-        setTimeout(() => {
-          if (keywordRef.current) {
-            keywordRef.current.innerText = "";
+        let countdown = 5;
+        const intervalId = setInterval(() => {
+          if (countdown > 0) {
+            if (keywordRef.current) {
+              keywordRef.current.innerText = `${countdown}초 뒤 얼굴이 공개됩니다.`;
+            }
+            countdown -= 1;
+          } else {
+            clearInterval(intervalId);
+            if (keywordRef.current) {
+              keywordRef.current.innerText = "";
+            }
+            openCam();
           }
-          openCam();
-        }, 5000);
+        }, 1000);
       } catch (e: any) {
         console.error(e);
       }
@@ -589,15 +595,21 @@ const Meeting = () => {
       try {
         console.log(message);
         // 1차: 모든 참여자 세션 종료
-        if (keywordRef.current) {
-          keywordRef.current.innerText = "5초 뒤 세션이 종료됩니다.";
-        }
-        setTimeout(() => {
-          if (keywordRef.current) {
-            keywordRef.current.innerText = "";
+        let countdown = 5;
+        const intervalId = setInterval(() => {
+          if (countdown > 0) {
+            if (keywordRef.current) {
+              keywordRef.current.innerText = `${countdown}초 뒤 세션이 종료됩니다.`;
+            }
+            countdown -= 1;
+          } else {
+            clearInterval(intervalId);
+            if (keywordRef.current) {
+              keywordRef.current.innerText = "";
+            }
+            leaveSession();
           }
-          leaveSession();
-        }, 5000);
+        }, 1000);
       } catch (e: any) {
         console.error(e);
       }
