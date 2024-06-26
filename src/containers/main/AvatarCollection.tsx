@@ -30,14 +30,13 @@ const AvatarCollection = () => {
       <div className="grid grid-cols-5 gap-4">
         {avatarList.map((avatar, idx) => {
           return (
-            <div className="flex flex-col items-center">
+            <div className="flex flex-col items-center" key={idx}>
               <div
                 style={{
                   backgroundImage: `url(./avatar/${avatar[1]}.png)`,
                 }}
                 className="bg-cover bg-no-repeat bg-center w-28 h-24 border-4 border-[#F8B85F] rounded-xl cursor-pointer hover:border-[hotpink] transition-all duration-300 ease-in-out p-4"
                 onClick={() => chooseAvatar(avatar[1])}
-                key={idx}
               ></div>
               <p className="text-[20px] font-bold">{avatar[0]}</p>
             </div>

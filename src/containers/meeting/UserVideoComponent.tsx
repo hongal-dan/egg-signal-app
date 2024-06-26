@@ -3,6 +3,7 @@ import React, { useRef, useEffect } from "react";
 import OpenViduVideoComponent from "./OvVideo";
 import { StreamManager } from "openvidu-browser";
 
+// todo: 소켓 리코일에서 꺼내쓰기
 export default function UserVideoComponent(props: {
   streamManager: StreamManager;
   socket: any;
