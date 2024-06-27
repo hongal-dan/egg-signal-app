@@ -37,18 +37,23 @@ class Avatar {
         resolve(gltf);
       });
     });
+
+    // 모델 뼈대 구조 파악
     gltf.scene.traverse(object => {
       if ((object as THREE.Bone).isBone && !this.root) {
         this.root = object as THREE.Bone; // as THREE.Bone;
       }
       if (!(object as THREE.Mesh).isMesh) return;
       const mesh = object as THREE.Mesh;
+
+      // 모델 형태 변경 정보 파악
       if (!mesh.morphTargetDictionary || !mesh.morphTargetInfluences) return;
       this.morphTargetMeshes.push(mesh);
     });
     this.gltf = gltf;
   }
 
+  // 모델 형태 변환
   updateBlendshapes(blendshapes: Blendshapes) {
     const categories = blendshapes.categories;
     const coefsMap = new Map();
@@ -74,7 +79,7 @@ function UserVideoComponent2() {
   const avatarName = useRecoilValue(avatarState);
   const containerRef = useRef<HTMLDivElement>(null);
   const [avatar] = useState<Avatar | null>(new Avatar(avatarName));
-  const mindarThreeRef = useRef<MindARThree | null>(null);
+  // const mindarThreeRef = useRef<MindARThree | null>(null);
 
   useEffect(() => {
     const setup = async () => {
@@ -91,16 +96,22 @@ function UserVideoComponent2() {
       const light = new THREE.HemisphereLight(0xffffff, 0xbbbbff, 2);
       scene.add(light);
 
+      // 화면 상의 특정 위치를 기준으로 얼굴을 식별하고 추적 여기서 1은 그냥 식별자임
       const anchor = mindarThree.addAnchor(1);
 
       await avatar!.init();
       if (avatar!.gltf && avatar!.gltf.scene) {
         avatar!.gltf.scene.scale.set(2, 2, 2);
+        /// 앵커에 아바타 추가
         anchor.group.add(avatar!.gltf.scene);
       }
 
       await mindarThree.start();
+
+      // 받은 정보로 프레임마다 아바타 모양 렌더링
       renderer.setAnimationLoop(() => {
+
+        // 가장 최근의 추정치를 가져옴
         const estimate = mindarThree.getLatestEstimate();
         if (estimate && estimate.blendshapes) {
           avatar!.updateBlendshapes(estimate.blendshapes);
