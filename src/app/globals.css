@@ -5,3 +5,11 @@
 body {
   background-color: #fae4c9;
 }
+
+.presentation-mode {
+  @apply grid-cols-5 grid-rows-3;
+  grid-template-areas:
+    "a a a a a"
+    "a a a a a"
+    "b c d e f";
+}
