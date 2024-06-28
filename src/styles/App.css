@@ -1,5 +1,12 @@
 .stream-container {
+  box-sizing: border-box;
+  border: 5px solid transparent;
+  border-radius: 15px;
   padding: 0;
+}
+
+.stream-container.speaking {
+  border-color: #63e6be;
 }
 
 .video-hidden {
@@ -11,8 +18,7 @@ video {
   height: auto;
   float: left;
   cursor: pointer;
-  border: 2px solid black;
-  border-radius: 20px;
+  border-radius: 10px;
 }
 
 .streamcomponent {
@@ -154,4 +160,11 @@ video {
 }
 p {
   margin: 0;
+}
+
+.highlighted {
+  box-sizing: border-box;
+  border: 5px solid #ff6b6b;
+  border-radius: 15px;
+  padding: 0;
 }
