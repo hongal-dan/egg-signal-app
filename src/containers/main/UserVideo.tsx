@@ -1,8 +1,11 @@
 "use client";
+
 import React, { useRef, useEffect, useState } from "react";
 import * as THREE from "three";
 import { GLTFLoader, GLTF } from "three/examples/jsm/loaders/GLTFLoader";
 import { MindARThree } from "mind-ar/dist/mindar-face-three.prod.js";
+import { useRecoilValue } from "recoil";
+import { avatarState } from "@/app/store/avatar";
 
 interface BlendshapeCategory {
   categoryName: string;
@@ -18,32 +21,39 @@ class Avatar {
   gltf: GLTF | null = null;
   root: THREE.Bone | null = null;
   morphTargetMeshes: THREE.Mesh[] = [];
+  avatarName: string | null = null;
 
-  constructor() {
+  constructor(avatarName: string | null) {
     this.gltf = null;
     this.morphTargetMeshes = [];
+    this.avatarName = avatarName;
   }
 
   async init() {
-    const url = "https://assets.codepen.io/9177687/raccoon_head.glb";
+    const url = `/avatar/${this.avatarName}.glb`;
     const gltf: GLTF = await new Promise(resolve => {
       const loader = new GLTFLoader();
       loader.load(url, (gltf: GLTF) => {
         resolve(gltf);
       });
     });
+
+    // 모델 뼈대 구조 파악
     gltf.scene.traverse(object => {
       if ((object as THREE.Bone).isBone && !this.root) {
         this.root = object as THREE.Bone; // as THREE.Bone;
       }
       if (!(object as THREE.Mesh).isMesh) return;
       const mesh = object as THREE.Mesh;
+
+      // 모델 형태 변경 정보 파악
       if (!mesh.morphTargetDictionary || !mesh.morphTargetInfluences) return;
       this.morphTargetMeshes.push(mesh);
     });
     this.gltf = gltf;
   }
 
+  // 모델 형태 변환
   updateBlendshapes(blendshapes: Blendshapes) {
     const categories = blendshapes.categories;
     const coefsMap = new Map();
@@ -65,32 +75,43 @@ class Avatar {
   }
 }
 
-function UserVideoComponent() {
+function UserVideoComponent2() {
+  const avatarName = useRecoilValue(avatarState);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [avatar] = useState<Avatar | null>(new Avatar());
-  const mindarThreeRef = useRef<MindARThree | null>(null);
+  const [avatar] = useState<Avatar | null>(new Avatar(avatarName));
+  // const mindarThreeRef = useRef<MindARThree | null>(null);
 
   useEffect(() => {
     const setup = async () => {
       const mindarThree = new MindARThree({
-        container: containerRef.current!,
+        container: containerRef.current!, 
       });
-      mindarThreeRef.current = mindarThree;
+
 
       const { renderer, scene, camera } = mindarThree;
-      const light = new THREE.HemisphereLight(0xffffff, 0xbbbbff, 1);
+
+      // 기본 배경색으로 변경
+      renderer.setClearColor(0xfae4c9, 1); 
+
+      const light = new THREE.HemisphereLight(0xffffff, 0xbbbbff, 2);
       scene.add(light);
 
+      // 화면 상의 특정 위치를 기준으로 얼굴을 식별하고 추적 여기서 1은 그냥 식별자임
       const anchor = mindarThree.addAnchor(1);
 
       await avatar!.init();
       if (avatar!.gltf && avatar!.gltf.scene) {
         avatar!.gltf.scene.scale.set(2, 2, 2);
+        /// 앵커에 아바타 추가
         anchor.group.add(avatar!.gltf.scene);
       }
 
       await mindarThree.start();
+
+      // 받은 정보로 프레임마다 아바타 모양 렌더링
       renderer.setAnimationLoop(() => {
+
+        // 가장 최근의 추정치를 가져옴
         const estimate = mindarThree.getLatestEstimate();
         if (estimate && estimate.blendshapes) {
           avatar!.updateBlendshapes(estimate.blendshapes);
@@ -100,10 +121,10 @@ function UserVideoComponent() {
     };
 
     setup();
-    const canvas = document.querySelector("canvas");
-    if (canvas) {
-      canvas.style.backgroundColor = "black";
-    }
+    // const canvas = document.querySelector("canvas");
+    // if (canvas) {
+    //   canvas.style.backgroundColor = "#fae4c9";
+    // }
   });
 
   return (
@@ -113,4 +134,4 @@ function UserVideoComponent() {
   );
 }
 
-export default React.memo(UserVideoComponent);
+export default React.memo(UserVideoComponent2);

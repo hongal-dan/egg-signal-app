@@ -1,15 +1,45 @@
 "use client";
-import React, { useState } from "react";
-import UserVideoComponent from "./UserVideo";
+
+import React, { useRef, useState, useEffect } from "react";
+import UserVideoComponent2 from "./UserVideo";
 import FriendList from "./FriendList";
 import Notifications from "./Notifications";
+import io from "socket.io-client";
+import { useRouter } from "next/navigation";
+import { useRecoilState, useRecoilValue } from "recoil";
+import { meetingSocketState } from "@/app/store/socket";
+import { avatarState } from "@/app/store/avatar";
+import AvatarCollection from "./AvatarCollection";
 
-const MainContent = () => {
+interface MainContentProps {
+  nickname: string;
+}
+
+const MainContent = ({ nickname }: MainContentProps) => {
   const [avatarOn, setAvatarOn] = useState<boolean>(true);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isFriendListVisible, setIsFriendListVisible] =
     useState<boolean>(false);
   const [isNotiVisible, setIsNotiVisible] = useState<boolean>(false);
+  const startButton = useRef<HTMLButtonElement>(null);
+  const url = process.env.NEXT_PUBLIC_API_SERVER;
+  // const socket = io(`${url}/meeting`, {
+  //   transports: ["websocket"],
+  // });
+
+  const [socket, setSocket] = useRecoilState(meetingSocketState);
+  const avatar = useRecoilValue(avatarState);
+
+  useEffect(() => {
+    if (!socket) {
+      const newSocket = io(`${url}/meeting`, {
+        transports: ["websocket"],
+      });
+      setSocket(newSocket);
+    }
+  }, [socket, setSocket]);
+
+  const router = useRouter();
 
   const toggleCamera = () => {
     const canvas = document.querySelector("canvas");
@@ -26,13 +56,21 @@ const MainContent = () => {
   };
 
   const handleLoadingOn: React.MouseEventHandler<HTMLButtonElement> = () => {
-    setIsLoading(prev => !prev);
-    // todo: 매칭 api 요청
+    socket?.emit("ready", { participantName: nickname });
+    if (startButton.current) startButton.current.disabled = true;
+    setIsLoading(true);
+    socket?.on("startCall", async ovInfo => {
+      console.log(ovInfo);
+      sessionStorage.setItem("ovInfo", JSON.stringify(ovInfo)); // 세션 스토리지에 저장
+      setIsLoading(false);
+      router.push(`/meeting/${ovInfo.sessionId}`);
+    });
   };
 
   const handleLoadingCancel = () => {
-    setIsLoading(prev => !prev);
-    // todo: 매칭 취소 api 요청
+    socket?.emit("cancel", { participantName: nickname });
+    if (startButton.current) startButton.current.disabled = false;
+    setIsLoading(false);
   };
 
   const toggleFriendList = () => {
@@ -43,7 +81,9 @@ const MainContent = () => {
     setIsNotiVisible(prev => !prev);
   };
 
-  return (
+  return avatar == null ? (
+    <AvatarCollection />
+  ) : (
     <div className="grid grid-rows-3 justify-center px-6 py-8 md:h-screen">
       <div className="w-full flex items-end justify-end gap-[10px] mb-5">
         <div className="w-10 h-10 flex items-center justify-center text-xl bg-white rounded-2xl shadow">
@@ -58,7 +98,7 @@ const MainContent = () => {
           )}
         </div>
       </div>
-      <UserVideoComponent />
+      <UserVideoComponent2 />
       <div className="grid grid-rows-2">
         <label className="inline-flex items-center justify-center cursor-pointer">
           <input
@@ -66,16 +106,20 @@ const MainContent = () => {
             value=""
             className="sr-only peer"
             checked={avatarOn}
-            onClick={toggleCamera}
+            onChange={() => {}}
           />
-          <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+          <div
+            className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"
+            onClick={toggleCamera}
+          ></div>
           <span className="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">
             {avatarOn ? "아바타 off" : " 아바타 on"}
           </span>
         </label>
         <div>
           <button
-            className="w-96 h-12 bg-amber-400 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mb-1"
+            className="w-96 h-12 bg-amber-400 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mb-1 z-10 relative"
+            ref={startButton}
             onClick={handleLoadingOn}
           >
             {isLoading ? (
