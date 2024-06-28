@@ -7,12 +7,12 @@
 }
 
 video {
-  display: none;
   width: 100%;
   height: auto;
   float: left;
   cursor: pointer;
-  transform: rotateY(180deg);
+  border: 2px solid black;
+  border-radius: 20px;
 }
 
 .streamcomponent {

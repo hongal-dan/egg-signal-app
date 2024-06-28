@@ -5,7 +5,6 @@ import MainContent from "@/containers/main/MainContent";
 const Main = () => {
   const cookieStore = cookies();
   const token = cookieStore.get("access_token");
-  console.log(token);
   const decodeJwt = (token: string) => {
     const parts = token.split(".");
     const payload = JSON.parse(decodeURIComponent(escape(atob(parts[1]))));
@@ -18,7 +17,8 @@ const Main = () => {
     redirect("/login");
   }
   const userInfo = decodeJwt(token.value);
-  console.log(userInfo.id, userInfo.nickname);
+  console.log(userInfo);
+
   return (
     <div>
       {token ? (
