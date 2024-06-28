@@ -448,7 +448,7 @@ const Meeting = () => {
     setIsLoveMode(false);
   };
 
-  // time 초 동안 발표 모드 (presenter: 발표자, time: 발표 시간)
+  // time 초 동안 발표 모드 (presenter: 발표자, time: 발표 시간(초))
   const changePresentationMode = (presenter: HTMLDivElement, time:number) => {
     const videoSet = new Set<HTMLDivElement|null>();
     videoSet.add(presenter);
@@ -468,7 +468,7 @@ const Meeting = () => {
       videoArray.forEach((video, idx) => {
         video?.classList.remove(String.fromCharCode(97 + idx));
       });
-    }, 20000);
+    }, time * 1000);
   };
 
   const captureCamInit = () => {
