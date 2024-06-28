@@ -39,6 +39,8 @@ const Meeting = () => {
   const [isOneToOneMode, setIsOneToOneMode] = useState<boolean>(false);
   const captureRef = useRef<HTMLDivElement>(null);
   const keywordRef = useRef<HTMLParagraphElement>(null);
+  const pubRef = useRef<HTMLDivElement>(null);
+  const subRef = useRef<Array<HTMLDivElement | null>>([]);
 
   const socket = useRecoilValue(meetingSocketState);
 
@@ -446,6 +448,29 @@ const Meeting = () => {
     setIsLoveMode(false);
   };
 
+  // time 초 동안 발표 모드 (presenter: 발표자, time: 발표 시간)
+  const changePresentationMode = (presenter: HTMLDivElement, time:number) => {
+    const videoSet = new Set<HTMLDivElement|null>();
+    videoSet.add(presenter);
+    videoSet.add(pubRef.current);
+    subRef.current.forEach(sub => {
+      videoSet.add(sub);
+    });
+    const videoArray = Array.from(videoSet);
+
+    // 비디오 그리드 a: main , bcdef
+    videoArray.forEach((video, idx) => {
+      video?.classList.add(String.fromCharCode(97 + idx));
+    });
+
+    // time 초 후 원래대로
+    setTimeout(() => {
+      videoArray.forEach((video, idx) => {
+        video?.classList.remove(String.fromCharCode(97 + idx));
+      });
+    }, 20000);
+  };
+
   const captureCamInit = () => {
     const videoElement = captureRef.current?.querySelector(
       "video",
@@ -564,7 +589,6 @@ const Meeting = () => {
       }
     });
 
-
     socket?.on("cam", message => {
       try {
         console.log("cam Event: ", message);
@@ -660,15 +684,19 @@ const Meeting = () => {
             <div
               className="stream-container col-md-6 col-xs-6 pub"
               // onClick={() => handleMainVideoStream(publisher)}
+              ref={pubRef}
             >
               <UserVideoComponent streamManager={publisher} socket={socket} />
             </div>
           ) : null}
-          {subscribers.map(sub => (
+          {subscribers.map((sub, i) => (
             <div
               key={sub.stream.streamId}
               className="stream-container col-md-6 col-xs-6 sub"
               // onClick={() => handleMainVideoStream(sub)}
+              ref={(el: HTMLDivElement | null): void => {
+                subRef.current[i] = el;
+              }}
             >
               <span>{sub.id}</span>
               <UserVideoComponent
