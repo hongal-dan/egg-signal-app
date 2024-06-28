@@ -5,7 +5,3 @@
 body {
   background-color: #fae4c9;
 }
-
-.highlighted {
-  @apply rounded-[15px] border-4 border-red-600;
-}
