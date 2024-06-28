@@ -11,6 +11,7 @@ import {
   Device,
 } from "openvidu-browser";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { useRecoilValue } from "recoil";
 import { meetingSocketState } from "@/app/store/socket";
 
@@ -554,11 +555,59 @@ const Meeting = () => {
     setIsOneToOneMode(false);
   };
 
+  const randomUser = (keywordIdx: number) => {
+    const streamElements = document.getElementsByClassName("stream-container");
+    if (keywordRef.current) {
+      keywordRef.current.innerText =
+        "곧 한 참가자가 선택됩니다. 선택된 사람은 질문에 답변해주세요";
+    }
+
+    let currentIndex = 0;
+    const intervalId = setInterval(() => {
+      // 현재 인덱스의 참여자를 강조 (빨간색 border 추가)
+      streamElements[currentIndex].classList.add("highlighted");
+
+      // 0.3초 후에 border 초기화 (빨간색 border 제거)
+      setTimeout(() => {
+        streamElements[currentIndex].classList.remove("highlighted");
+      }, 300);
+
+      // 다음 참여자 인덱스로 이동
+      currentIndex = (currentIndex + 1) % streamElements.length;
+    }, 300); // 0.3초마다 반복
+
+    // 3초 후에 setInterval 멈추기
+    setTimeout(() => {
+      clearInterval(intervalId);
+      // 모든 참여자의 border 초기화
+      for (let i = 0; i < streamElements.length; i++) {
+        streamElements[i].classList.remove("highlighted");
+      }
+      openKeyword(keywordIdx);
+      setPresentationMode();
+    }, 10000); // 10초 후에 멈추기
+  };
+
+  const setPresentationMode = () => {
+    const resizeStream = (streamId: string, width: number, height: number) => {
+      const subscriber = document.getElementById(streamId);
+      if (subscriber) {
+        subscriber.style.width = width + "px";
+        subscriber.style.height = height + "px";
+      }
+    };
+
+    // 예시로 랜덤 유저의 스트림을 500x300으로 확대하는 경우
+    const randomIndex = Math.floor(Math.random() * subscribers.length);
+    const randomStreamId = subscribers[randomIndex].stream.streamId;
+    resizeStream(randomStreamId, 500, 300);
+  };
+
   const meetingEvent = () => {
     socket?.on("keyword", message => {
       try {
         console.log("keyword Event: ", message);
-        openKeyword(parseInt(message.message));
+        randomUser(parseInt(message.message));
       } catch (e: any) {
         console.error(e);
       }
@@ -612,6 +661,30 @@ const Meeting = () => {
     });
   };
 
+  const [min, setMin] = useState(5);
+  const [sec, setSec] = useState(0);
+  const time = useRef(300);
+  const timerId = useRef<null | NodeJS.Timeout>(null);
+  const totalTime = 300;
+  const [progressWidth, setProgressWidth] = useState("0%");
+
+  useEffect(() => {
+    timerId.current = setInterval(() => {
+      setMin(Math.floor(time.current / 60));
+      setSec(time.current % 60);
+      time.current -= 1;
+    }, 1000);
+    return () => clearInterval(timerId.current!);
+  }, []);
+
+  useEffect(() => {
+    if (time.current <= 0) {
+      console.log("time out");
+      clearInterval(timerId.current!);
+    }
+    setProgressWidth(`${((totalTime - time.current) / totalTime) * 100}%`);
+  }, [sec]);
+
   useEffect(() => {
     joinSession();
     captureCamInit(); // 캡쳐용 비디오, 캔버스 display none
@@ -636,14 +709,17 @@ const Meeting = () => {
             onClick={leaveSession}
             value="Leave session"
           />
-          <div className="btn-container">
-            {/* <button onClick={openCam}>캠 오픈</button> */}
-            {/* <button onClick={changeLoveStickMode}>사랑의 작대기</button> */}
-            {/* <button onClick={openKeyword}>키워드</button> */}
-            {/* <button onClick={setGrayScale}>흑백으로 만들기</button> */}
-            <button onClick={setChooseMode}>선택모드</button>
-            {/* <button onClick={setOneToOneMode}>1:1모드</button> */}
-            {/* <button onClick={() => showArrow(datass)}>그냥 연결</button> */}
+          <div className="flex items-center">
+            <Image src="/img/egg1.png" alt="" width={50} height={50} />
+            <p
+              style={{
+                width: progressWidth,
+                backgroundColor: "orange",
+                height: "20px",
+                borderRadius: "10px",
+              }}
+            ></p>
+            <Image src="/img/egg2.png" alt="" width={50} height={50} />
           </div>
         </div>
         <div className="keyword-wrapper">
