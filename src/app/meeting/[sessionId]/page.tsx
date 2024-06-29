@@ -204,12 +204,10 @@ const Meeting = () => {
     );
     console.log(sessionId);
 
-    const randomNum = Math.floor(Math.random() * 1000);
 
     // Connect to the session
     newSession
-      // .connect(token, { clientData: participantName }) 원본
-      .connect(token, { clientData: randomNum }) // 테스트용
+      .connect(token, { clientData: participantName }) 
       .then(async () => {
         const arStream = captureCanvas();
         const publisher = await OV.initPublisherAsync(undefined, {
