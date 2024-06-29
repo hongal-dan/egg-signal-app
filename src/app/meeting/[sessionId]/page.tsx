@@ -564,7 +564,7 @@ const Meeting = () => {
     setIsOneToOneMode(false);
   };
 
-  const randomUser = (keywordIdx: number) => {
+  const randomUser = (keywordIdx: number, pickUser: string) => {
     const streamElements = document.getElementsByClassName("stream-container");
     const tickSound = document.getElementById("tickSound") as HTMLAudioElement;
 
@@ -601,9 +601,9 @@ const Meeting = () => {
 
         // 다음 참여자 강조 시작 (재귀 호출)
         setTimeout(() => {
-          currentDuration += 20;
+          currentDuration += 10;
           highlightUser((index + 1) % streamElements.length);
-        }, currentDuration - 20);
+        }, currentDuration - 10);
 
         setTimeout(() => {
           isAnimating = false;
@@ -611,8 +611,10 @@ const Meeting = () => {
             streamElements[i].classList.remove("highlighted");
           }
           openKeyword(keywordIdx);
+          // todo1: random user nickname(pickUser) 으로 video 찾아서 발표자 화면 출력하기
+          // todo2: 대답할 시간 기다리고 다시 3:3 모드로 되돌리기 (대답할 시간 타이머도 넣어야 함.)
         }, animationDuration);
-      }, currentDuration - 20);
+      }, currentDuration - 10);
     };
     // 초기 강조 시작
     highlightUser(currentIndex);
@@ -621,8 +623,11 @@ const Meeting = () => {
   const meetingEvent = () => {
     socket?.on("keyword", message => {
       try {
+        time.current = 240; // 1분 지남
+        setProgressWidth(`${((totalTime - time.current) / totalTime) * 100}%`);
         console.log("keyword Event: ", message);
-        randomUser(parseInt(message.message));
+        console.log("random user: ", message.getRandomParticipant);
+        randomUser(parseInt(message.message), message.getRandomParticipant);
       } catch (e: any) {
         console.error(e);
       }
@@ -656,6 +661,8 @@ const Meeting = () => {
   const meetingCamEvent = () => {
     socket?.on("cam", message => {
       try {
+        time.current = 120; // 3분 지남 -지금 서버 기준 (나중에 시간 서버 시간 바뀌면 같이 바꿔야 함!)
+        setProgressWidth(`${((totalTime - time.current) / totalTime) * 100}%`);
         console.log("cam Event: ", message);
         let countdown = 5;
         const intervalId = setInterval(() => {
@@ -678,7 +685,7 @@ const Meeting = () => {
     });
   };
 
-  const [min, setMin] = useState(5);
+  const [min, setMin] = useState(5); // todo: 시작 시간 서버로부터 받기
   const [sec, setSec] = useState(0);
   const time = useRef(300);
   const timerId = useRef<null | NodeJS.Timeout>(null);
