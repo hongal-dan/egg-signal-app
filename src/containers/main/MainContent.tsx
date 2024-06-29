@@ -6,10 +6,8 @@ import FriendList from "./FriendList";
 import Notifications from "./Notifications";
 import io from "socket.io-client";
 import { useRouter } from "next/navigation";
-import { useRecoilState, useRecoilValue } from "recoil";
+import { useRecoilState } from "recoil";
 import { meetingSocketState } from "@/app/store/socket";
-import { avatarState } from "@/app/store/avatar";
-import AvatarCollection from "./AvatarCollection";
 
 interface MainContentProps {
   nickname: string;
@@ -28,7 +26,6 @@ const MainContent = ({ nickname }: MainContentProps) => {
   // });
 
   const [socket, setSocket] = useRecoilState(meetingSocketState);
-  const avatar = useRecoilValue(avatarState);
 
   useEffect(() => {
     if (!socket) {
@@ -38,6 +35,7 @@ const MainContent = ({ nickname }: MainContentProps) => {
       setSocket(newSocket);
     }
   }, [socket, setSocket]);
+
 
   const router = useRouter();
 

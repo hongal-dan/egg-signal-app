@@ -38,7 +38,7 @@ export default function UserVideoComponent(props: {
             socket={props.socket}
           />
           <div>
-            <p className="nickname">{nickname}</p>
+            <p className="nickname">{`user${nickname}`}</p>
           </div>
         </div>
       ) : null}

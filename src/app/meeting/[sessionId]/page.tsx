@@ -13,7 +13,7 @@ import {
 } from "openvidu-browser";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { useRecoilValue } from "recoil";
+import { useRecoilValue, useRecoilState } from "recoil";
 import { meetingSocketState } from "@/app/store/socket";
 import { avatarState } from "@/app/store/avatar";
 import { keywords } from "../../../../public/data/keywords.js";
@@ -48,10 +48,11 @@ const Meeting = () => {
   const pubRef = useRef<HTMLDivElement>(null);
   const subRef = useRef<Array<HTMLDivElement | null>>([]);
 
-  const socket = useRecoilValue(meetingSocketState);
+  // const socket = useRecoilValue(meetingSocketState);
 
   const avatar = useRecoilValue(avatarState);
   const [isOpenCam, setIsOpenCam] = useState<boolean>(false);
+  const [socket, setSocket] = useRecoilState(meetingSocketState);
 
   // const socket = io(`${url}/meeting`, {
   //   transports: ["websocket"],
@@ -273,7 +274,7 @@ const Meeting = () => {
 
     // 세션에서 발화자 이벤트 리스너 추가
     newSession.on("publisherStartSpeaking", (event: PublisherSpeakingEvent) => {
-      console.log("Publisher started speaking:", event.connection);
+      // console.log("Publisher started speaking:", event.connection);
       const streamId = event.connection.stream?.streamId;
       if (streamId !== undefined) {
         setSpeakingPublisherId(streamId);
@@ -283,7 +284,7 @@ const Meeting = () => {
     });
 
     newSession.on("publisherStopSpeaking", (event: PublisherSpeakingEvent) => {
-      console.log("Publisher stopped speaking:", event.connection);
+      // console.log("Publisher stopped speaking:", event.connection);
       setSpeakingPublisherId(null);
     });
   };
@@ -302,6 +303,7 @@ const Meeting = () => {
     }
     if (socket) {
       socket.disconnect();
+      setSocket(null);
     }
 
     setSession(undefined);
