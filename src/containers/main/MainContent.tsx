@@ -81,9 +81,31 @@ const MainContent = ({ nickname }: MainContentProps) => {
     setIsNotiVisible(prev => !prev);
   };
 
-  return avatar == null ? (
-    <AvatarCollection />
-  ) : (
+  const startWebCam = async () => {
+    try {
+      const constraints = {
+        video: true,
+        audio: false,
+      };
+
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      const video = document.getElementById("myCam");
+      if (video && video instanceof HTMLVideoElement) {
+        video.srcObject = stream;
+    }
+    } catch (error) {
+      console.error("Error accessing the webcam: ", error);
+    }
+  };
+
+  useEffect(() => {
+    startWebCam();
+  }, []);
+
+  // return avatar == null ? (
+  //   <AvatarCollection />
+  // ) :
+  return (
     <div className="grid grid-rows-3 justify-center px-6 py-8 md:h-screen">
       <div className="w-full flex items-end justify-end gap-[10px] mb-5">
         <div className="w-10 h-10 flex items-center justify-center text-xl bg-white rounded-2xl shadow">
@@ -98,7 +120,8 @@ const MainContent = ({ nickname }: MainContentProps) => {
           )}
         </div>
       </div>
-      <UserVideoComponent2 />
+      {/* <UserVideoComponent2 /> */}
+      <video id="myCam" className="mx-auto" autoPlay playsInline width={320} height={240}></video>
       <div className="grid grid-rows-2">
         <label className="inline-flex items-center justify-center cursor-pointer">
           <input
@@ -118,7 +141,7 @@ const MainContent = ({ nickname }: MainContentProps) => {
         </label>
         <div>
           <button
-            className="w-96 h-12 bg-amber-400 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mb-1 z-10 relative"
+            className="w-full h-12 bg-amber-400 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mb-1 z-10 relative"
             ref={startButton}
             onClick={handleLoadingOn}
           >
