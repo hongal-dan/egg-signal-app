@@ -53,7 +53,7 @@ export default function Signup() {
       gender: values.gender,
     };
     try {
-      const response = await createUser(request) as Response;
+      const response = (await createUser(request)) as Response;
       console.log(response);
       if (response.status) {
         router.push("/login");

@@ -2,17 +2,20 @@
 
 import React, { useEffect, useState, useRef } from "react";
 import UserVideoComponent from "@/containers/meeting/UserVideoComponent";
-import UserVideoComponent2 from "../../../containers/main/UserVideo";
+import UserVideoComponent2 from "@/containers/main/UserVideo";
 import {
   OpenVidu,
   Session,
   Publisher,
   StreamManager,
   Device,
+  PublisherSpeakingEvent,
 } from "openvidu-browser";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { useRecoilValue } from "recoil";
 import { meetingSocketState } from "@/app/store/socket";
+import { keywords } from "../../../../public/data/keywords.js";
 
 // type Props = {
 //   sessionId: string;
@@ -31,6 +34,9 @@ const Meeting = () => {
   const [subscribers, setSubscribers] = useState<StreamManager[]>([]);
   const [mainStreamManager, setMainStreamManager] = useState<StreamManager>();
   const [currentVideoDevice, setCurrentVideoDevice] = useState<Device | null>(
+    null,
+  );
+  const [speakingPublisherId, setSpeakingPublisherId] = useState<string | null>(
     null,
   );
 
@@ -55,7 +61,7 @@ const Meeting = () => {
   //   setSocket(newSocket);
   // }, []);
 
-  console.log(mainStreamManager, currentVideoDevice);
+  // console.log(mainStreamManager, currentVideoDevice);
   const router = useRouter();
 
   // 어떻게든 종료 하면 세션에서 나가게함.
@@ -177,6 +183,12 @@ const Meeting = () => {
 
   const joinSession = () => {
     const OV = new OpenVidu();
+    OV.setAdvancedConfiguration({
+      publisherSpeakingEventsOptions: {
+        interval: 100, // Frequency of the polling of audio streams in ms (default 100)
+        threshold: -50, // Threshold volume in dB (default -50)
+      },
+    });
 
     const newSession = OV.initSession();
     setSession(newSession);
@@ -201,6 +213,10 @@ const Meeting = () => {
         });
 
         console.log("Publisher created:", publisher);
+        publisher.updatePublisherSpeakingEventsOptions({
+          interval: 100, // 발화자 이벤트 감지 주기 (밀리초)
+          threshold: -50, // 발화자 이벤트 발생 임계값 (데시벨)
+        });
         newSession.publish(publisher);
 
         const devices = await OV.getDevices();
@@ -242,6 +258,22 @@ const Meeting = () => {
 
     newSession.on("exception", exception => {
       console.warn(exception);
+    });
+
+    // 세션에서 발화자 이벤트 리스너 추가
+    newSession.on("publisherStartSpeaking", (event: PublisherSpeakingEvent) => {
+      console.log("Publisher started speaking:", event.connection);
+      const streamId = event.connection.stream?.streamId;
+      if (streamId !== undefined) {
+        setSpeakingPublisherId(streamId);
+      } else {
+        console.log("streamId undefined");
+      }
+    });
+
+    newSession.on("publisherStopSpeaking", (event: PublisherSpeakingEvent) => {
+      console.log("Publisher stopped speaking:", event.connection);
+      setSpeakingPublisherId(null);
     });
 
     // 선택 결과 받고 사랑의 작대기 모드로 변경
@@ -462,30 +494,8 @@ const Meeting = () => {
   };
 
   const openKeyword = (random: number) => {
-    const keyword = [
-      "사랑",
-      "행복",
-      "기쁨",
-      "슬픔",
-      "화남",
-      "놀람",
-      "두려움",
-      "짜증",
-      "힘듦",
-      "평화",
-      "음주",
-      "이상형",
-      "결혼",
-      "데이트 장소",
-      "연상 연하",
-      "MBTI",
-      "혈액형",
-      "취미",
-      "좋아하는 음식",
-      "민트초코",
-    ];
     if (keywordRef.current) {
-      keywordRef.current.innerText = keyword[random];
+      keywordRef.current.innerText = keywords[random];
     }
   };
 
@@ -554,35 +564,65 @@ const Meeting = () => {
     setIsOneToOneMode(false);
   };
 
+  const randomUser = (keywordIdx: number) => {
+    const streamElements = document.getElementsByClassName("stream-container");
+    const tickSound = document.getElementById("tickSound") as HTMLAudioElement;
+
+    if (keywordRef.current) {
+      keywordRef.current.innerText =
+        "곧 한 참가자가 선택됩니다. 선택된 사람은 질문에 답변해주세요";
+    }
+
+    const animationDuration = 10000; // 초기 강조 애니메이션 기본 지속 시간
+    const currentIndex = 0;
+    let currentDuration = 50;
+    let isAnimating = true;
+
+    // speaking 클래스 제거
+    for (let i = 0; i < streamElements.length; i++) {
+      streamElements[i].classList.remove("speaking");
+    }
+
+    const highlightUser = (index: number) => {
+      if (!isAnimating) return;
+      // 현재 인덱스의 참여자를 강조 (빨간색 border 추가)
+      streamElements[index].classList.add("highlighted");
+
+      // 룰렛 소리 재생
+      tickSound.currentTime = 0; // 오디오를 처음부터 재생
+      tickSound.play();
+
+      // 일정 시간 후에 border 초기화 (빨간색 border 제거)
+      setTimeout(() => {
+        streamElements[index].classList.remove("highlighted");
+        streamElements[(index + 1) % streamElements.length].classList.add(
+          "highlighted",
+        );
+
+        // 다음 참여자 강조 시작 (재귀 호출)
+        setTimeout(() => {
+          currentDuration += 20;
+          highlightUser((index + 1) % streamElements.length);
+        }, currentDuration - 20);
+
+        setTimeout(() => {
+          isAnimating = false;
+          for (let i = 0; i < streamElements.length; i++) {
+            streamElements[i].classList.remove("highlighted");
+          }
+          openKeyword(keywordIdx);
+        }, animationDuration);
+      }, currentDuration - 20);
+    };
+    // 초기 강조 시작
+    highlightUser(currentIndex);
+  };
+
   const meetingEvent = () => {
     socket?.on("keyword", message => {
       try {
         console.log("keyword Event: ", message);
-        openKeyword(parseInt(message.message));
-      } catch (e: any) {
-        console.error(e);
-      }
-    });
-
-
-    socket?.on("cam", message => {
-      try {
-        console.log("cam Event: ", message);
-        let countdown = 5;
-        const intervalId = setInterval(() => {
-          if (countdown > 0) {
-            if (keywordRef.current) {
-              keywordRef.current.innerText = `${countdown}초 뒤 얼굴이 공개됩니다.`;
-            }
-            countdown -= 1;
-          } else {
-            clearInterval(intervalId);
-            if (keywordRef.current) {
-              keywordRef.current.innerText = "";
-            }
-            openCam();
-          }
-        }, 1000);
+        randomUser(parseInt(message.message));
       } catch (e: any) {
         console.error(e);
       }
@@ -613,13 +653,91 @@ const Meeting = () => {
     });
   };
 
+  const meetingCamEvent = () => {
+    socket?.on("cam", message => {
+      try {
+        console.log("cam Event: ", message);
+        let countdown = 5;
+        const intervalId = setInterval(() => {
+          if (countdown > 0) {
+            if (keywordRef.current) {
+              keywordRef.current.innerText = `${countdown}초 뒤 얼굴이 공개됩니다.`;
+            }
+            countdown -= 1;
+          } else {
+            clearInterval(intervalId);
+            if (keywordRef.current) {
+              keywordRef.current.innerText = "";
+            }
+            openCam();
+          }
+        }, 1000);
+      } catch (e: any) {
+        console.error(e);
+      }
+    });
+  };
+
+  const [min, setMin] = useState(5);
+  const [sec, setSec] = useState(0);
+  const time = useRef(300);
+  const timerId = useRef<null | NodeJS.Timeout>(null);
+  const totalTime = 300;
+  const [progressWidth, setProgressWidth] = useState("0%");
+
   useEffect(() => {
-    joinSession();
-    captureCamInit(); // 캡쳐용 비디오, 캔버스 display none
+    timerId.current = setInterval(() => {
+      setMin(Math.floor(time.current / 60));
+      setSec(time.current % 60);
+      time.current -= 1;
+    }, 1000);
+    return () => clearInterval(timerId.current!);
   }, []);
 
   useEffect(() => {
+    if (time.current <= 0) {
+      console.log("time out");
+      clearInterval(timerId.current!);
+    }
+    setProgressWidth(`${((totalTime - time.current) / totalTime) * 100}%`);
+  }, [sec]);
+
+  useEffect(() => {
+    joinSession();
+    captureCamInit(); // 캡쳐용 비디오, 캔버스 display none
+
+    if (publisher) {
+      publisher.updatePublisherSpeakingEventsOptions({
+        interval: 100, // 발화자 이벤트 감지 주기 (밀리초)
+        threshold: -50, // 발화자 이벤트 발생 임계값 (데시벨)
+      });
+
+      // publisher.on("publisherStartSpeaking", event => {
+      //   console.log("The local user started speaking", event.connection);
+      //   // 발화자가 말하기 시작했을 때 수행할 작업
+      // });
+
+      // publisher.on("publisherStopSpeaking", event => {
+      //   console.log("The local user stopped speaking", event.connection);
+      //   // 발화자가 말하기를 멈췄을 때 수행할 작업
+      // });
+    }
+
+    if (mainStreamManager) {
+      mainStreamManager.updatePublisherSpeakingEventsOptions({
+        interval: 100, // 오디오 스트림 폴링 간격 (ms)
+        threshold: -50, // 볼륨 임계값 (dB)
+      });
+    }
+
     meetingEvent();
+  }, []);
+
+  useEffect(() => {
+    if (!publisher) {
+      return;
+    }
+    meetingCamEvent();
   }, [publisher]);
 
   useEffect(() => {
@@ -637,18 +755,24 @@ const Meeting = () => {
             onClick={leaveSession}
             value="Leave session"
           />
-          <div className="btn-container">
-            {/* <button onClick={openCam}>캠 오픈</button> */}
-            {/* <button onClick={changeLoveStickMode}>사랑의 작대기</button> */}
-            {/* <button onClick={openKeyword}>키워드</button> */}
-            {/* <button onClick={setGrayScale}>흑백으로 만들기</button> */}
-            <button onClick={setChooseMode}>선택모드</button>
-            {/* <button onClick={setOneToOneMode}>1:1모드</button> */}
-            {/* <button onClick={() => showArrow(datass)}>그냥 연결</button> */}
+          <div className="flex items-center">
+            <Image src="/img/egg1.png" alt="" width={50} height={50} />
+            <p
+              className="bg-orange-300 h-[20px] rounded-lg"
+              style={{
+                width: progressWidth,
+              }}
+            ></p>
+            <Image src="/img/egg2.png" alt="" width={50} height={50} />
           </div>
         </div>
         <div className="keyword-wrapper">
           <p className="keyword" ref={keywordRef}></p>
+          <audio
+            id="tickSound"
+            src="/sound/tick.mp3"
+            className="hidden"
+          ></audio>
         </div>
         <div ref={captureRef} className="hidden">
           <UserVideoComponent2 />
@@ -658,7 +782,7 @@ const Meeting = () => {
         <div className="col-md-6 video-container">
           {publisher !== undefined ? (
             <div
-              className="stream-container col-md-6 col-xs-6 pub"
+              className={`stream-container col-md-6 col-xs-6 pub ${publisher.stream.streamId === speakingPublisherId ? "speaking" : ""}`}
               // onClick={() => handleMainVideoStream(publisher)}
             >
               <UserVideoComponent streamManager={publisher} socket={socket} />
@@ -667,7 +791,7 @@ const Meeting = () => {
           {subscribers.map(sub => (
             <div
               key={sub.stream.streamId}
-              className="stream-container col-md-6 col-xs-6 sub"
+              className={`stream-container col-md-6 col-xs-6 sub ${sub.stream.streamId === speakingPublisherId ? "speaking" : ""}`}
               // onClick={() => handleMainVideoStream(sub)}
             >
               <span>{sub.id}</span>

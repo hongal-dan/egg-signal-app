@@ -10,7 +10,7 @@ const Main = () => {
     const payload = JSON.parse(decodeURIComponent(escape(atob(parts[1]))));
 
     return payload;
-  }
+  };
 
   if (token === undefined) {
     console.log("토큰 없음!");
@@ -19,7 +19,15 @@ const Main = () => {
   const userInfo = decodeJwt(token.value);
   console.log(userInfo);
 
-  return <div>{token ? <MainContent nickname={userInfo.nickname} /> : <div>Redirecting...</div>}</div>;
+  return (
+    <div>
+      {token ? (
+        <MainContent nickname={userInfo.nickname} />
+      ) : (
+        <div>Redirecting...</div>
+      )}
+    </div>
+  );
 };
 
 export default Main;
