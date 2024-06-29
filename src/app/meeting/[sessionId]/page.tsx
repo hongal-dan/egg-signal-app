@@ -578,6 +578,11 @@ const Meeting = () => {
     let currentDuration = 50;
     let isAnimating = true;
 
+    // speaking 클래스 제거
+    for (let i = 0; i < streamElements.length; i++) {
+      streamElements[i].classList.remove("speaking");
+    }
+
     const highlightUser = (index: number) => {
       if (!isAnimating) return;
       // 현재 인덱스의 참여자를 강조 (빨간색 border 추가)
@@ -598,7 +603,7 @@ const Meeting = () => {
         setTimeout(() => {
           currentDuration += 20;
           highlightUser((index + 1) % streamElements.length);
-        }, currentDuration - 20); // 다음 참여자 강조는 기본 애니메이션 지속 시간 이후에 시작
+        }, currentDuration - 20);
 
         setTimeout(() => {
           isAnimating = false;
@@ -707,15 +712,15 @@ const Meeting = () => {
         threshold: -50, // 발화자 이벤트 발생 임계값 (데시벨)
       });
 
-      publisher.on("publisherStartSpeaking", event => {
-        console.log("The local user started speaking", event.connection);
-        // 발화자가 말하기 시작했을 때 수행할 작업
-      });
+      // publisher.on("publisherStartSpeaking", event => {
+      //   console.log("The local user started speaking", event.connection);
+      //   // 발화자가 말하기 시작했을 때 수행할 작업
+      // });
 
-      publisher.on("publisherStopSpeaking", event => {
-        console.log("The local user stopped speaking", event.connection);
-        // 발화자가 말하기를 멈췄을 때 수행할 작업
-      });
+      // publisher.on("publisherStopSpeaking", event => {
+      //   console.log("The local user stopped speaking", event.connection);
+      //   // 발화자가 말하기를 멈췄을 때 수행할 작업
+      // });
     }
 
     if (mainStreamManager) {
