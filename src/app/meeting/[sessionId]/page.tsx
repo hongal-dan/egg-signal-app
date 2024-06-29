@@ -363,6 +363,9 @@ const Meeting = () => {
   };
 
   const changeLoveStickMode = (datas: Array<chooseResult>) => {
+    if (keywordRef.current) {
+      keywordRef.current.innerText = '에그 시그널 결과';
+    }
     const videoContainer =
       document.getElementsByClassName("video-container")[0];
     const videoElements = document.querySelectorAll("video");
@@ -387,6 +390,9 @@ const Meeting = () => {
   };
 
   const undoLoveStickMode = () => {
+    if (keywordRef.current) {
+      keywordRef.current.innerText = '';
+    }
     const videoContainer =
       document.getElementsByClassName("video-container")[0];
     console.log("사랑의 작대기 모드 해제");
@@ -440,6 +446,9 @@ const Meeting = () => {
   const undoChooseMode = () => {
     // 선택 모드 일 때는 마우스 하버시에 선택 가능한 상태로 변경
     // 클릭 시에 선택된 상태로 변경
+    if (keywordRef.current) {
+      keywordRef.current.innerText = '';
+    }
     const chooseBtns = document.getElementsByClassName("choose-btn");
     const btnArray = Array.from(chooseBtns);
     btnArray.forEach(btn => {
@@ -450,6 +459,9 @@ const Meeting = () => {
   const setChooseMode = () => {
     // 선택 모드 일 때는 마우스 하버시에 선택 가능한 상태로 변경
     // 클릭 시에 선택된 상태로 변경
+    if (keywordRef.current) {
+      keywordRef.current.innerText = '대화해보고 싶은 사람을 선택해주세요';
+    }
     console.log("선택 모드로 변경");
     const chooseBtns = document.getElementsByClassName("choose-btn");
     const btnArray = Array.from(chooseBtns);
@@ -658,6 +670,11 @@ const Meeting = () => {
             document.getElementsByClassName("sub"),
           );
           if (lover != "0") {
+            console.log("이거도 없니?", keywordRef.current);
+            if (keywordRef.current) {
+              console.log("123123123");
+              keywordRef.current.innerText = '즐거운 시간 보내세요~';
+            }
             const loverElement = document
               .getElementById(lover)
               ?.closest(".stream-container") as HTMLDivElement;
@@ -673,6 +690,9 @@ const Meeting = () => {
             setOneToOneMode(loverElement);
             setTimeout(() => {
               // console.log("1:1 모드 해제")
+              if (keywordRef.current) {
+                keywordRef.current.innerText = '';
+              }
               undoOneToOneMode(loverElement);
               subElements.forEach(subElement => {
                 if (subElement === loverElement) {
@@ -686,6 +706,10 @@ const Meeting = () => {
           else {
             // const pubElement = document.getElementsByClassName("pub")[0] as HTMLDivElement;
             // pubElement.classList.toggle("black-white");
+            console.log("이게없나 설마" ,keywordRef.current);
+            if (keywordRef.current) {
+              keywordRef.current.innerText = '당신은 선택받지 못했습니다. 1분 간 오디오가 차단됩니다.';
+            }
             loser.forEach(loser => {
               const loserElement = document.getElementById(
                 loser,
@@ -698,7 +722,12 @@ const Meeting = () => {
               }, 60000); // 1분 후 흑백 해제
             });
             muteAudio();
-            setTimeout(() => unMuteAudio(), 60000); // 1분 후 음소거 해제
+            setTimeout(() => {
+              if (keywordRef.current) {
+                keywordRef.current.innerText = '';
+              }
+              unMuteAudio();
+            }, 60000); // 1분 후 음소거 해제
           }
         }, 10000);
       } catch (e: any) {
