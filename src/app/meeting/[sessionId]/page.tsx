@@ -202,9 +202,13 @@ const Meeting = () => {
       sessionStorage.getItem("ovInfo")!,
     );
     console.log(sessionId);
+
+    const randomNum = Math.floor(Math.random() * 1000);
+
     // Connect to the session
     newSession
-      .connect(token, { clientData: participantName })
+      // .connect(token, { clientData: participantName }) 원본
+      .connect(token, { clientData: randomNum }) // 테스트용
       .then(async () => {
         const arStream = captureCanvas();
         const publisher = await OV.initPublisherAsync(undefined, {
@@ -446,10 +450,11 @@ const Meeting = () => {
   const setChooseMode = () => {
     // 선택 모드 일 때는 마우스 하버시에 선택 가능한 상태로 변경
     // 클릭 시에 선택된 상태로 변경
+    console.log("선택 모드로 변경");
     const chooseBtns = document.getElementsByClassName("choose-btn");
     const btnArray = Array.from(chooseBtns);
     btnArray.forEach(btn => {
-      btn.classList.add("hidden");
+      btn.classList.remove("hidden");
     });
   };
 
@@ -704,7 +709,7 @@ const Meeting = () => {
     // 선택시간 신호 받고 선택 모드로 변경
     socket?.on("cupidTime", (response: number) => {
       try {
-        console.log(response);
+        console.log("cupidTime 도착", response);
         setChooseMode();
       } catch (e: any) {
         console.error(e);
