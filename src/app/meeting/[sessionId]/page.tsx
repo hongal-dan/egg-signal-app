@@ -758,11 +758,9 @@ const Meeting = () => {
           <div className="flex items-center">
             <Image src="/img/egg1.png" alt="" width={50} height={50} />
             <p
+              className="bg-orange-300 h-[20px] rounded-lg"
               style={{
                 width: progressWidth,
-                backgroundColor: "orange",
-                height: "20px",
-                borderRadius: "10px",
               }}
             ></p>
             <Image src="/img/egg2.png" alt="" width={50} height={50} />
