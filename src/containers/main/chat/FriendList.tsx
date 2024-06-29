@@ -6,19 +6,16 @@ import Chat from "./Chat";
 // 테스트용 더미 데이터
 const friends = [
   {
-    img: "/img/profile_sample.png",
     friendName: "오프라인",
     isOnline: false,
     isMeeting: false,
   },
   {
-    img: "/img/profile_sample.png",
     friendName: "온라인",
     isOnline: true,
     isMeeting: false,
   },
   {
-    img: "/img/profile_sample.png",
     friendName: "온라인+미팅 중",
     isOnline: true,
     isMeeting: true,
@@ -30,7 +27,6 @@ interface FriendListProps {
 }
 
 interface Friend {
-  img: string;
   friendName: string;
   isOnline: boolean;
   isMeeting: boolean;
@@ -42,7 +38,7 @@ const FriendList: React.FC<FriendListProps> = ({ onClose }) => {
 
   const toggleChat = (friend: Friend) => {
     setSelectedFriend(friend);
-    setIsChatVisible((prev) => !prev);
+    setIsChatVisible(prev => !prev);
   };
 
   const closeChat = () => {

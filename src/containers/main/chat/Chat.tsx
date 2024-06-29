@@ -2,7 +2,6 @@ import React from "react";
 
 interface Props {
   friend: {
-    img: string;
     friendName: string;
     isOnline: boolean;
     isMeeting: boolean;

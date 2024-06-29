@@ -2,7 +2,7 @@
 
 import React, { useRef, useState, useEffect } from "react";
 import UserVideoComponent2 from "./UserVideo";
-import FriendList from "./FriendList";
+import FriendList from "./chat/FriendList";
 import Notifications from "./Notifications";
 import io from "socket.io-client";
 import { useRouter } from "next/navigation";
@@ -92,7 +92,7 @@ const MainContent = ({ nickname }: MainContentProps) => {
       const video = document.getElementById("myCam");
       if (video && video instanceof HTMLVideoElement) {
         video.srcObject = stream;
-    }
+      }
     } catch (error) {
       console.error("Error accessing the webcam: ", error);
     }
@@ -121,7 +121,14 @@ const MainContent = ({ nickname }: MainContentProps) => {
         </div>
       </div>
       {/* <UserVideoComponent2 /> */}
-      <video id="myCam" className="mx-auto" autoPlay playsInline width={320} height={240}></video>
+      <video
+        id="myCam"
+        className="mx-auto"
+        autoPlay
+        playsInline
+        width={320}
+        height={240}
+      ></video>
       <div className="grid grid-rows-2">
         <label className="inline-flex items-center justify-center cursor-pointer">
           <input
