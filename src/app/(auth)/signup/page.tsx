@@ -58,6 +58,7 @@ export default function Signup() {
       if (response.status) {
         router.push("/login");
       } else if (response.status === 500) {
+      } else if (response.status === 500) {
         alert("중복된 아이디 입니다.");
       }
     } catch (error) {

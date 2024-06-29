@@ -2,18 +2,21 @@
 
 import React, { useEffect, useState, useRef } from "react";
 import UserVideoComponent from "@/containers/meeting/UserVideoComponent";
-import UserVideoComponent2 from "../../../containers/main/UserVideo";
+import UserVideoComponent2 from "@/containers/main/UserVideo";
 import {
   OpenVidu,
   Session,
   Publisher,
   StreamManager,
   Device,
+  PublisherSpeakingEvent,
 } from "openvidu-browser";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { useRecoilValue } from "recoil";
 import { meetingSocketState } from "@/app/store/socket";
 import { avatarState } from "@/app/store/avatar";
+import { keywords } from "../../../../public/data/keywords.js";
 import AvatarCollection from "@/containers/main/AvatarCollection";
 
 // type Props = {
@@ -31,8 +34,11 @@ const Meeting = () => {
   const [session, setSession] = useState<Session | undefined>(undefined);
   const [publisher, setPublisher] = useState<Publisher | undefined>(undefined);
   const [subscribers, setSubscribers] = useState<StreamManager[]>([]);
-  const [, setMainStreamManager] = useState<StreamManager>();
+  const [mainStreamManager, setMainStreamManager] = useState<StreamManager>();
   const [, setCurrentVideoDevice] = useState<Device | null>(
+    null,
+  );
+  const [speakingPublisherId, setSpeakingPublisherId] = useState<string | null>(
     null,
   );
 
@@ -76,11 +82,36 @@ const Meeting = () => {
     };
   }, []);
 
+  // 메인 비디오 스트림을 변경
+  // const handleMainVideoStream = (stream: StreamManager) => {
+  //   if (mainStreamManager !== stream) {
+  //     setMainStreamManager(stream);
+  //   }
+  // };
+
   const deleteSubscriber = (streamManager: StreamManager) => {
     setSubscribers(prevSubscribers =>
       prevSubscribers.filter(sub => sub !== streamManager),
     );
   };
+
+  // const captureCanvas = () => {
+  //   const canvas = document.querySelector("canvas");
+  //   if (!canvas) {
+  //     console.error("Canvas element not found");
+  //     return;
+  //   }
+  //   const stream = canvas.captureStream(30); // 30 FPS로 캡처
+  //   if (!stream) {
+  //     console.error("Stream not found");
+  //   }
+  //   const videoTracks = stream.getVideoTracks();
+  //   if (videoTracks.length === 0) {
+  //     console.error("No video tracks found in the stream");
+  //     return;
+  //   }
+  //   return videoTracks[0]; // 비디오 트랙을 반환
+  // };
 
   const captureCanvas = () => {
     const canvas = document.querySelector("canvas");
@@ -160,6 +191,12 @@ const Meeting = () => {
 
   const joinSession = () => {
     const OV = new OpenVidu();
+    OV.setAdvancedConfiguration({
+      publisherSpeakingEventsOptions: {
+        interval: 100, // Frequency of the polling of audio streams in ms (default 100)
+        threshold: -50, // Threshold volume in dB (default -50)
+      },
+    });
 
     const newSession = OV.initSession();
     setSession(newSession);
@@ -171,11 +208,11 @@ const Meeting = () => {
     newSession
       .connect(token, { clientData: participantName })
       .then(async () => {
-        const arStream = captureCanvas(); // todo: 다시 켜야함
+        const arStream = captureCanvas();
         const publisher = await OV.initPublisherAsync(undefined, {
           audioSource: undefined,
           // videoSource: undefined, // todo : 테스트용이라 다시 arStream으로 변경
-          videoSource: arStream, // todo : 테스트용이라 다시 arStream으로 변경
+          videoSource: arStream,
           publishAudio: true,
           publishVideo: true,
           resolution: "640x480",
@@ -185,6 +222,10 @@ const Meeting = () => {
         });
 
         console.log("Publisher created:", publisher);
+        publisher.updatePublisherSpeakingEventsOptions({
+          interval: 100, // 발화자 이벤트 감지 주기 (밀리초)
+          threshold: -50, // 발화자 이벤트 발생 임계값 (데시벨)
+        });
         newSession.publish(publisher);
 
         const devices = await OV.getDevices();
@@ -226,6 +267,22 @@ const Meeting = () => {
 
     newSession.on("exception", exception => {
       console.warn(exception);
+    });
+
+    // 세션에서 발화자 이벤트 리스너 추가
+    newSession.on("publisherStartSpeaking", (event: PublisherSpeakingEvent) => {
+      console.log("Publisher started speaking:", event.connection);
+      const streamId = event.connection.stream?.streamId;
+      if (streamId !== undefined) {
+        setSpeakingPublisherId(streamId);
+      } else {
+        console.log("streamId undefined");
+      }
+    });
+
+    newSession.on("publisherStopSpeaking", (event: PublisherSpeakingEvent) => {
+      console.log("Publisher stopped speaking:", event.connection);
+      setSpeakingPublisherId(null);
     });
   };
 
@@ -317,13 +374,11 @@ const Meeting = () => {
       canvas.style.height = "100%";
     });
     // if (!isLoveMode) {
-      console.log("사랑의 작대기 모드로 변경");
       videoContainer.classList.add("love-stick");
       showArrow(datas);
       // setIsLoveMode(true);
       return;
     // }
-    // console.log("사랑의 작대기 모드 해제")
     // videoContainer.classList.remove("love-stick");
     // hideArrow();
     // setIsLoveMode(false);
@@ -335,9 +390,7 @@ const Meeting = () => {
     console.log("사랑의 작대기 모드 해제")
     videoContainer.classList.remove("love-stick");
     hideArrow();
-  }
-
-
+  };
   // time 초 동안 발표 모드 (presenter: 발표자, time: 발표 시간(초))
   const changePresentationMode = (presenter: HTMLDivElement, time: number) => {
     const videoSet = new Set<HTMLDivElement | null>();
@@ -374,67 +427,36 @@ const Meeting = () => {
     if (canvasElement) {
       canvasElement.style.display = "none";
     }
-    console.log("videoelement : ", videoElement, "canvaselement : ", canvasElement);
   };
 
   const openKeyword = (random: number) => {
-    const keyword = [
-      "사랑",
-      "행복",
-      "기쁨",
-      "슬픔",
-      "화남",
-      "놀람",
-      "두려움",
-      "짜증",
-      "힘듦",
-      "평화",
-      "음주",
-      "이상형",
-      "결혼",
-      "데이트 장소",
-      "연상 연하",
-      "MBTI",
-      "혈액형",
-      "취미",
-      "좋아하는 음식",
-      "민트초코",
-    ];
     if (keywordRef.current) {
-      keywordRef.current.innerText = keyword[random];
+      keywordRef.current.innerText = keywords[random];
     }
   };
 
-  // Todo: 선택 시간이라고 서버에서 emit해주면 실행(현재 서버에서 신호 안옴)
-  const undoChooseMode = () => {
+    const undoChooseMode = () => {
+      // 선택 모드 일 때는 마우스 하버시에 선택 가능한 상태로 변경
+      // 클릭 시에 선택된 상태로 변경
+      const chooseBtns = document.getElementsByClassName("choose-btn");
+      const btnArray = Array.from(chooseBtns);
+      btnArray.forEach(btn => {
+        btn.classList.add("hidden");
+      });
+  
+    };
+
+
+  const setChooseMode = () => {
     // 선택 모드 일 때는 마우스 하버시에 선택 가능한 상태로 변경
     // 클릭 시에 선택된 상태로 변경
     const chooseBtns = document.getElementsByClassName("choose-btn");
     const btnArray = Array.from(chooseBtns);
-    // if (isChooseMode) {
-      btnArray.forEach(btn => {
-        btn.classList.add("hidden");
-      });
-
-      // setIsChooseMode(false);
-      // return;
-    // }
-    // btnArray.forEach(btn => {
-    //   btn.classList.remove("hidden");
-    // });
-    // setIsChooseMode(true);
+    btnArray.forEach(btn => {
+      btn.classList.add("hidden");
+    });
   };
 
-  const setChooseMode = () => {
-    const chooseBtns = document.getElementsByClassName("choose-btn");
-    const btnArray = Array.from(chooseBtns);
-    btnArray.forEach(btn => {
-      btn.classList.remove("hidden");
-    });
-  }
-
-
-  // loverelement의 stream-container를 줘야함
   const setOneToOneMode = (loverElement: HTMLDivElement) => {
     console.log("1:1 모드로 시작");
     const videoContainer =
@@ -453,7 +475,6 @@ const Meeting = () => {
     // if (!isOneToOneMode) {
       console.log("1:1 모드로 변경");
       videoContainer.classList.add("one-one-four");
-      videoContainer.offsetHeight;
       streamElements[0].classList.add("a");
       if(!loverElement) {
         console.log("상대방이 없습니다.");
@@ -463,12 +484,10 @@ const Meeting = () => {
       console.log("나자신", streamElements[0]);
       console.log("상대방: " , loverElement);
       let acc = 2;
-      console.log("요소 길이는 6이어야해" , streamElements.length)
       for (let i = 1; i < streamElements.length; i++) {
         if (streamElements[i].classList.contains("b")) {
           continue;
         }
-        console.log("추가합니다잇", streamElements[i]);
         const className = String.fromCharCode(97 + acc);
         streamElements[i].classList.add(className);
         acc += 1;
@@ -479,8 +498,6 @@ const Meeting = () => {
     console.log("1:1 모드 해제");
     const videoContainer =
     document.getElementsByClassName("video-container")[0];
-  const videoElements = document.querySelectorAll("video");
-  const canvasElements = document.querySelectorAll("canvas");
   const streamElements = document.getElementsByClassName("stream-container");
     videoContainer.classList.remove("one-one-four");
     streamElements[0].classList.remove("a");
@@ -498,34 +515,65 @@ const Meeting = () => {
     console.log("상대방: " , loverElement)
   };
 
+  const randomUser = (keywordIdx: number) => {
+    const streamElements = document.getElementsByClassName("stream-container");
+    const tickSound = document.getElementById("tickSound") as HTMLAudioElement;
+
+    if (keywordRef.current) {
+      keywordRef.current.innerText =
+        "곧 한 참가자가 선택됩니다. 선택된 사람은 질문에 답변해주세요";
+    }
+
+    const animationDuration = 10000; // 초기 강조 애니메이션 기본 지속 시간
+    const currentIndex = 0;
+    let currentDuration = 50;
+    let isAnimating = true;
+
+    // speaking 클래스 제거
+    for (let i = 0; i < streamElements.length; i++) {
+      streamElements[i].classList.remove("speaking");
+    }
+
+    const highlightUser = (index: number) => {
+      if (!isAnimating) return;
+      // 현재 인덱스의 참여자를 강조 (빨간색 border 추가)
+      streamElements[index].classList.add("highlighted");
+
+      // 룰렛 소리 재생
+      tickSound.currentTime = 0; // 오디오를 처음부터 재생
+      tickSound.play();
+
+      // 일정 시간 후에 border 초기화 (빨간색 border 제거)
+      setTimeout(() => {
+        streamElements[index].classList.remove("highlighted");
+        streamElements[(index + 1) % streamElements.length].classList.add(
+          "highlighted",
+        );
+
+        // 다음 참여자 강조 시작 (재귀 호출)
+        setTimeout(() => {
+          currentDuration += 20;
+          highlightUser((index + 1) % streamElements.length);
+        }, currentDuration - 20);
+
+        setTimeout(() => {
+          isAnimating = false;
+          for (let i = 0; i < streamElements.length; i++) {
+            streamElements[i].classList.remove("highlighted");
+          }
+          openKeyword(keywordIdx);
+        }, animationDuration);
+      }, currentDuration - 20);
+    };
+    // 초기 강조 시작
+    highlightUser(currentIndex);
+  };
+
   const meetingEvent = () => {
     socket?.on("keyword", message => {
       try {
         console.log("keyword Event: ", message);
-        openKeyword(parseInt(message.message));
-      } catch (e: any) {
-        console.error(e);
-      }
-    });
-
-    socket?.on("cam", message => {
-      try {
-        console.log("cam Event: ", message);
-        let countdown = 5;
-        const intervalId = setInterval(() => {
-          if (countdown > 0) {
-            if (keywordRef.current) {
-              keywordRef.current.innerText = `${countdown}초 뒤 얼굴이 공개됩니다.`;
-            }
-            countdown -= 1;
-          } else {
-            clearInterval(intervalId);
-            if (keywordRef.current) {
-              keywordRef.current.innerText = "";
-            }
-            openCam();
-          }
-        }, 1000);
+        randomUser(parseInt(message.message));
       } catch (e: any) {
         console.error(e);
       }
@@ -650,27 +698,105 @@ const Meeting = () => {
     });
   };
 
+  const meetingCamEvent = () => {
+    socket?.on("cam", message => {
+      try {
+        console.log("cam Event: ", message);
+        let countdown = 5;
+        const intervalId = setInterval(() => {
+          if (countdown > 0) {
+            if (keywordRef.current) {
+              keywordRef.current.innerText = `${countdown}초 뒤 얼굴이 공개됩니다.`;
+            }
+            countdown -= 1;
+          } else {
+            clearInterval(intervalId);
+            if (keywordRef.current) {
+              keywordRef.current.innerText = "";
+            }
+            openCam();
+          }
+        }, 1000);
+      } catch (e: any) {
+        console.error(e);
+      }
+    });
+  };
+
+  const [min, setMin] = useState(5);
+  const [sec, setSec] = useState(0);
+  const time = useRef(300);
+  const timerId = useRef<null | NodeJS.Timeout>(null);
+  const totalTime = 300;
+  const [progressWidth, setProgressWidth] = useState("0%");
+
+  useEffect(() => {
+    timerId.current = setInterval(() => {
+      setMin(Math.floor(time.current / 60));
+      setSec(time.current % 60);
+      time.current -= 1;
+    }, 1000);
+    return () => clearInterval(timerId.current!);
+  }, []);
+
+  useEffect(() => {
+    if (time.current <= 0) {
+      console.log("time out");
+      clearInterval(timerId.current!);
+    }
+    setProgressWidth(`${((totalTime - time.current) / totalTime) * 100}%`);
+  }, [sec]);
+
   useEffect(() => {
     if(!avatar) {
       console.log("avatar가 없습니ㅏㄷ!!!!!!!!!!!!!!!!!!");
       return;
     }
-
-    console.log("아바타가 있습니다!!!!!!!!!!!!!!!!");
     captureCamInit(); // 캡쳐용 비디오, 캔버스 display none
     joinSession();
+
+    if (publisher) {
+      publisher.updatePublisherSpeakingEventsOptions({
+        interval: 100, // 발화자 이벤트 감지 주기 (밀리초)
+        threshold: -50, // 발화자 이벤트 발생 임계값 (데시벨)
+      });
+
+      // publisher.on("publisherStartSpeaking", event => {
+      //   console.log("The local user started speaking", event.connection);
+      //   // 발화자가 말하기 시작했을 때 수행할 작업
+      // });
+
+      // publisher.on("publisherStopSpeaking", event => {
+      //   console.log("The local user stopped speaking", event.connection);
+      //   // 발화자가 말하기를 멈췄을 때 수행할 작업
+      // });
+    }
+
+    if (mainStreamManager) {
+      mainStreamManager.updatePublisherSpeakingEventsOptions({
+        interval: 100, // 오디오 스트림 폴링 간격 (ms)
+        threshold: -50, // 볼륨 임계값 (dB)
+      });
+    }
+
     meetingEvent();
   }, [avatar]);
 
   useEffect(() => {
+    if (!publisher) {
+      return;
+    }
+    meetingCamEvent();
+  }, [publisher]);
+
+  
+  useEffect(() => {
     console.log("subscribers", subscribers);
   }, [subscribers]);
 
-
   return avatar == null ? (
     <AvatarCollection />
-  ) :
-   (
+  ) :(
     <div className="container">
       <div id="session">
         <div id="session-header">
@@ -681,34 +807,42 @@ const Meeting = () => {
             onClick={leaveSession}
             value="Leave session"
           />
-          <div className="btn-container">
+          <div className="flex items-center">
+            <Image src="/img/egg1.png" alt="" width={50} height={50} />
+            <p
+              className="bg-orange-300 h-[20px] rounded-lg"
+              style={{
+                width: progressWidth,
+              }}
+            ></p>
+            <Image src="/img/egg2.png" alt="" width={50} height={50} />
           </div>
         </div>
         <div className="keyword-wrapper">
           <p className="keyword" ref={keywordRef}></p>
+          <audio
+            id="tickSound"
+            src="/sound/tick.mp3"
+            className="hidden"
+          ></audio>
         </div>
         {!isOpenCam ? (<div ref={captureRef} className="hidden">
           <UserVideoComponent2 />
         </div>) : (null)}
-
         <div className="col-md-6 video-container">
           {publisher !== undefined ? (
             <div
-              className="stream-container col-md-6 col-xs-6 pub"
+              className={`stream-container col-md-6 col-xs-6 pub ${publisher.stream.streamId === speakingPublisherId ? "speaking" : ""}`}
               // onClick={() => handleMainVideoStream(publisher)}
-              ref={pubRef}
             >
               <UserVideoComponent streamManager={publisher} socket={socket} />
             </div>
           ) : null}
-          {subscribers.map((sub, i) => (
+          {subscribers.map(sub => (
             <div
               key={sub.stream.streamId}
-              className="stream-container col-md-6 col-xs-6 sub"
+              className={`stream-container col-md-6 col-xs-6 sub ${sub.stream.streamId === speakingPublisherId ? "speaking" : ""}`}
               // onClick={() => handleMainVideoStream(sub)}
-              ref={(el: HTMLDivElement | null): void => {
-                subRef.current[i] = el;
-              }}
             >
               <span>{sub.id}</span>
               <UserVideoComponent

@@ -1,5 +1,12 @@
 .stream-container {
-	padding: 0;
+  box-sizing: border-box;
+  border: 5px solid transparent;
+  border-radius: 15px;
+  padding: 0;
+}
+
+.stream-container.speaking {
+  border-color: #63e6be;
 }
 
 .video-hidden {
@@ -10,8 +17,7 @@ video {
   width: 100%;
   height: auto;
   float: left;
-  border: 2px solid black;
-  border-radius: 20px;
+  border-radius: 10px;
 }
 
 .streamcomponent {
@@ -45,8 +51,8 @@ video {
 
 .one-one-four {
   grid-template-columns: repeat(8, 1fr);
-  grid-template-rows: 1fr 1fr 1fr; 
-  grid-template-areas: 
+  grid-template-rows: 1fr 1fr 1fr;
+  grid-template-areas:
     "a a a a b b b b"
     "a a a a b b b b"
     ". . c d e f . .";
@@ -79,7 +85,7 @@ video {
   z-index: 2;
 }
 .arrow-body {
-  background-color: #FA3689;
+  background-color: #fa3689;
   height: 10px;
   transform-origin: left center;
   position: relative;
@@ -89,13 +95,12 @@ video {
   height: 0;
   border-left: 20px solid transparent;
   border-right: 20px solid transparent;
-  border-bottom: 20px solid #FA3689;
+  border-bottom: 20px solid #fa3689;
   position: absolute;
   top: -5px;
   right: -15px;
   transform: rotate(90deg);
 }
-
 
 .keyword-wrapper {
   width: 100%;
@@ -113,9 +118,8 @@ video {
 
 .cam-wrapper {
   height: 100%;
-  width: 100%; 
+  width: 100%;
   padding-bottom: 75%;
-
 }
 
 .choose-btn {
@@ -155,4 +159,11 @@ video {
 }
 p {
   margin: 0;
+}
+
+.highlighted {
+  box-sizing: border-box;
+  border: 5px solid #ff6b6b;
+  border-radius: 15px;
+  padding: 0;
 }
