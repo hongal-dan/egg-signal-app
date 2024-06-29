@@ -35,9 +35,7 @@ const Meeting = () => {
   const [publisher, setPublisher] = useState<Publisher | undefined>(undefined);
   const [subscribers, setSubscribers] = useState<StreamManager[]>([]);
   const [mainStreamManager, setMainStreamManager] = useState<StreamManager>();
-  const [, setCurrentVideoDevice] = useState<Device | null>(
-    null,
-  );
+  const [, setCurrentVideoDevice] = useState<Device | null>(null);
   const [speakingPublisherId, setSpeakingPublisherId] = useState<string | null>(
     null,
   );
@@ -374,10 +372,10 @@ const Meeting = () => {
       canvas.style.height = "100%";
     });
     // if (!isLoveMode) {
-      videoContainer.classList.add("love-stick");
-      showArrow(datas);
-      // setIsLoveMode(true);
-      return;
+    videoContainer.classList.add("love-stick");
+    showArrow(datas);
+    // setIsLoveMode(true);
+    return;
     // }
     // videoContainer.classList.remove("love-stick");
     // hideArrow();
@@ -387,7 +385,7 @@ const Meeting = () => {
   const undoLoveStickMode = () => {
     const videoContainer =
       document.getElementsByClassName("video-container")[0];
-    console.log("사랑의 작대기 모드 해제")
+    console.log("사랑의 작대기 모드 해제");
     videoContainer.classList.remove("love-stick");
     hideArrow();
   };
@@ -435,17 +433,15 @@ const Meeting = () => {
     }
   };
 
-    const undoChooseMode = () => {
-      // 선택 모드 일 때는 마우스 하버시에 선택 가능한 상태로 변경
-      // 클릭 시에 선택된 상태로 변경
-      const chooseBtns = document.getElementsByClassName("choose-btn");
-      const btnArray = Array.from(chooseBtns);
-      btnArray.forEach(btn => {
-        btn.classList.add("hidden");
-      });
-  
-    };
-
+  const undoChooseMode = () => {
+    // 선택 모드 일 때는 마우스 하버시에 선택 가능한 상태로 변경
+    // 클릭 시에 선택된 상태로 변경
+    const chooseBtns = document.getElementsByClassName("choose-btn");
+    const btnArray = Array.from(chooseBtns);
+    btnArray.forEach(btn => {
+      btn.classList.add("hidden");
+    });
+  };
 
   const setChooseMode = () => {
     // 선택 모드 일 때는 마우스 하버시에 선택 가능한 상태로 변경
@@ -459,11 +455,14 @@ const Meeting = () => {
 
   const setOneToOneMode = (loverElement: HTMLDivElement) => {
     console.log("1:1 모드로 시작");
-    const videoContainer =
-      document.getElementsByClassName("video-container")[0] as HTMLDivElement;
+    const videoContainer = document.getElementsByClassName(
+      "video-container",
+    )[0] as HTMLDivElement;
     const videoElements = document.querySelectorAll("video");
     const canvasElements = document.querySelectorAll("canvas");
-    const streamElements = document.getElementsByClassName("stream-container") as HTMLCollectionOf<HTMLDivElement>;
+    const streamElements = document.getElementsByClassName(
+      "stream-container",
+    ) as HTMLCollectionOf<HTMLDivElement>;
     videoElements.forEach(video => {
       video.style.width = "100%";
       video.style.height = "100%";
@@ -473,32 +472,32 @@ const Meeting = () => {
       canvas.style.height = "100%";
     });
     // if (!isOneToOneMode) {
-      console.log("1:1 모드로 변경");
-      videoContainer.classList.add("one-one-four");
-      streamElements[0].classList.add("a");
-      if(!loverElement) {
-        console.log("상대방이 없습니다.");
+    console.log("1:1 모드로 변경");
+    videoContainer.classList.add("one-one-four");
+    streamElements[0].classList.add("a");
+    if (!loverElement) {
+      console.log("상대방이 없습니다.");
+    }
+    loverElement?.classList.add("b");
+    console.log("컨테이너", videoContainer);
+    console.log("나자신", streamElements[0]);
+    console.log("상대방: ", loverElement);
+    let acc = 2;
+    for (let i = 1; i < streamElements.length; i++) {
+      if (streamElements[i].classList.contains("b")) {
+        continue;
       }
-      loverElement?.classList.add("b");
-      console.log("컨테이너", videoContainer);
-      console.log("나자신", streamElements[0]);
-      console.log("상대방: " , loverElement);
-      let acc = 2;
-      for (let i = 1; i < streamElements.length; i++) {
-        if (streamElements[i].classList.contains("b")) {
-          continue;
-        }
-        const className = String.fromCharCode(97 + acc);
-        streamElements[i].classList.add(className);
-        acc += 1;
-      }
+      const className = String.fromCharCode(97 + acc);
+      streamElements[i].classList.add(className);
+      acc += 1;
+    }
   };
 
   const undoOneToOneMode = (loverElement: HTMLDivElement) => {
     console.log("1:1 모드 해제");
     const videoContainer =
-    document.getElementsByClassName("video-container")[0];
-  const streamElements = document.getElementsByClassName("stream-container");
+      document.getElementsByClassName("video-container")[0];
+    const streamElements = document.getElementsByClassName("stream-container");
     videoContainer.classList.remove("one-one-four");
     streamElements[0].classList.remove("a");
     let acc = 2;
@@ -511,8 +510,8 @@ const Meeting = () => {
       acc += 1;
     }
     loverElement?.classList.remove("b");
-    console.log("나자신", streamElements[0])
-    console.log("상대방: " , loverElement)
+    console.log("나자신", streamElements[0]);
+    console.log("상대방: ", loverElement);
   };
 
   const randomUser = (keywordIdx: number, pickUser: string) => {
@@ -563,7 +562,16 @@ const Meeting = () => {
           }
           openKeyword(keywordIdx);
           // todo1: random user nickname(pickUser) 으로 video 찾아서 발표자 화면 출력하기
-          // todo2: 대답할 시간 기다리고 다시 3:3 모드로 되돌리기 (대답할 시간 타이머도 넣어야 함.)
+          const presenterElement = Array.prototype.filter.call(
+            streamElements,
+            function (element) {
+              const nestedDiv = element.querySelector(
+                `div > div[id=${pickUser}]`,
+              );
+              return nestedDiv !== null;
+            },
+          )[0];
+          changePresentationMode(presenterElement, 10);
         }, animationDuration);
       }, currentDuration - 10);
     };
@@ -617,7 +625,7 @@ const Meeting = () => {
         removeChooseSign(); // 선택된 사람 표시 제거
         changeLoveStickMode(response.message as Array<chooseResult>);
         setTimeout(() => {
-          console.log("원 위치로 변경")
+          console.log("원 위치로 변경");
           // undoLoveStickMode(response.messageas as Array<chooseResult>);
           undoLoveStickMode();
         }, 10000); // 10초 후 원 위치
@@ -645,7 +653,9 @@ const Meeting = () => {
             document.getElementsByClassName("sub"),
           );
           if (lover != "0") {
-            const loverElement = document.getElementById(lover)?.closest('.stream-container') as HTMLDivElement;
+            const loverElement = document
+              .getElementById(lover)
+              ?.closest(".stream-container") as HTMLDivElement;
             // sub들 흑백으로 만들기
             subElements.forEach(subElement => {
               if (subElement === loverElement) {
@@ -654,7 +664,7 @@ const Meeting = () => {
               subElement.classList.toggle("black-white");
               console.log("나머지 흑백 만들기");
             });
-  
+
             setOneToOneMode(loverElement);
             setTimeout(() => {
               // console.log("1:1 모드 해제")
@@ -664,7 +674,7 @@ const Meeting = () => {
                   return;
                 }
                 subElement.classList.toggle("black-white");
-              }); 
+              });
             }, 60000); // 1분 후 원 위치
           }
           // 매칭 안된 사람들의 경우
@@ -672,20 +682,19 @@ const Meeting = () => {
             // const pubElement = document.getElementsByClassName("pub")[0] as HTMLDivElement;
             // pubElement.classList.toggle("black-white");
             loser.forEach(loser => {
-              const loserElement = document.getElementById(loser) as HTMLDivElement;
+              const loserElement = document.getElementById(
+                loser,
+              ) as HTMLDivElement;
               console.log("loser:", loser);
               loserElement.classList.toggle("black-white");
-              setTimeout(
-                () => {
-                  // pubElement.classList.toggle("black-white");
-                  loserElement.classList.toggle("black-white")},
-                60000,
-              ); // 1분 후 흑백 해제
+              setTimeout(() => {
+                // pubElement.classList.toggle("black-white");
+                loserElement.classList.toggle("black-white");
+              }, 60000); // 1분 후 흑백 해제
             });
             muteAudio();
             setTimeout(() => unMuteAudio(), 60000); // 1분 후 음소거 해제
           }
-
         }, 10000);
       } catch (e: any) {
         console.error(e);
@@ -755,7 +764,7 @@ const Meeting = () => {
   }, [sec]);
 
   useEffect(() => {
-    if(!avatar) {
+    if (!avatar) {
       console.log("avatar가 없습니ㅏㄷ!!!!!!!!!!!!!!!!!!");
       return;
     }
@@ -796,14 +805,13 @@ const Meeting = () => {
     meetingCamEvent();
   }, [publisher]);
 
-  
   useEffect(() => {
     console.log("subscribers", subscribers);
   }, [subscribers]);
 
   return avatar == null ? (
     <AvatarCollection />
-  ) :(
+  ) : (
     <div className="container">
       <div id="session">
         <div id="session-header">
@@ -833,9 +841,11 @@ const Meeting = () => {
             className="hidden"
           ></audio>
         </div>
-        {!isOpenCam ? (<div ref={captureRef} className="hidden">
-          <UserVideoComponent2 />
-        </div>) : (null)}
+        {!isOpenCam ? (
+          <div ref={captureRef} className="hidden">
+            <UserVideoComponent2 />
+          </div>
+        ) : null}
         <div className="col-md-6 video-container">
           {publisher !== undefined ? (
             <div
