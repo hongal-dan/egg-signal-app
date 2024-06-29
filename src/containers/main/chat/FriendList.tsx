@@ -57,7 +57,7 @@ const FriendList: React.FC<FriendListProps> = ({ onClose }) => {
         <Friend key={index} friend={friend} onChat={() => toggleChat(friend)} />
       ))}
       {isChatVisible && selectedFriend && (
-        <div className="w-full absolute top-[400px] left-[-330px] bottom-0 bg-white shadow-md rounded-lg p-4 z-11">
+        <div className="w-full absolute top-[250px] left-[-330px] bottom-0 bg-white shadow-md rounded-lg z-11">
           <Chat friend={selectedFriend} onClose={closeChat} />
         </div>
       )}
