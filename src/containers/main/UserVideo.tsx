@@ -53,6 +53,46 @@ class Avatar {
     this.gltf = gltf;
   }
 
+  // 모델 돌면서 자원 해제
+  disposeResources(): void {
+    const scene = this.gltf?.scene;
+    scene?.traverse((object: THREE.Object3D) => {
+      if (!(object as THREE.Mesh).isMesh) {
+        const mesh = object as THREE.Mesh;
+        if (mesh.geometry) {
+          mesh.geometry.dispose();
+        }
+        if (mesh.material) {
+          if (Array.isArray(mesh.material)) {
+            mesh.material.forEach(material => this.disposeMaterial(material));
+          } else {
+            this.disposeMaterial(mesh.material);
+          }
+        }
+        return;
+      }
+    });
+  }
+
+  disposeMaterial(material: THREE.Material): void {
+    const materialsWithMaps = [
+      'map',
+      'lightMap',
+      'bumpMap',
+      'normalMap',
+      'envMap'
+    ] as const;
+
+    materialsWithMaps.forEach((mapName) => {
+      const materialWithMap = material as THREE.MeshStandardMaterial;
+      if (materialWithMap[mapName]) {
+        (materialWithMap[mapName] as THREE.Texture).dispose();
+      }
+    });
+
+    material.dispose();
+  }
+
   // 모델 형태 변환
   updateBlendshapes(blendshapes: Blendshapes) {
     const categories = blendshapes.categories;
@@ -82,23 +122,21 @@ function UserVideoComponent2() {
   // const mindarThreeRef = useRef<MindARThree | null>(null);
 
   useEffect(() => {
+    const mindarThree = new MindARThree({
+      container: containerRef.current!,
+    });
+
+    const { renderer, scene, camera } = mindarThree;
+    // 기본 배경색으로 변경
+    renderer.setClearColor(0xfae4c9, 1);
+    const light = new THREE.HemisphereLight(0xffffff, 0xbbbbff, 2.5);
+    scene.add(light);
+    
+    // 화면 상의 특정 위치를 기준으로 얼굴을 식별하고 추적 여기서 1은 그냥 식별자임
+    const anchor = mindarThree.addAnchor(1);
+
+    
     const setup = async () => {
-      const mindarThree = new MindARThree({
-        container: containerRef.current!, 
-      });
-
-
-      const { renderer, scene, camera } = mindarThree;
-
-      // 기본 배경색으로 변경
-      renderer.setClearColor(0xfae4c9, 1); 
-
-      const light = new THREE.HemisphereLight(0xffffff, 0xbbbbff, 2);
-      scene.add(light);
-
-      // 화면 상의 특정 위치를 기준으로 얼굴을 식별하고 추적 여기서 1은 그냥 식별자임
-      const anchor = mindarThree.addAnchor(1);
-
       await avatar!.init();
       if (avatar!.gltf && avatar!.gltf.scene) {
         avatar!.gltf.scene.scale.set(2, 2, 2);
@@ -110,7 +148,6 @@ function UserVideoComponent2() {
 
       // 받은 정보로 프레임마다 아바타 모양 렌더링
       renderer.setAnimationLoop(() => {
-
         // 가장 최근의 추정치를 가져옴
         const estimate = mindarThree.getLatestEstimate();
         if (estimate && estimate.blendshapes) {
@@ -125,7 +162,16 @@ function UserVideoComponent2() {
     // if (canvas) {
     //   canvas.style.backgroundColor = "#fae4c9";
     // }
-  });
+    return () => {
+      renderer.setAnimationLoop(null);
+
+      mindarThree.scene.clear();
+      mindarThree.renderer.dispose();
+      if (avatar) {
+        avatar.disposeResources();
+      }
+    };
+  }, [avatarName]);
 
   return (
     <>

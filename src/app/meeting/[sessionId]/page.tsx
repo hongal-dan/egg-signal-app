@@ -15,7 +15,9 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useRecoilValue } from "recoil";
 import { meetingSocketState } from "@/app/store/socket";
+import { avatarState } from "@/app/store/avatar";
 import { keywords } from "../../../../public/data/keywords.js";
+import AvatarCollection from "@/containers/main/AvatarCollection";
 
 // type Props = {
 //   sessionId: string;
@@ -33,20 +35,25 @@ const Meeting = () => {
   const [publisher, setPublisher] = useState<Publisher | undefined>(undefined);
   const [subscribers, setSubscribers] = useState<StreamManager[]>([]);
   const [mainStreamManager, setMainStreamManager] = useState<StreamManager>();
-  const [currentVideoDevice, setCurrentVideoDevice] = useState<Device | null>(
+  const [, setCurrentVideoDevice] = useState<Device | null>(
     null,
   );
   const [speakingPublisherId, setSpeakingPublisherId] = useState<string | null>(
     null,
   );
 
-  const [isLoveMode, setIsLoveMode] = useState<boolean>(false);
-  const [isChooseMode, setIsChooseMode] = useState<boolean>(false);
-  const [isOneToOneMode, setIsOneToOneMode] = useState<boolean>(false);
+  // const [isLoveMode, setIsLoveMode] = useState<boolean>(false);
+  // const [isChooseMode, setIsChooseMode] = useState<boolean>(false);
+  // const [isOneToOneMode, setIsOneToOneMode] = useState<boolean>(false);
   const captureRef = useRef<HTMLDivElement>(null);
   const keywordRef = useRef<HTMLParagraphElement>(null);
+  const pubRef = useRef<HTMLDivElement>(null);
+  const subRef = useRef<Array<HTMLDivElement | null>>([]);
 
   const socket = useRecoilValue(meetingSocketState);
+
+  const avatar = useRecoilValue(avatarState);
+  const [isOpenCam, setIsOpenCam] = useState<boolean>(false);
 
   // const socket = io(`${url}/meeting`, {
   //   transports: ["websocket"],
@@ -150,6 +157,7 @@ const Meeting = () => {
         publisher
           .replaceTrack(webcamTrack)
           .then(() => {
+            setIsOpenCam(true);
             console.log("Track replaced with webcam track");
           })
           .catch(error => {
@@ -203,6 +211,7 @@ const Meeting = () => {
         const arStream = captureCanvas();
         const publisher = await OV.initPublisherAsync(undefined, {
           audioSource: undefined,
+          // videoSource: undefined, // todo : 테스트용이라 다시 arStream으로 변경
           videoSource: arStream,
           publishAudio: true,
           publishVideo: true,
@@ -275,87 +284,7 @@ const Meeting = () => {
       console.log("Publisher stopped speaking:", event.connection);
       setSpeakingPublisherId(null);
     });
-
-    // 선택 결과 받고 사랑의 작대기 모드로 변경
-    socket?.on("chooseResult", message => {
-      try {
-        console.log("chooseResult = ", message);
-        setChooseMode(); // 선택모드 해제
-        removeChooseSign(); // 선택된 사람 표시 제거
-        changeLoveStickMode(message as Array<chooseResult>);
-        setTimeout(() => changeLoveStickMode(message), 10000); // 10초 후 원 위치
-      } catch (e: any) {
-        console.error(e);
-      }
-    });
-
-    type cupidResult = {
-      lover: string;
-      winners: Array<string>;
-    };
-
-    // 선택 결과 받고 1:1 모드로 변경
-    socket?.on("cupidResult", (message: cupidResult) => {
-      try {
-        const { lover, winners } = message;
-        console.log(lover, winners);
-
-        // 매칭 된 사람의 경우
-        if (lover != "0") {
-          const loverElement = document.getElementById(lover) as HTMLDivElement;
-          const subElements = Array.from(
-            document.getElementsByClassName("sub"),
-          );
-          // sub들 흑백으로 만들기
-          subElements.forEach(subElement => {
-            if (subElement === loverElement) {
-              return;
-            }
-            subElement.classList.toggle("black-white");
-          });
-
-          setOneToOneMode(loverElement);
-          setTimeout(() => {
-            setOneToOneMode(loverElement);
-            subElements.forEach(subElement => {
-              if (subElement === loverElement) {
-                return;
-              }
-              subElement.classList.toggle("black-white");
-            }, 60000); // 1분 후 원 위치
-          });
-        }
-        // 매칭 안된 사람들의 경우
-        // Todo: 매칭 안된 사람들은 누가 매칭되었는 지 알아야되는데 ,, 그래야 흑백 처리를 하는데 ,,,,
-        else {
-          winners.forEach(winner => {
-            const winnerElement = document.getElementById(
-              winner,
-            ) as HTMLDivElement;
-            winnerElement.classList.toggle("black-white");
-            setTimeout(
-              () => winnerElement.classList.toggle("black-white"),
-              60000,
-            ); // 1분 후 흑백 해제
-          });
-          muteAudio();
-          setTimeout(() => unMuteAudio(), 60000); // 1분 후 음소거 해제
-        }
-      } catch (e: any) {
-        console.error(e);
-      }
-    });
   };
-
-  // 선택시간 신호 받고 선택 모드로 변경
-  socket?.on("cupidTime", (message: number) => {
-    try {
-      console.log(message);
-      setChooseMode();
-    } catch (e: any) {
-      console.error(e);
-    }
-  });
 
   // 선택된 표시 제거
   const removeChooseSign = () => {
@@ -379,29 +308,6 @@ const Meeting = () => {
     router.push("/main");
   };
 
-  // const openReal = () => {
-  //   console.log("openReal");
-  //   const videoElements = document.querySelectorAll("video");
-  //   const canvasElements = document.querySelectorAll("canvas");
-  //   if (isAvatar) {
-  //     videoElements.forEach(video => {
-  //       video.style.display = "block";
-  //     });
-  //     canvasElements.forEach(canvas => {
-  //       canvas.style.display = "none";
-  //     });
-  //     setIsAvatar(false);
-  //     return;
-  //   }
-  //   videoElements.forEach(video => {
-  //     video.style.display = "none";
-  //   });
-  //   canvasElements.forEach(canvas => {
-  //     canvas.style.display = "block";
-  //   });
-  //   setIsAvatar(true);
-  // };
-
   const showArrow = (datas: Array<chooseResult>) => {
     const acc = [-2, -1, 0, 1, 2, 3];
     datas.forEach(({ sender, receiver }, idx) => {
@@ -413,12 +319,12 @@ const Meeting = () => {
       const arrowBody = arrowContainer?.querySelector(
         ".arrow-body",
       ) as HTMLDivElement;
-      console.log(sender, receiver);
-      console.log(fromUser, toUser, arrowContainer, arrowBody);
+      // console.log(sender, receiver);
+      // console.log(fromUser, toUser, arrowContainer, arrowBody);
 
       const rect1 = fromUser.getBoundingClientRect();
       const rect2 = toUser.getBoundingClientRect();
-      console.log(rect1, rect2);
+      // console.log(rect1, rect2);
       const centerX1 = rect1.left + rect1.width / 2 + acc[idx] * 10;
       const centerY1 = rect1.top + rect1.height / 2 + acc[idx] * 10;
       const centerX2 = rect2.left + rect2.width / 2 + acc[idx] * 10;
@@ -467,15 +373,45 @@ const Meeting = () => {
       canvas.style.width = "100%";
       canvas.style.height = "100%";
     });
-    if (!isLoveMode) {
+    // if (!isLoveMode) {
       videoContainer.classList.add("love-stick");
       showArrow(datas);
-      setIsLoveMode(true);
+      // setIsLoveMode(true);
       return;
-    }
+    // }
+    // videoContainer.classList.remove("love-stick");
+    // hideArrow();
+    // setIsLoveMode(false);
+  };
+
+  const undoLoveStickMode = () => {
+    const videoContainer =
+      document.getElementsByClassName("video-container")[0];
+    console.log("사랑의 작대기 모드 해제")
     videoContainer.classList.remove("love-stick");
     hideArrow();
-    setIsLoveMode(false);
+  };
+  // time 초 동안 발표 모드 (presenter: 발표자, time: 발표 시간(초))
+  const changePresentationMode = (presenter: HTMLDivElement, time: number) => {
+    const videoSet = new Set<HTMLDivElement | null>();
+    videoSet.add(presenter);
+    videoSet.add(pubRef.current);
+    subRef.current.forEach(sub => {
+      videoSet.add(sub);
+    });
+    const videoArray = Array.from(videoSet);
+
+    // 비디오 그리드 a: main , bcdef
+    videoArray.forEach((video, idx) => {
+      video?.classList.add(String.fromCharCode(97 + idx));
+    });
+
+    // time 초 후 원래대로
+    setTimeout(() => {
+      videoArray.forEach((video, idx) => {
+        video?.classList.remove(String.fromCharCode(97 + idx));
+      });
+    }, time * 1000);
   };
 
   const captureCamInit = () => {
@@ -499,32 +435,35 @@ const Meeting = () => {
     }
   };
 
-  // Todo: 선택 시간이라고 서버에서 emit해주면 실행(현재 서버에서 신호 안옴)
+    const undoChooseMode = () => {
+      // 선택 모드 일 때는 마우스 하버시에 선택 가능한 상태로 변경
+      // 클릭 시에 선택된 상태로 변경
+      const chooseBtns = document.getElementsByClassName("choose-btn");
+      const btnArray = Array.from(chooseBtns);
+      btnArray.forEach(btn => {
+        btn.classList.add("hidden");
+      });
+  
+    };
+
+
   const setChooseMode = () => {
     // 선택 모드 일 때는 마우스 하버시에 선택 가능한 상태로 변경
     // 클릭 시에 선택된 상태로 변경
     const chooseBtns = document.getElementsByClassName("choose-btn");
     const btnArray = Array.from(chooseBtns);
-    if (isChooseMode) {
-      btnArray.forEach(btn => {
-        btn.classList.add("hidden");
-      });
-
-      setIsChooseMode(false);
-      return;
-    }
     btnArray.forEach(btn => {
-      btn.classList.remove("hidden");
+      btn.classList.add("hidden");
     });
-    setIsChooseMode(true);
   };
 
   const setOneToOneMode = (loverElement: HTMLDivElement) => {
+    console.log("1:1 모드로 시작");
     const videoContainer =
-      document.getElementsByClassName("video-container")[0];
+      document.getElementsByClassName("video-container")[0] as HTMLDivElement;
     const videoElements = document.querySelectorAll("video");
     const canvasElements = document.querySelectorAll("canvas");
-    const streamElements = document.getElementsByClassName("stream-container");
+    const streamElements = document.getElementsByClassName("stream-container") as HTMLCollectionOf<HTMLDivElement>;
     videoElements.forEach(video => {
       video.style.width = "100%";
       video.style.height = "100%";
@@ -533,10 +472,17 @@ const Meeting = () => {
       canvas.style.width = "100%";
       canvas.style.height = "100%";
     });
-    if (!isOneToOneMode) {
+    // if (!isOneToOneMode) {
+      console.log("1:1 모드로 변경");
       videoContainer.classList.add("one-one-four");
       streamElements[0].classList.add("a");
+      if(!loverElement) {
+        console.log("상대방이 없습니다.");
+      }
       loverElement?.classList.add("b");
+      console.log("컨테이너", videoContainer);
+      console.log("나자신", streamElements[0]);
+      console.log("상대방: " , loverElement);
       let acc = 2;
       for (let i = 1; i < streamElements.length; i++) {
         if (streamElements[i].classList.contains("b")) {
@@ -546,9 +492,13 @@ const Meeting = () => {
         streamElements[i].classList.add(className);
         acc += 1;
       }
-      setIsOneToOneMode(true);
-      return;
-    }
+  };
+
+  const undoOneToOneMode = (loverElement: HTMLDivElement) => {
+    console.log("1:1 모드 해제");
+    const videoContainer =
+    document.getElementsByClassName("video-container")[0];
+  const streamElements = document.getElementsByClassName("stream-container");
     videoContainer.classList.remove("one-one-four");
     streamElements[0].classList.remove("a");
     let acc = 2;
@@ -561,7 +511,8 @@ const Meeting = () => {
       acc += 1;
     }
     loverElement?.classList.remove("b");
-    setIsOneToOneMode(false);
+    console.log("나자신", streamElements[0])
+    console.log("상대방: " , loverElement)
   };
 
   const randomUser = (keywordIdx: number, pickUser: string) => {
@@ -656,6 +607,100 @@ const Meeting = () => {
         console.error(e);
       }
     });
+
+    // 선택 결과 받고 사랑의 작대기 모드로 변경
+    socket?.on("chooseResult", response => {
+      try {
+        console.log("chooseResult 도착");
+        console.log("chooseResult = ", response);
+        undoChooseMode(); // 선택모드 해제
+        removeChooseSign(); // 선택된 사람 표시 제거
+        changeLoveStickMode(response.message as Array<chooseResult>);
+        setTimeout(() => {
+          console.log("원 위치로 변경")
+          // undoLoveStickMode(response.messageas as Array<chooseResult>);
+          undoLoveStickMode();
+        }, 10000); // 10초 후 원 위치
+      } catch (e: any) {
+        console.error(e);
+      }
+    });
+
+    type cupidResult = {
+      lover: string;
+      loser: Array<string>;
+    };
+
+    // 선택 결과 받고 1:1 모드로 변경
+    socket?.on("cupidResult", response => {
+      try {
+        console.log("cupidResult 도착", response);
+        const { lover, loser } = response as cupidResult;
+        console.log(lover, loser);
+
+        // 매칭 된 사람의 경우
+        setTimeout(() => {
+          console.log("큐피드result로 계산 시작");
+          const subElements = Array.from(
+            document.getElementsByClassName("sub"),
+          );
+          if (lover != "0") {
+            const loverElement = document.getElementById(lover)?.closest('.stream-container') as HTMLDivElement;
+            // sub들 흑백으로 만들기
+            subElements.forEach(subElement => {
+              if (subElement === loverElement) {
+                return;
+              }
+              subElement.classList.toggle("black-white");
+              console.log("나머지 흑백 만들기");
+            });
+  
+            setOneToOneMode(loverElement);
+            setTimeout(() => {
+              // console.log("1:1 모드 해제")
+              undoOneToOneMode(loverElement);
+              subElements.forEach(subElement => {
+                if (subElement === loverElement) {
+                  return;
+                }
+                subElement.classList.toggle("black-white");
+              }); 
+            }, 60000); // 1분 후 원 위치
+          }
+          // 매칭 안된 사람들의 경우
+          else {
+            // const pubElement = document.getElementsByClassName("pub")[0] as HTMLDivElement;
+            // pubElement.classList.toggle("black-white");
+            loser.forEach(loser => {
+              const loserElement = document.getElementById(loser) as HTMLDivElement;
+              console.log("loser:", loser);
+              loserElement.classList.toggle("black-white");
+              setTimeout(
+                () => {
+                  // pubElement.classList.toggle("black-white");
+                  loserElement.classList.toggle("black-white")},
+                60000,
+              ); // 1분 후 흑백 해제
+            });
+            muteAudio();
+            setTimeout(() => unMuteAudio(), 60000); // 1분 후 음소거 해제
+          }
+
+        }, 10000);
+      } catch (e: any) {
+        console.error(e);
+      }
+    });
+
+    // 선택시간 신호 받고 선택 모드로 변경
+    socket?.on("cupidTime", (response: number) => {
+      try {
+        console.log(response);
+        setChooseMode();
+      } catch (e: any) {
+        console.error(e);
+      }
+    });
   };
 
   const meetingCamEvent = () => {
@@ -710,8 +755,12 @@ const Meeting = () => {
   }, [sec]);
 
   useEffect(() => {
-    joinSession();
+    if(!avatar) {
+      console.log("avatar가 없습니ㅏㄷ!!!!!!!!!!!!!!!!!!");
+      return;
+    }
     captureCamInit(); // 캡쳐용 비디오, 캔버스 display none
+    joinSession();
 
     if (publisher) {
       publisher.updatePublisherSpeakingEventsOptions({
@@ -738,7 +787,7 @@ const Meeting = () => {
     }
 
     meetingEvent();
-  }, []);
+  }, [avatar]);
 
   useEffect(() => {
     if (!publisher) {
@@ -747,11 +796,14 @@ const Meeting = () => {
     meetingCamEvent();
   }, [publisher]);
 
+  
   useEffect(() => {
     console.log("subscribers", subscribers);
   }, [subscribers]);
 
-  return (
+  return avatar == null ? (
+    <AvatarCollection />
+  ) :(
     <div className="container">
       <div id="session">
         <div id="session-header">
@@ -781,11 +833,9 @@ const Meeting = () => {
             className="hidden"
           ></audio>
         </div>
-        <div ref={captureRef} className="hidden">
+        {!isOpenCam ? (<div ref={captureRef} className="hidden">
           <UserVideoComponent2 />
-        </div>
-        {/* <video ref={videoRef}></video> */}
-
+        </div>) : (null)}
         <div className="col-md-6 video-container">
           {publisher !== undefined ? (
             <div

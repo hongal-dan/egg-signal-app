@@ -53,10 +53,11 @@ export default function Signup() {
       gender: values.gender,
     };
     try {
-      const response = (await createUser(request)) as Response;
+      const response = await createUser(request) as Response;
       console.log(response);
       if (response.status) {
         router.push("/login");
+      } else if (response.status === 500) {
       } else if (response.status === 500) {
         alert("중복된 아이디 입니다.");
       }
