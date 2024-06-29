@@ -9,13 +9,27 @@ import { useRouter } from "next/navigation";
 import { useRecoilState, useRecoilValue } from "recoil";
 import { meetingSocketState } from "@/app/store/socket";
 import { avatarState } from "@/app/store/avatar";
+import { userState } from "@/app/store/userInfo";
 import AvatarCollection from "./AvatarCollection";
 
-interface MainContentProps {
-  nickname: string;
+interface Friend {
+  friend: string;
+  chatRoomId: string;
+  newMessage: boolean;
 }
 
-const MainContent = ({ nickname }: MainContentProps) => {
+interface MainContentProps {
+  userInfo: {
+    id: string;
+    nickname: string;
+    gender: "MALE" | "FEMALE";
+    newNotification: boolean;
+    notifications: string[];
+    friends: Friend[];
+  };
+}
+
+const MainContent = ({ userInfo }: MainContentProps) => {
   const [avatarOn, setAvatarOn] = useState<boolean>(true);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isFriendListVisible, setIsFriendListVisible] =
@@ -28,6 +42,8 @@ const MainContent = ({ nickname }: MainContentProps) => {
   // });
 
   const [socket, setSocket] = useRecoilState(meetingSocketState);
+  const [, setCurrentUser] = useRecoilState(userState);
+  setCurrentUser(userInfo);
   const avatar = useRecoilValue(avatarState);
 
   useEffect(() => {
@@ -56,7 +72,7 @@ const MainContent = ({ nickname }: MainContentProps) => {
   };
 
   const handleLoadingOn: React.MouseEventHandler<HTMLButtonElement> = () => {
-    socket?.emit("ready", { participantName: nickname });
+    socket?.emit("ready", { participantName: userInfo.nickname });
     if (startButton.current) startButton.current.disabled = true;
     setIsLoading(true);
     socket?.on("startCall", async ovInfo => {
@@ -68,7 +84,7 @@ const MainContent = ({ nickname }: MainContentProps) => {
   };
 
   const handleLoadingCancel = () => {
-    socket?.emit("cancel", { participantName: nickname });
+    socket?.emit("cancel", { participantName: userInfo.nickname });
     if (startButton.current) startButton.current.disabled = false;
     setIsLoading(false);
   };
