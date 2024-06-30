@@ -2,37 +2,19 @@
 import React, { useState } from "react";
 import Friend from "./Friend";
 import Chat from "./Chat";
-
-// 테스트용 더미 데이터
-const friends = [
-  {
-    friendName: "오프라인",
-    isOnline: false,
-    isMeeting: false,
-  },
-  {
-    friendName: "온라인",
-    isOnline: true,
-    isMeeting: false,
-  },
-  {
-    friendName: "온라인+미팅 중",
-    isOnline: true,
-    isMeeting: true,
-  },
-];
+import { userState } from "@/app/store/userInfo";
+import { useRecoilValue } from "recoil";
 
 interface FriendListProps {
   onClose: () => void;
 }
 
 interface Friend {
-  friendName: string;
-  isOnline: boolean;
-  isMeeting: boolean;
+  friend: string;
 }
 
 const FriendList: React.FC<FriendListProps> = ({ onClose }) => {
+  const currentUser = useRecoilValue(userState);
   const [selectedFriend, setSelectedFriend] = useState<Friend | null>(null);
   const [isChatVisible, setIsChatVisible] = useState<boolean>(false);
 
@@ -53,7 +35,7 @@ const FriendList: React.FC<FriendListProps> = ({ onClose }) => {
           ✕
         </button>
       </div>
-      {friends.map((friend, index) => (
+      {currentUser?.friends.map((friend, index) => (
         <Friend key={index} friend={friend} onChat={() => toggleChat(friend)} />
       ))}
       {isChatVisible && selectedFriend && (

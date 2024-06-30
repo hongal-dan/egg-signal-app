@@ -1,35 +1,17 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
-import { useChatSocket } from "@/contexts/ChatSocketContext";
 
 interface Props {
   friend: {
-    friendName: string;
-    isOnline: boolean;
-    isMeeting: boolean;
+    friend: string;
   };
   onClose: () => void;
 }
 
 const Chat: React.FC<Props> = ({ friend, onClose }) => {
-  const chatSocket = useChatSocket();
   const [chat, setChat] = useState<string[]>([]);
   const [message, setMessage] = useState("");
   const chatContainerRef = useRef(null);
-
-  // useEffect(() => {
-  //   if (chatSocket) {
-  //     chatSocket.on("message", message => {
-  //       setMessages(prevMessages => [...prevMessages, message]);
-  //     });
-  //   }
-
-  //   return () => {
-  //     if (chatSocket) {
-  //       chatSocket.off("message");
-  //     }
-  //   };
-  // }, [chatSocket]);
 
   useEffect(() => {
     if (chatContainerRef.current) {
@@ -48,7 +30,7 @@ const Chat: React.FC<Props> = ({ friend, onClose }) => {
   return (
     <div className="h-full">
       <div className="flex justify-between p-4 border-b border-gray-300">
-        <span>{friend.friendName}</span>
+        <span>{friend.friend}</span>
         <button onClick={onClose} className="font-bold">
           ✕
         </button>

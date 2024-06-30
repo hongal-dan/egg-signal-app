@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { RequestCookie } from "next/dist/compiled/@edge-runtime/cookies";
 import MainContent from "@/containers/main/MainContent";
 import { getUserInfo } from "@/services/users";
+import { CommonSocketProvider } from "@/contexts/CommonSocketContext";
 
 const Main = async () => {
   const cookieStore = cookies();
@@ -36,7 +37,6 @@ const Main = async () => {
     console.log("토큰 없음!");
     redirect("/login");
   }
-
   const currentUser = await handleGetUserInfo(token);
   console.log(currentUser);
 
@@ -46,7 +46,9 @@ const Main = async () => {
   return (
     <div>
       {token && currentUser ? (
-        <MainContent userInfo={currentUser} />
+        <CommonSocketProvider>
+          <MainContent userInfo={currentUser} />
+        </CommonSocketProvider>
       ) : (
         <div>Redirecting...</div>
       )}
