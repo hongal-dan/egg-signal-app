@@ -459,6 +459,8 @@ const Meeting = (props: Props) => {
     // 초기 강조 시작
     highlightUser(currentIndex);
   };
+
+  const meetingEvent = () => {
     socket?.on("keyword", message => {
       try {
         time.current = 240; // 1분 지남
@@ -600,6 +602,16 @@ const Meeting = (props: Props) => {
       }
     });
 
+    // 선택시간 신호 받고 선택 모드로 변경
+    socket?.on("cupidTime", (response: number) => {
+      try {
+        console.log("cupidTime 도착", response);
+        setChooseMode();
+      } catch (e: any) {
+        console.error(e);
+      }
+    });
+  };
       return;
     }
     videoContainer.classList.remove('one-one-four');
