@@ -243,37 +243,28 @@ const Meeting = (props: Props) => {
     console.log("사랑의 작대기 모드 해제");
     videoContainer.classList.remove("love-stick");
     hideArrow();
-    setIsLoveMode(false);
   };
+  // time 초 동안 발표 모드 (presenter: 발표자, time: 발표 시간(초))
+  const changePresentationMode = (presenter: HTMLDivElement, time: number) => {
+    const videoSet = new Set<HTMLDivElement | null>();
+    videoSet.add(presenter);
+    videoSet.add(pubRef.current);
+    subRef.current.forEach(sub => {
+      videoSet.add(sub);
+    });
+    const videoArray = Array.from(videoSet);
 
-  const openKeyword = () => {
-    const keyword = [
-      '사랑',
-      '행복',
-      '기쁨',
-      '슬픔',
-      '화남',
-      '놀람',
-      '두려움',
-      '짜증',
-      '힘듦',
-      '평화',
-      '음주',
-    ];
-    const randomNum = Math.floor(Math.random() * 11);
-    const keywordElement = document.getElementsByClassName('keyword')[0];
-    keywordElement.innerHTML = keyword[randomNum];
-  };
+    // 비디오 그리드 a: main , bcdef
+    videoArray.forEach((video, idx) => {
+      video?.classList.add(String.fromCharCode(97 + idx));
+    });
 
-  const setGrayScale = () => {
-    const camElement = document.getElementsByClassName('cam-wrapper')[0];
-    if (isMatched) {
-      camElement.classList.add('black-white');
-      setIsMatched(false);
-      return;
-    }
-    camElement.classList.remove('black-white');
-    setIsMatched(true);
+    // time 초 후 원래대로
+    setTimeout(() => {
+      videoArray.forEach((video, idx) => {
+        video?.classList.remove(String.fromCharCode(97 + idx));
+      });
+    }, time * 1000);
   };
 
   const setChooseMode = () => {
