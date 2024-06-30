@@ -724,7 +724,29 @@ const Meeting = (props: Props) => {
     captureCamInit(); // 캡쳐용 비디오, 캔버스 display none
     joinSession();
 
+    if (publisher) {
+      publisher.updatePublisherSpeakingEventsOptions({
+        interval: 100, // 발화자 이벤트 감지 주기 (밀리초)
+        threshold: -50, // 발화자 이벤트 발생 임계값 (데시벨)
+      });
 
+      // publisher.on("publisherStartSpeaking", event => {
+      //   console.log("The local user started speaking", event.connection);
+      //   // 발화자가 말하기 시작했을 때 수행할 작업
+      // });
+
+      // publisher.on("publisherStopSpeaking", event => {
+      //   console.log("The local user stopped speaking", event.connection);
+      //   // 발화자가 말하기를 멈췄을 때 수행할 작업
+      // });
+    }
+
+    if (mainStreamManager) {
+      mainStreamManager.updatePublisherSpeakingEventsOptions({
+        interval: 100, // 오디오 스트림 폴링 간격 (ms)
+        threshold: -50, // 볼륨 임계값 (dB)
+      });
+    }
 
     meetingEvent();
   }, [avatar]);
