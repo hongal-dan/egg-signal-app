@@ -31,7 +31,35 @@ const Chat: React.FC<Props> = ({ friend, onClose }) => {
     }
   }, [chat]);
 
+  useEffect(() => {
+    console.log("joinChat emit: ", friend.chatRoomId);
+    if (commonSocket) {
+      commonSocket.emit("joinchat", { newChatRoomId: friend.chatRoomId });
+      commonSocket.on("chatHistory", res => {
+        console.log("chat histroy: ", res);
+        const chatHistory = res.map(msg => ({
+          sender: msg.sender,
+          message: msg.message,
+        }));
+        // todo: message에 chat history 넣기
+        setChat(chatHistory);
+      });
+      commonSocket.on("message", res => {
+        if (res.sender === currentUser?.nickname) {
+          return;
+        }
+        const newChat = {
+          sender: res.sender,
+          message: res.message,
+        };
+        setChat(prevChat => [...prevChat, newChat]);
+      });
+    }
 
+    return () => {
+      commonSocket?.emit("closeChat", { newChatRoomId: friend.chatRoomId });
+    };
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
