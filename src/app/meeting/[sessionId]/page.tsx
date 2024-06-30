@@ -791,6 +791,12 @@ const Meeting = (props: Props) => {
           </div>
         </div>
       )}
+      {!isOpenCam ? (
+        <div ref={captureRef} className="hidden">
+          <UserVideoComponent2 />
+        </div>
+      ) : null}
+    </>
   );
 };
 
