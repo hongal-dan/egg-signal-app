@@ -140,6 +140,10 @@ const Meeting = (props: Props) => {
     if (session) {
       session.disconnect();
     }
+    if (socket) {
+      socket.disconnect();
+      setSocket(null);
+    }
 
     setSession(undefined);
     setSubscribers([]);
