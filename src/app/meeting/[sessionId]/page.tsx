@@ -715,32 +715,9 @@ const Meeting = (props: Props) => {
     }
   }, [subscribers]);
     joinSession();
-  });
-
-  return (
-    <div className="container">
-      <div id="session">
-        <div id="session-header">
-          <input
-            className="btn btn-large btn-danger"
-            type="button"
-            id="buttonLeaveSession"
-            onClick={leaveSession}
-            value="Leave session"
-          />
-          <div className="btn-container">
-            <button onClick={openReal}>캠 오픈</button>
-            <button onClick={changeLoveStickMode}>사랑의 작대기</button>
-            <button onClick={openKeyword}>키워드</button>
-            <button onClick={setGrayScale}>흑백으로 만들기</button>
-            <button onClick={setChooseMode}>선택모드</button>
-            <button onClick={setOneToOneMode}>1:1모드</button>
-            <button onClick={() => showArrow(datass)}>그냥 연결</button>
-          </div>
-        </div>
-        <div className="keyword-wrapper">
-          <p className="keyword"></p>
-        </div>
+  return !avatar ? (
+    <AvatarCollection />
+  ) : (
 
         <div className="col-md-6 video-container">
           {publisher !== undefined ? (
