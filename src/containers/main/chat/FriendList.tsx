@@ -1,51 +1,37 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Friend from "./Friend";
 import Chat from "./Chat";
-
-// 테스트용 더미 데이터
-const friends = [
-  {
-    img: "/img/profile_sample.png",
-    friendName: "오프라인",
-    isOnline: false,
-    isMeeting: false,
-  },
-  {
-    img: "/img/profile_sample.png",
-    friendName: "온라인",
-    isOnline: true,
-    isMeeting: false,
-  },
-  {
-    img: "/img/profile_sample.png",
-    friendName: "온라인+미팅 중",
-    isOnline: true,
-    isMeeting: true,
-  },
-];
+import { userState } from "@/app/store/userInfo";
+import { useRecoilValue } from "recoil";
+import { useCommonSocket } from "@/contexts/CommonSocketContext";
 
 interface FriendListProps {
   onClose: () => void;
 }
 
 interface Friend {
-  img: string;
-  friendName: string;
-  isOnline: boolean;
-  isMeeting: boolean;
+  friend: string;
+  chatRoomId: string;
 }
 
 const FriendList: React.FC<FriendListProps> = ({ onClose }) => {
+  const currentUser = useRecoilValue(userState);
+  const { commonSocket } = useCommonSocket();
   const [selectedFriend, setSelectedFriend] = useState<Friend | null>(null);
   const [isChatVisible, setIsChatVisible] = useState<boolean>(false);
 
   const toggleChat = (friend: Friend) => {
     setSelectedFriend(friend);
-    setIsChatVisible((prev) => !prev);
+    setIsChatVisible(prev => !prev);
   };
 
   const closeChat = () => {
+    if (commonSocket) {
+      const chatRoomId = selectedFriend?.chatRoomId;
+      console.log(chatRoomId);
+      commonSocket.emit("closeChat", { chatRoomdId: chatRoomId });
+    }
     setSelectedFriend(null);
     setIsChatVisible(false);
   };
@@ -57,11 +43,11 @@ const FriendList: React.FC<FriendListProps> = ({ onClose }) => {
           ✕
         </button>
       </div>
-      {friends.map((friend, index) => (
+      {currentUser?.friends.map((friend, index) => (
         <Friend key={index} friend={friend} onChat={() => toggleChat(friend)} />
       ))}
       {isChatVisible && selectedFriend && (
-        <div className="w-full absolute top-[400px] left-[-330px] bottom-0 bg-white shadow-md rounded-lg p-4 z-11">
+        <div className="w-full absolute top-[250px] left-[-330px] bottom-0 bg-white shadow-md rounded-lg z-11">
           <Chat friend={selectedFriend} onClose={closeChat} />
         </div>
       )}
