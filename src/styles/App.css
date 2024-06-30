@@ -1,12 +1,21 @@
 .stream-container {
   box-sizing: border-box;
-  border: 5px solid transparent;
+  border: 3px solid transparent;
   border-radius: 15px;
   padding: 0;
 }
 
 .stream-container.speaking {
-  border-color: #63e6be;
+  border: 5px solid transparent;
+  border-color: #119b55;
+}
+
+.MALE {
+  @apply border-[#33C4D7];
+}
+
+.FEMALE {
+  @apply border-[#fa3689];
 }
 
 .video-hidden {
