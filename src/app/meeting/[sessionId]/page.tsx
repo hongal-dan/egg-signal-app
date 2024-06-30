@@ -34,6 +34,9 @@ const Meeting = () => {
   const [session, setSession] = useState<Session | undefined>(undefined);
   const [publisher, setPublisher] = useState<Publisher | undefined>(undefined);
   const [subscribers, setSubscribers] = useState<StreamManager[]>([]);
+  const [sortedSubscribers, setSortedSubscribers] = useState<StreamManager[]>(
+    [],
+  );
   const [mainStreamManager, setMainStreamManager] = useState<StreamManager>();
   const [, setCurrentVideoDevice] = useState<Device | null>(null);
   const [speakingPublisherId, setSpeakingPublisherId] = useState<string | null>(
@@ -204,10 +207,9 @@ const Meeting = () => {
     );
     console.log(sessionId);
 
-
     // Connect to the session
     newSession
-      .connect(token, { clientData: participantName }) 
+      .connect(token, { clientData: participantName })
       .then(async () => {
         const arStream = captureCanvas();
         const publisher = await OV.initPublisherAsync(undefined, {
@@ -364,7 +366,8 @@ const Meeting = () => {
 
   const changeLoveStickMode = (datas: Array<chooseResult>) => {
     if (keywordRef.current) {
-      keywordRef.current.innerText = '에그 시그널 결과';
+      keywordRef.current.innerText = "에그 시그널 결과";
+      console.log("에그시그널 결과라고 p태그 변경했음");
     }
     const videoContainer =
       document.getElementsByClassName("video-container")[0];
@@ -390,9 +393,10 @@ const Meeting = () => {
   };
 
   const undoLoveStickMode = () => {
-    if (keywordRef.current) {
-      keywordRef.current.innerText = '';
-    }
+    // if (keywordRef.current) {
+    //   keywordRef.current.innerText = '';
+    //   console.log("에그시그널 결과라고 p태그 변경한거 삭제함");
+    // }
     const videoContainer =
       document.getElementsByClassName("video-container")[0];
     console.log("사랑의 작대기 모드 해제");
@@ -447,7 +451,8 @@ const Meeting = () => {
     // 선택 모드 일 때는 마우스 하버시에 선택 가능한 상태로 변경
     // 클릭 시에 선택된 상태로 변경
     if (keywordRef.current) {
-      keywordRef.current.innerText = '';
+      keywordRef.current.innerText = "";
+      console.log("선택모드 p태그 삭제");
     }
     const chooseBtns = document.getElementsByClassName("choose-btn");
     const btnArray = Array.from(chooseBtns);
@@ -460,7 +465,7 @@ const Meeting = () => {
     // 선택 모드 일 때는 마우스 하버시에 선택 가능한 상태로 변경
     // 클릭 시에 선택된 상태로 변경
     if (keywordRef.current) {
-      keywordRef.current.innerText = '대화해보고 싶은 사람을 선택해주세요';
+      keywordRef.current.innerText = "대화해보고 싶은 사람을 선택해주세요";
     }
     console.log("선택 모드로 변경");
     const chooseBtns = document.getElementsByClassName("choose-btn");
@@ -672,8 +677,8 @@ const Meeting = () => {
           if (lover != "0") {
             console.log("이거도 없니?", keywordRef.current);
             if (keywordRef.current) {
-              console.log("123123123");
-              keywordRef.current.innerText = '즐거운 시간 보내세요~';
+              console.log("즐거운 시간 보내라고 p 태그 변경");
+              keywordRef.current.innerText = "즐거운 시간 보내세요~";
             }
             const loverElement = document
               .getElementById(lover)
@@ -691,7 +696,8 @@ const Meeting = () => {
             setTimeout(() => {
               // console.log("1:1 모드 해제")
               if (keywordRef.current) {
-                keywordRef.current.innerText = '';
+                keywordRef.current.innerText = "";
+                console.log("즐거운시간 삭제");
               }
               undoOneToOneMode(loverElement);
               subElements.forEach(subElement => {
@@ -706,9 +712,10 @@ const Meeting = () => {
           else {
             // const pubElement = document.getElementsByClassName("pub")[0] as HTMLDivElement;
             // pubElement.classList.toggle("black-white");
-            console.log("이게없나 설마" ,keywordRef.current);
             if (keywordRef.current) {
-              keywordRef.current.innerText = '당신은 선택받지 못했습니다. 1분 간 오디오가 차단됩니다.';
+              keywordRef.current.innerText =
+                "당신은 선택받지 못했습니다. 1분 간 오디오가 차단됩니다.";
+              console.log("미선택자 p태그 변경", keywordRef.current);
             }
             loser.forEach(loser => {
               const loserElement = document.getElementById(
@@ -724,7 +731,8 @@ const Meeting = () => {
             muteAudio();
             setTimeout(() => {
               if (keywordRef.current) {
-                keywordRef.current.innerText = '';
+                keywordRef.current.innerText = "";
+                console.log("미선택자 p태그 초기화", keywordRef.current);
               }
               unMuteAudio();
             }, 60000); // 1분 후 음소거 해제
@@ -845,6 +853,14 @@ const Meeting = () => {
 
   return avatar == null ? (
     <AvatarCollection />
+  ) : sortedSubscribers.length !== 5 ? (
+    <div className="w-[100vw] h-[100vh] flex flex-col justify-center items-center gap-24">
+      <div className="flex flex-col items-center gap-4 text-3xl">
+        <p>다른 사람들의 접속을 기다리고 있습니다</p>
+        <p>잠시만 기다려주세요</p>
+      </div>
+      <span className="loader"></span>
+    </div>
   ) : (
     <div className="container">
       <div id="session">
@@ -895,7 +911,6 @@ const Meeting = () => {
               className={`stream-container col-md-6 col-xs-6 sub ${sub.stream.streamId === speakingPublisherId ? "speaking" : ""}`}
               // onClick={() => handleMainVideoStream(sub)}
             >
-              <span>{sub.id}</span>
               <UserVideoComponent
                 key={sub.stream.streamId}
                 streamManager={sub}
