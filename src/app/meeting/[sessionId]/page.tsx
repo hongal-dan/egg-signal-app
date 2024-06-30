@@ -99,6 +99,11 @@ const Meeting = (props: Props) => {
           mirror: false,
         });
 
+        console.log("Publisher created:", publisher);
+        publisher.updatePublisherSpeakingEventsOptions({
+          interval: 100, // 발화자 이벤트 감지 주기 (밀리초)
+          threshold: -50, // 발화자 이벤트 발생 임계값 (데시벨)
+        });
         newSession.publish(publisher);
 
         const devices = await OV.getDevices();
