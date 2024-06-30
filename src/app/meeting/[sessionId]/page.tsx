@@ -494,6 +494,24 @@ const Meeting = (props: Props) => {
         console.error(e);
       }
     });
+
+    // 선택 결과 받고 사랑의 작대기 모드로 변경
+    socket?.on("chooseResult", response => {
+      try {
+        console.log("chooseResult 도착");
+        console.log("chooseResult = ", response);
+        undoChooseMode(); // 선택모드 해제
+        removeChooseSign(); // 선택된 사람 표시 제거
+        changeLoveStickMode(response.message as Array<chooseResult>);
+        setTimeout(() => {
+          console.log("원 위치로 변경");
+          // undoLoveStickMode(response.messageas as Array<chooseResult>);
+          undoLoveStickMode();
+        }, 10000); // 10초 후 원 위치
+      } catch (e: any) {
+        console.error(e);
+      }
+    });
       return;
     }
     videoContainer.classList.remove('one-one-four');
