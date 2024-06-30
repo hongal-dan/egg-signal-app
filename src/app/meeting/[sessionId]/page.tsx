@@ -205,26 +205,43 @@ const Meeting = (props: Props) => {
     });
   };
 
-  const changeLoveStickMode = () => {
-    const videoContainer =
-      document.getElementsByClassName('video-container')[0];
-    const videoElements = document.querySelectorAll('video');
-    const canvasElements = document.querySelectorAll('canvas');
-    videoElements.forEach((video) => {
-      video.style.width = '100%';
-      video.style.height = '100%';
-    });
-    canvasElements.forEach((canvas) => {
-      canvas.style.width = '100%';
-      canvas.style.height = '100%';
-    });
-    if (!isLoveMode) {
-      videoContainer.classList.add('love-stick');
-      showArrow(datass);
-      setIsLoveMode(true);
-      return;
+  const changeLoveStickMode = (datas: Array<chooseResult>) => {
+    if (keywordRef.current) {
+      keywordRef.current.innerText = "에그 시그널 결과";
+      console.log("에그시그널 결과라고 p태그 변경했음");
     }
-    videoContainer.classList.remove('love-stick');
+    const videoContainer =
+      document.getElementsByClassName("video-container")[0];
+    const videoElements = document.querySelectorAll("video");
+    const canvasElements = document.querySelectorAll("canvas");
+    videoElements.forEach(video => {
+      video.style.width = "100%";
+      video.style.height = "100%";
+    });
+    canvasElements.forEach(canvas => {
+      canvas.style.width = "100%";
+      canvas.style.height = "100%";
+    });
+    // if (!isLoveMode) {
+    videoContainer.classList.add("love-stick");
+    showArrow(datas);
+    // setIsLoveMode(true);
+    return;
+    // }
+    // videoContainer.classList.remove("love-stick");
+    // hideArrow();
+    // setIsLoveMode(false);
+  };
+
+  const undoLoveStickMode = () => {
+    // if (keywordRef.current) {
+    //   keywordRef.current.innerText = '';
+    //   console.log("에그시그널 결과라고 p태그 변경한거 삭제함");
+    // }
+    const videoContainer =
+      document.getElementsByClassName("video-container")[0];
+    console.log("사랑의 작대기 모드 해제");
+    videoContainer.classList.remove("love-stick");
     hideArrow();
     setIsLoveMode(false);
   };
