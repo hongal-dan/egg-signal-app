@@ -96,7 +96,7 @@ const Meeting = (props: Props) => {
           resolution: "640x480",
           frameRate: 30,
           insertMode: "APPEND",
-          mirror: true,
+          mirror: false,
         });
 
         newSession.publish(publisher);
