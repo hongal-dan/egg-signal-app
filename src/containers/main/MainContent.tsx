@@ -80,13 +80,15 @@ const MainContent = ({ userInfo }: MainContentProps) => {
     });
     if (startButton.current) startButton.current.disabled = true;
     setIsLoading(true);
-    socket.on("startCall", async ovInfo => {
+    socket?.on("startCall", async ovInfo => {
       console.log(ovInfo);
-      // setOVInfo(ovInfo);
-      sessionStorage.setItem('ovInfo', JSON.stringify(ovInfo)); // 세션 스토리지에 저장
-      // sessionStorage.setItem('session', JSON.stringify(socket));
+      sessionStorage.setItem("ovInfo", JSON.stringify(ovInfo)); // 세션 스토리지에 저장
       setIsLoading(false);
+      setIsEnterLoading(true);
       router.push(`/meeting/${ovInfo.sessionId}`);
+      setTimeout(() => {
+        setIsEnterLoading(false);
+      }, 2000);
     });
   };
 
@@ -96,7 +98,6 @@ const MainContent = ({ userInfo }: MainContentProps) => {
     }); // 테스트용 익명 닉네임 부여
     if (startButton.current) startButton.current.disabled = false;
     setIsLoading(false);
-    // todo: 매칭 취소 api 요청
   };
 
   const toggleFriendList = () => {
