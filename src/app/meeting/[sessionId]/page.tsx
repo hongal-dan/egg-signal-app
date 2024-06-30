@@ -145,6 +145,13 @@ const Meeting = (props: Props) => {
         console.log("streamId undefined");
       }
     });
+
+    newSession.on("publisherStopSpeaking", (event: PublisherSpeakingEvent) => {
+      // console.log("Publisher stopped speaking:", event.connection);
+      setSpeakingPublisherId(null);
+    });
+  };
+
   };
 
   const leaveSession = () => {
