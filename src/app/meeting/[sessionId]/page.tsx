@@ -612,6 +612,33 @@ const Meeting = (props: Props) => {
       }
     });
   };
+
+  const meetingCamEvent = () => {
+    socket?.on("cam", message => {
+      try {
+        time.current = 120; // 3분 지남 -지금 서버 기준 (나중에 시간 서버 시간 바뀌면 같이 바꿔야 함!)
+        setProgressWidth(`${((totalTime - time.current) / totalTime) * 100}%`);
+        console.log("cam Event: ", message);
+        let countdown = 5;
+        const intervalId = setInterval(() => {
+          if (countdown > 0) {
+            if (keywordRef.current) {
+              keywordRef.current.innerText = `${countdown}초 뒤 얼굴이 공개됩니다.`;
+            }
+            countdown -= 1;
+          } else {
+            clearInterval(intervalId);
+            if (keywordRef.current) {
+              keywordRef.current.innerText = "";
+            }
+            openCam();
+          }
+        }, 1000);
+      } catch (e: any) {
+        console.error(e);
+      }
+    });
+  };
       return;
     }
     videoContainer.classList.remove('one-one-four');
