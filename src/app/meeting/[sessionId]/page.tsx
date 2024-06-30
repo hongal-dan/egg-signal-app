@@ -282,6 +282,12 @@ const Meeting = (props: Props) => {
     }
   };
 
+  const openKeyword = (random: number) => {
+    if (keywordRef.current) {
+      keywordRef.current.innerText = keywords[random];
+    }
+  };
+
 
 
   const setChooseMode = () => {
