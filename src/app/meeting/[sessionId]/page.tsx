@@ -288,7 +288,19 @@ const Meeting = (props: Props) => {
     }
   };
 
-
+  const undoChooseMode = () => {
+    // 선택 모드 일 때는 마우스 하버시에 선택 가능한 상태로 변경
+    // 클릭 시에 선택된 상태로 변경
+    if (keywordRef.current) {
+      keywordRef.current.innerText = "";
+      console.log("선택모드 p태그 삭제");
+    }
+    const chooseBtns = document.getElementsByClassName("choose-btn");
+    const btnArray = Array.from(chooseBtns);
+    btnArray.forEach(btn => {
+      btn.classList.add("hidden");
+    });
+  };
 
   const setChooseMode = () => {
     // 선택 모드 일 때는 마우스 하버시에 선택 가능한 상태로 변경
