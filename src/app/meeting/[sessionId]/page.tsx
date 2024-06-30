@@ -314,10 +314,50 @@ const Meeting = (props: Props) => {
     btnArray.forEach(btn => {
       btn.classList.remove("hidden");
     });
-    setIsChooseMode(true);
   };
 
-  const setOneToOneMode = () => {
+  const setOneToOneMode = (loverElement: HTMLDivElement) => {
+    console.log("1:1 모드로 시작");
+    const videoContainer = document.getElementsByClassName(
+      "video-container",
+    )[0] as HTMLDivElement;
+    const videoElements = document.querySelectorAll("video");
+    const canvasElements = document.querySelectorAll("canvas");
+    const streamElements = document.getElementsByClassName(
+      "stream-container",
+    ) as HTMLCollectionOf<HTMLDivElement>;
+    videoElements.forEach(video => {
+      video.style.width = "100%";
+      video.style.height = "100%";
+    });
+    canvasElements.forEach(canvas => {
+      canvas.style.width = "100%";
+      canvas.style.height = "100%";
+    });
+    // if (!isOneToOneMode) {
+    console.log("1:1 모드로 변경");
+    videoContainer.classList.add("one-one-four");
+    streamElements[0].classList.add("a");
+    if (!loverElement) {
+      console.log("상대방이 없습니다.");
+    }
+    loverElement?.classList.add("b");
+    console.log("컨테이너", videoContainer);
+    console.log("나자신", streamElements[0]);
+    console.log("상대방: ", loverElement);
+    let acc = 2;
+    for (let i = 1; i < streamElements.length; i++) {
+      if (streamElements[i].classList.contains("b")) {
+        continue;
+      }
+      const className = String.fromCharCode(97 + acc);
+      streamElements[i].classList.add(className);
+      acc += 1;
+    }
+  };
+
+  const undoOneToOneMode = (loverElement: HTMLDivElement) => {
+    console.log("1:1 모드 해제");
     const videoContainer =
       document.getElementsByClassName('video-container')[0];
     const videoElements = document.querySelectorAll('video');
