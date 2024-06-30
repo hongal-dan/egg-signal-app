@@ -1,10 +1,21 @@
 "use client";
+
 import React, { useRef, useState, useEffect } from "react";
-import UserVideoComponent from "./UserVideo";
-import FriendList from "./FriendList";
+import FriendList from "./chat/FriendList";
 import Notifications from "./Notifications";
 import io from "socket.io-client";
 import { useRouter } from "next/navigation";
+import { useRecoilState } from "recoil";
+import { meetingSocketState } from "@/app/store/socket";
+import { userState } from "@/app/store/userInfo";
+import { logoutUser } from "@/services/auth";
+import { useCommonSocket } from "@/contexts/CommonSocketContext";
+
+interface Friend {
+  friend: string;
+  chatRoomId: string;
+  newMessage: boolean;
+}
 
 interface MainContentProps {
   // userId: string;
@@ -27,7 +38,22 @@ const MainContent = ({nickname}: MainContentProps) => {
   //   participantName: "",
   // });
 
-  const router = useRouter();
+  const [socket, setSocket] = useRecoilState(meetingSocketState);
+  const [, setCurrentUser] = useRecoilState(userState);
+  setCurrentUser(userInfo);
+  const enterBtnRef = useRef<HTMLParagraphElement>(null);
+  const [isEnterLoading, setIsEnterLoading] = useState<boolean>(false);
+  const [newMessage, setNewMessage] = useState<boolean>(false);
+  const [newMessageSenders, setNewMessageSenders] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (!socket) {
+      const newSocket = io(`${url}/meeting`, {
+        transports: ["websocket"],
+      });
+      setSocket(newSocket);
+    }
+  }, [socket, setSocket]);
 
   const toggleCamera = () => {
     const canvas = document.querySelector("canvas");
