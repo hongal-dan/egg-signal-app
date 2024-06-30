@@ -470,6 +470,30 @@ const Meeting = (props: Props) => {
         console.error(e);
       }
     });
+
+    socket?.on("finish", message => {
+      try {
+        console.log(message);
+        // 1차: 모든 참여자 세션 종료
+        let countdown = 5;
+        const intervalId = setInterval(() => {
+          if (countdown > 0) {
+            if (keywordRef.current) {
+              keywordRef.current.innerText = `${countdown}초 뒤 세션이 종료됩니다.`;
+            }
+            countdown -= 1;
+          } else {
+            clearInterval(intervalId);
+            if (keywordRef.current) {
+              keywordRef.current.innerText = "";
+            }
+            leaveSession();
+          }
+        }, 1000);
+      } catch (e: any) {
+        console.error(e);
+      }
+    });
       return;
     }
     videoContainer.classList.remove('one-one-four');
