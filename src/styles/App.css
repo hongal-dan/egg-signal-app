@@ -5,6 +5,15 @@
   padding: 0;
 }
 
+
+.MALE {
+  @apply border-[#33C4D7];
+}
+
+.FEMALE {
+  @apply border-[#fa3689];
+}
+
 .video-hidden {
   display: none;
 }
