@@ -5,6 +5,10 @@
   padding: 0;
 }
 
+.stream-container.speaking {
+  border: 5px solid transparent;
+  border-color: #119b55;
+}
 
 .MALE {
   @apply border-[#33C4D7];
