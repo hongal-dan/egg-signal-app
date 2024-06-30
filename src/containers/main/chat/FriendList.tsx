@@ -25,7 +25,20 @@ const FriendList: React.FC<FriendListProps> = ({
   const [selectedFriend, setSelectedFriend] = useState<Friend | null>(null);
   const [isChatVisible, setIsChatVisible] = useState<boolean>(false);
 
+  const toggleChat = (friend: Friend) => {
+    setSelectedFriend(friend);
+    setIsChatVisible(prev => !prev);
+  };
 
+  const closeChat = () => {
+    if (commonSocket) {
+      const chatRoomId = selectedFriend?.chatRoomId;
+      console.log(chatRoomId);
+      commonSocket.emit("closeChat", { chatRoomdId: chatRoomId });
+    }
+    setSelectedFriend(null);
+    setIsChatVisible(false);
+  };
 
   useEffect(() => {
     console.log(newMessageSenders);
