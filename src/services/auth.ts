@@ -35,4 +35,13 @@ const loginUser = async (request: LoginUser) => {
   }
 };
 
-export { createUser, loginUser };
+const logoutUser = async () => {
+  try {
+    const response = await axios.get(`/api/auth/signOut`);
+    console.log(response);
+  } catch (error) {
+    return error;
+  }
+};
+
+export { createUser, loginUser, logoutUser };
