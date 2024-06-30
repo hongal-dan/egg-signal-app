@@ -66,6 +66,32 @@ const Meeting = (props: Props) => {
     );
   };
 
+  const captureCanvas = () => {
+    console.log("캡쳐 시작");
+    const canvas = document.querySelector("canvas");
+    if (!canvas) {
+      console.error("Canvas element not found");
+      return;
+    }
+    const stream = canvas?.captureStream(15); // 30 FPS로 캡처
+    if (!stream) {
+      console.error("Stream not found");
+    }
+    const videoTracks = stream.getVideoTracks();
+    if (videoTracks.length === 0) {
+      console.error("No video tracks found in the stream");
+      return;
+    }
+    console.log("Captured video track:", stream!.getVideoTracks()[0]);
+    canvas!.style.display = "none";
+    canvas!.style.backgroundColor = "transparent";
+    if (videoTracks.length === 0) {
+      console.error("No video tracks found in the stream");
+      return;
+    }
+    return videoTracks[0]; // 비디오 트랙을 반환
+  };
+
   const openCam = () => {
     if (publisher) {
       navigator.mediaDevices.getUserMedia({ video: true }).then(stream => {
