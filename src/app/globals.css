@@ -20,6 +20,28 @@ body {
     "b c d e f";
 }
 
+@layer utilities {
+  .scrollbar-custom {
+    &::-webkit-scrollbar {
+      width: 12px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: #888;
+      border-radius: 0.375rem; /* rounded-md */
+    }
+  }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+    &::-webkit-scrollbar {
+      display: none; /* Chrome, Safari, Edge */
+    }
+  }
+}
+
+
 .pan {
   position: relative;
   width: 120px;
