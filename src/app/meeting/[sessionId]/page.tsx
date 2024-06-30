@@ -84,7 +84,7 @@ const Meeting = (props: Props) => {
     console.log(sessionId, token, participantName);
     // Connect to the session
     newSession
-      .connect(token, { clientData: participantName })
+      .connect(token, { clientData: participantName, gender: userInfo?.gender as string })
       .then(async () => {
         const publisher = await OV.initPublisherAsync(undefined, {
           audioSource: undefined,
