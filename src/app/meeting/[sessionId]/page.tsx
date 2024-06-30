@@ -947,7 +947,7 @@ const Meeting = () => {
             <div className="col-md-6 video-container">
               {publisher !== undefined ? (
                 <div
-                  className={`stream-container col-md-6 col-xs-6 pub ${publisher.stream.streamId === speakingPublisherId ? "speaking" : ""}`}
+                  className={`stream-container col-md-6 col-xs-6 pub ${publisher.stream.streamId === speakingPublisherId ? "speaking" : ""} ${getUserGender(publisher)}`}
                   // onClick={() => handleMainVideoStream(publisher)}
                 >
                   <UserVideoComponent
@@ -959,7 +959,7 @@ const Meeting = () => {
               {sortedSubscribers.map(sub => (
                 <div
                   key={sub.stream.streamId}
-                  className={`stream-container col-md-6 col-xs-6 sub ${sub.stream.streamId === speakingPublisherId ? "speaking" : ""}`}
+                  className={`stream-container col-md-6 col-xs-6 sub ${sub.stream.streamId === speakingPublisherId ? "speaking" : ""} ${getUserGender(sub)}`}
                   // onClick={() => handleMainVideoStream(sub)}
                 >
                   <UserVideoComponent
@@ -967,7 +967,7 @@ const Meeting = () => {
                     streamManager={sub}
                     socket={socket}
                   />
-                  <span>{sub.stream.connection.data}</span>
+                  {/* <span>{sub.stream.connection.data}</span> */}
                 </div>
               ))}
             </div>
