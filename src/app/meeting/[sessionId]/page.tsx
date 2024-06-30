@@ -147,37 +147,10 @@ const Meeting = (props: Props) => {
 
     setSession(undefined);
     setSubscribers([]);
-    setMyUserName("Participant" + Math.floor(Math.random() * 100));
-    // setMainStreamManager(undefined);
     setPublisher(undefined);
-  };
-
-  const openReal = () => {
-    console.log('openReal');
-    const videoElements = document.querySelectorAll('video');
-    const canvasElements = document.querySelectorAll('canvas');
-    if (isAvatar) {
-      videoElements.forEach((video) => {
-        video.style.display = 'block';
-      });
-      canvasElements.forEach((canvas) => {
-        canvas.style.display = 'none';
-      });
-      setIsAvatar(false);
-      return;
-    }
-    videoElements.forEach((video) => {
-      video.style.display = 'none';
-    });
-    canvasElements.forEach((canvas) => {
-      canvas.style.display = 'block';
-    });
-    setIsAvatar(true);
-  };
-
-  type showArrowProps = {
-    from: string;
-    to: string;
+    setSortedSubscribers([]);
+    setIsFull(false);
+    router.push("/main");
   };
 
   const datass: Array<showArrowProps> = [
