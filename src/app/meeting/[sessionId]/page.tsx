@@ -65,6 +65,24 @@ const Meeting = (props: Props) => {
       prevSubscribers.filter(sub => sub !== streamManager),
     );
   };
+
+  const openCam = () => {
+    if (publisher) {
+      navigator.mediaDevices.getUserMedia({ video: true }).then(stream => {
+        const webcamTrack = stream.getVideoTracks()[0];
+        publisher
+          .replaceTrack(webcamTrack)
+          .then(() => {
+            setIsOpenCam(true);
+            console.log("Track replaced with webcam track");
+          })
+          .catch(error => {
+            console.error("Error replacing track:", error);
+          });
+      });
+    }
+  };
+
   const muteAudio = () => {
     if (publisher) {
       // 오디오 트랙 비활성화
