@@ -4,12 +4,10 @@ import { io, Socket } from "socket.io-client";
 
 interface SocketContextType {
   commonSocket: Socket | null;
-  isConnected: boolean;
 }
 
 const CommonSocketContext = createContext<SocketContextType>({
   commonSocket: null,
-  isConnected: false,
 });
 
 export const useCommonSocket = () => {
@@ -20,7 +18,6 @@ export const CommonSocketProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [commonSocket, setCommonSocket] = useState<Socket | null>(null);
-  const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
     const commonSocket = io(process.env.NEXT_PUBLIC_API_SERVER + "/common", {
@@ -29,15 +26,11 @@ export const CommonSocketProvider: React.FC<{ children: React.ReactNode }> = ({
     });
 
     commonSocket.on("connect", () => {
-      setIsConnected(true);
-      commonSocket.emit("serverCertificate", () => {});
-
+      commonSocket.emit("serverCertificate");
       console.log("connected");
     });
 
     commonSocket.on("disconnect", () => {
-      setIsConnected(false);
-
       console.log("disconnected");
     });
 
@@ -53,7 +46,7 @@ export const CommonSocketProvider: React.FC<{ children: React.ReactNode }> = ({
   }, []);
 
   return (
-    <CommonSocketContext.Provider value={{ commonSocket, isConnected }}>
+    <CommonSocketContext.Provider value={{ commonSocket }}>
       {children}
     </CommonSocketContext.Provider>
   );

@@ -17,7 +17,7 @@ interface Friend {
 
 const FriendList: React.FC<FriendListProps> = ({ onClose }) => {
   const currentUser = useRecoilValue(userState);
-  const { commonSocket, isConnected } = useCommonSocket();
+  const { commonSocket } = useCommonSocket();
   const [selectedFriend, setSelectedFriend] = useState<Friend | null>(null);
   const [isChatVisible, setIsChatVisible] = useState<boolean>(false);
 

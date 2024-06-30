@@ -18,7 +18,7 @@ interface Chat {
 }
 
 const Chat: React.FC<Props> = ({ friend, onClose }) => {
-  const { commonSocket, isConnected } = useCommonSocket();
+  const { commonSocket } = useCommonSocket();
   const currentUser = useRecoilValue(userState);
   const [chat, setChat] = useState<Chat[]>([]);
   const [message, setMessage] = useState("");
@@ -57,11 +57,6 @@ const Chat: React.FC<Props> = ({ friend, onClose }) => {
       });
     }
   }, []);
-
-  useEffect(() => {
-    console.log(chat);
-    chat.map(msg => console.log(msg));
-  }, [chat]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
