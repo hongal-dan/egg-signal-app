@@ -25,9 +25,10 @@ const createUser = async (request: CreateUser) => {
 
 const loginUser = async (request: LoginUser) => {
   try {
-    const response = await axios.post(`${authUrl}/signIn`, request, {
+    const response = await axios.post(`/api/auth/signIn`, request, {
       withCredentials: true,
     });
+    console.log("response = ", response);
     return response;
   } catch (error) {
     return error;
