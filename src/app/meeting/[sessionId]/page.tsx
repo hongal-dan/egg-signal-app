@@ -394,6 +394,7 @@ const Meeting = (props: Props) => {
     console.log("나자신", streamElements[0]);
     console.log("상대방: ", loverElement);
   };
+
   const randomUser = (keywordIdx: number, pickUser: string) => {
     const streamElements = document.getElementsByClassName("stream-container");
     const tickSound = document.getElementById("tickSound") as HTMLAudioElement;
@@ -458,6 +459,17 @@ const Meeting = (props: Props) => {
     // 초기 강조 시작
     highlightUser(currentIndex);
   };
+    socket?.on("keyword", message => {
+      try {
+        time.current = 240; // 1분 지남
+        setProgressWidth(`${((totalTime - time.current) / totalTime) * 100}%`);
+        console.log("keyword Event: ", message);
+        console.log("random user: ", message.getRandomParticipant);
+        randomUser(parseInt(message.message), message.getRandomParticipant);
+      } catch (e: any) {
+        console.error(e);
+      }
+    });
       return;
     }
     videoContainer.classList.remove('one-one-four');
