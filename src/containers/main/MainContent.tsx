@@ -94,7 +94,14 @@ const MainContent = ({nickname}: MainContentProps) => {
     }
   };
 
-
+  const handleLogout = async () => {
+    try {
+      await logoutUser();
+      router.push("/login");
+    } catch (error) {
+      console.error("Log out Error: ", error);
+    }
+  };
 
   useEffect(() => {
     startWebCam();
