@@ -43,14 +43,11 @@ const MainContent = ({nickname}: MainContentProps) => {
     }
   };
 
-  // 토큰에서 유저 닉네임 가져오기
-  // const getUserName = () => {
-  //   return nickname;
-  // };
-
+  const randomNum = Math.floor(Math.random() * 1000).toString(); // 테스트용 익명 닉네임 부여
   const handleLoadingOn: React.MouseEventHandler<HTMLButtonElement> = () => {
-    // todo: 매칭 api 요청
-    socket.emit("ready", { participantName: nickname });
+    socket?.emit("ready", {
+      participantName: `${userInfo.nickname}-${randomNum}`,
+    });
     if (startButton.current) startButton.current.disabled = true;
     setIsLoading(true);
     socket.on("startCall", async ovInfo => {
