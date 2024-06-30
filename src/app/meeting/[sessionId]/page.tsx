@@ -670,6 +670,13 @@ const Meeting = (props: Props) => {
     }
     meetingCamEvent();
   }, [publisher]);
+
+  const getUserGender = (person: StreamManager) : string => {
+    const genderMatch = person.stream.connection.data.match(/"gender":"(MALE|FEMALE)"/);
+    const gender = genderMatch ? genderMatch[1] : "";
+
+    return gender;
+  }
   };
 
   useEffect(() => {
