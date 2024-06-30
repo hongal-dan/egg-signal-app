@@ -305,18 +305,14 @@ const Meeting = (props: Props) => {
   const setChooseMode = () => {
     // 선택 모드 일 때는 마우스 하버시에 선택 가능한 상태로 변경
     // 클릭 시에 선택된 상태로 변경
-    const chooseBtns = document.getElementsByClassName('choose-btn');
-    const btnArray = Array.from(chooseBtns);
-    if (isChooseMode) {
-      btnArray.forEach((btn) => {
-        btn.classList.add('hidden');
-      });
-
-      setIsChooseMode(false);
-      return;
+    if (keywordRef.current) {
+      keywordRef.current.innerText = "대화해보고 싶은 사람을 선택해주세요";
     }
-    btnArray.forEach((btn) => {
-      btn.classList.remove('hidden');
+    console.log("선택 모드로 변경");
+    const chooseBtns = document.getElementsByClassName("choose-btn");
+    const btnArray = Array.from(chooseBtns);
+    btnArray.forEach(btn => {
+      btn.classList.remove("hidden");
     });
     setIsChooseMode(true);
   };
