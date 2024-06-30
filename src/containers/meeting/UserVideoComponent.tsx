@@ -17,12 +17,13 @@ export default function UserVideoComponent(props: {
   // JSON 문자열을 파싱
   let nickname = "";
   nickname = JSON.parse(jsonString).clientData;
+  // console.log(rawData)
 
   useEffect(() => {
     if (streamComponentRef.current) {
       streamComponentRef.current.id = nickname;
     }
-  });
+  }, []);
 
   return (
     <div>

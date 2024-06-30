@@ -20,7 +20,7 @@ body {
     "b c d e f";
 }
 
-.loader {
+.pan {
   position: relative;
   width: 120px;
   height: 14px;
@@ -33,7 +33,8 @@ body {
   perspective: 300px;
 
 }
-.loader::before {
+
+.pan::before {
 content: '';
 position: absolute;
 left: calc( 100% - 2px);
@@ -47,7 +48,8 @@ background-image: linear-gradient(#6c4924, #4b2d21), linear-gradient(#4d5457 24p
 background-size: 50px 10px , 4px 8px , 24px 4px;
 background-position: right center , 17px center , 0px center;
 }
-.loader::after {
+
+.pan::after {
   content: '';
   position: absolute;
   left: 50%;
@@ -78,4 +80,8 @@ background-position: right center , 17px center , 0px center;
 @keyframes panex {
 0%{  transform: rotate(-5deg)  }
 100%{  transform: rotate(10deg)  }
+}
+
+.loader {
+  display: none;
 }

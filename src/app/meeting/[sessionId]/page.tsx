@@ -56,6 +56,7 @@ const Meeting = () => {
   const avatar = useRecoilValue(avatarState);
   const [isOpenCam, setIsOpenCam] = useState<boolean>(false);
   const [socket, setSocket] = useRecoilState(meetingSocketState);
+  const [isFull, setIsFull] = useState<boolean>(false);
 
   // const socket = io(`${url}/meeting`, {
   //   transports: ["websocket"],
@@ -116,6 +117,7 @@ const Meeting = () => {
   // };
 
   const captureCanvas = () => {
+    console.log("캡쳐 시작");
     const canvas = document.querySelector("canvas");
     if (!canvas) {
       console.error("Canvas element not found");
@@ -209,7 +211,7 @@ const Meeting = () => {
 
     // Connect to the session
     newSession
-      .connect(token, { clientData: participantName })
+      .connect(token, { clientData: participantName, gender: "male" })
       .then(async () => {
         const arStream = captureCanvas();
         const publisher = await OV.initPublisherAsync(undefined, {
@@ -309,6 +311,8 @@ const Meeting = () => {
     setSession(undefined);
     setSubscribers([]);
     setPublisher(undefined);
+    setSortedSubscribers([]);
+    setIsFull(false);
     router.push("/main");
   };
 
@@ -806,10 +810,54 @@ const Meeting = () => {
   }, [sec]);
 
   useEffect(() => {
+    if (!publisher) {
+      return;
+    }
+    meetingCamEvent();
+  }, [publisher]);
+
+  // 내 성별 기준으로 서브 정렬
+  const sortSubscribers = (myGender: string) => {
+    let oppositeGen = "";
+    if (myGender === "male") {
+      oppositeGen = "female";
+    } else {
+      oppositeGen = "male";
+    }
+    subscribers.forEach(subscriber => {
+      if (subscriber.stream.connection.data.includes(myGender))
+        setSortedSubscribers(prevSortedSubScribers => [
+          ...prevSortedSubScribers,
+          subscriber,
+        ]);
+    });
+    subscribers.forEach(subscriber => {
+      if (subscriber.stream.connection.data.includes(oppositeGen))
+        setSortedSubscribers(prevSortedSubScribers => [
+          ...prevSortedSubScribers,
+          subscriber,
+        ]);
+    });
+  };
+
+  useEffect(() => {
+    console.log("subscribers", subscribers);
+    if (subscribers.length === 5) {
+      if (publisher?.stream.connection.data.includes("male")) {
+        sortSubscribers("male");
+      } else {
+        sortSubscribers("female");
+      }
+      setIsFull(true);
+    }
+  }, [subscribers]);
+
+  useEffect(() => {
     if (!avatar) {
       console.log("avatar가 없습니ㅏㄷ!!!!!!!!!!!!!!!!!!");
       return;
     }
+
     captureCamInit(); // 캡쳐용 비디오, 캔버스 display none
     joinSession();
 
@@ -840,87 +888,88 @@ const Meeting = () => {
     meetingEvent();
   }, [avatar]);
 
-  useEffect(() => {
-    if (!publisher) {
-      return;
-    }
-    meetingCamEvent();
-  }, [publisher]);
-
-  useEffect(() => {
-    console.log("subscribers", subscribers);
-  }, [subscribers]);
-
-  return avatar == null ? (
+  return !avatar ? (
     <AvatarCollection />
-  ) : sortedSubscribers.length !== 5 ? (
-    <div className="w-[100vw] h-[100vh] flex flex-col justify-center items-center gap-24">
-      <div className="flex flex-col items-center gap-4 text-3xl">
-        <p>다른 사람들의 접속을 기다리고 있습니다</p>
-        <p>잠시만 기다려주세요</p>
-      </div>
-      <span className="loader"></span>
-    </div>
   ) : (
-    <div className="container">
-      <div id="session">
-        <div id="session-header">
-          <input
-            className="btn btn-large btn-danger"
-            type="button"
-            id="buttonLeaveSession"
-            onClick={leaveSession}
-            value="Leave session"
-          />
-          <div className="flex items-center">
-            <Image src="/img/egg1.png" alt="" width={50} height={50} />
-            <p
-              className="bg-orange-300 h-[20px] rounded-lg"
-              style={{
-                width: progressWidth,
-              }}
-            ></p>
-            <Image src="/img/egg2.png" alt="" width={50} height={50} />
+    <>
+      {!isFull ? (
+        <div className="w-[100vw] h-[100vh] flex flex-col justify-center items-center gap-24">
+          <div className="flex flex-col items-center gap-4 text-3xl">
+            <p>다른 사람들의 접속을 기다리고 있습니다</p>
+            <p>잠시만 기다려주세요</p>
           </div>
+          <span className="pan"></span>
         </div>
-        <div className="keyword-wrapper">
-          <p className="keyword" ref={keywordRef}></p>
-          <audio
-            id="tickSound"
-            src="/sound/tick.mp3"
-            className="hidden"
-          ></audio>
-        </div>
-        {!isOpenCam ? (
-          <div ref={captureRef} className="hidden">
-            <UserVideoComponent2 />
-          </div>
-        ) : null}
-        <div className="col-md-6 video-container">
-          {publisher !== undefined ? (
-            <div
-              className={`stream-container col-md-6 col-xs-6 pub ${publisher.stream.streamId === speakingPublisherId ? "speaking" : ""}`}
-              // onClick={() => handleMainVideoStream(publisher)}
-            >
-              <UserVideoComponent streamManager={publisher} socket={socket} />
-            </div>
-          ) : null}
-          {subscribers.map(sub => (
-            <div
-              key={sub.stream.streamId}
-              className={`stream-container col-md-6 col-xs-6 sub ${sub.stream.streamId === speakingPublisherId ? "speaking" : ""}`}
-              // onClick={() => handleMainVideoStream(sub)}
-            >
-              <UserVideoComponent
-                key={sub.stream.streamId}
-                streamManager={sub}
-                socket={socket}
+      ) : (
+        <div className="container">
+          <div id="session">
+            <div id="session-header">
+              <input
+                className="btn btn-large btn-danger"
+                type="button"
+                id="buttonLeaveSession"
+                onClick={leaveSession}
+                value="Leave session"
               />
+              <div className="flex items-center">
+                <Image src="/img/egg1.png" alt="" width={50} height={50} />
+                <p
+                  className="bg-orange-300 h-[20px] rounded-lg"
+                  style={{
+                    width: progressWidth,
+                  }}
+                ></p>
+                <Image src="/img/egg2.png" alt="" width={50} height={50} />
+              </div>
             </div>
-          ))}
+            <div className="keyword-wrapper">
+              <p className="keyword" ref={keywordRef}></p>
+              <audio
+                id="tickSound"
+                src="/sound/tick.mp3"
+                className="hidden"
+              ></audio>
+            </div>
+
+            {/* <div ref={captureRef} className="hidden">
+          <UserVideoComponent2 />
+        </div> */}
+            <div className="col-md-6 video-container">
+              {publisher !== undefined ? (
+                <div
+                  className={`stream-container col-md-6 col-xs-6 pub ${publisher.stream.streamId === speakingPublisherId ? "speaking" : ""}`}
+                  // onClick={() => handleMainVideoStream(publisher)}
+                >
+                  <UserVideoComponent
+                    streamManager={publisher}
+                    socket={socket}
+                  />
+                </div>
+              ) : null}
+              {sortedSubscribers.map(sub => (
+                <div
+                  key={sub.stream.streamId}
+                  className={`stream-container col-md-6 col-xs-6 sub ${sub.stream.streamId === speakingPublisherId ? "speaking" : ""}`}
+                  // onClick={() => handleMainVideoStream(sub)}
+                >
+                  <UserVideoComponent
+                    key={sub.stream.streamId}
+                    streamManager={sub}
+                    socket={socket}
+                  />
+                  <span>{sub.stream.connection.data}</span>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
+      )}
+      {!isOpenCam ? (
+        <div ref={captureRef} className="hidden">
+          <UserVideoComponent2 />
+        </div>
+      ) : null}
+    </>
   );
 };
 
