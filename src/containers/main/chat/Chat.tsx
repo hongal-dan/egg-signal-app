@@ -33,6 +33,26 @@ const Chat: React.FC<Props> = ({ friend, onClose }) => {
 
 
 
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (message.trim() === "") return;
+    if (currentUser) {
+      const newChat: Chat = {
+        sender: currentUser?.nickname,
+        message: message,
+      };
+      setChat(prevChat => [...prevChat, newChat]);
+      // sendMessage emit -message 전송
+      commonSocket?.emit("sendMessage", {
+        userNickname: currentUser.nickname,
+        chatRoomId: friend.chatRoomId,
+        message: message,
+        receiverNickname: friend.friend,
+      });
+      setMessage("");
+    }
+  };
+
   return (
     <div className="h-full">
       <div className="flex justify-between p-4 border-b border-gray-300">
