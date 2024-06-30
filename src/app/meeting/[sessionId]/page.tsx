@@ -728,6 +728,69 @@ const Meeting = (props: Props) => {
           <span className="pan"></span>
         </div>
       ) : (
+        <div className="container">
+          <div id="session">
+            <div id="session-header">
+              <input
+                className="btn btn-large btn-danger"
+                type="button"
+                id="buttonLeaveSession"
+                onClick={leaveSession}
+                value="Leave session"
+              />
+              <div className="flex items-center">
+                <Image src="/img/egg1.png" alt="" width={50} height={50} />
+                <p
+                  className="bg-orange-300 h-[20px] rounded-lg"
+                  style={{
+                    width: progressWidth,
+                  }}
+                ></p>
+                <Image src="/img/egg2.png" alt="" width={50} height={50} />
+              </div>
+            </div>
+            <div className="keyword-wrapper">
+              <p className="keyword" ref={keywordRef}></p>
+              <audio
+                id="tickSound"
+                src="/sound/tick.mp3"
+                className="hidden"
+              ></audio>
+            </div>
+
+            {/* <div ref={captureRef} className="hidden">
+          <UserVideoComponent2 />
+        </div> */}
+            <div className="col-md-6 video-container">
+              {publisher !== undefined ? (
+                <div
+                  className={`stream-container col-md-6 col-xs-6 pub ${publisher.stream.streamId === speakingPublisherId ? "speaking" : ""} ${getUserGender(publisher)}`}
+                  // onClick={() => handleMainVideoStream(publisher)}
+                >
+                  <UserVideoComponent
+                    streamManager={publisher}
+                    socket={socket}
+                  />
+                </div>
+              ) : null}
+              {sortedSubscribers.map(sub => (
+                <div
+                  key={sub.stream.streamId}
+                  className={`stream-container col-md-6 col-xs-6 sub ${sub.stream.streamId === speakingPublisherId ? "speaking" : ""} ${getUserGender(sub)}`}
+                  // onClick={() => handleMainVideoStream(sub)}
+                >
+                  <UserVideoComponent
+                    key={sub.stream.streamId}
+                    streamManager={sub}
+                    socket={socket}
+                  />
+                  {/* <span>{sub.stream.connection.data}</span> */}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
   );
 };
 
