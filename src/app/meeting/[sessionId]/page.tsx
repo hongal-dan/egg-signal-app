@@ -714,7 +714,21 @@ const Meeting = (props: Props) => {
       setIsFull(true);
     }
   }, [subscribers]);
+
+  useEffect(() => {
+    if (!avatar) {
+      console.log("avatar가 없습니ㅏㄷ!!!!!!!!!!!!!!!!!!");
+      return;
+    }
+
+    captureCamInit(); // 캡쳐용 비디오, 캔버스 display none
     joinSession();
+
+
+
+    meetingEvent();
+  }, [avatar]);
+
   return !avatar ? (
     <AvatarCollection />
   ) : (
