@@ -135,7 +135,7 @@ const MainContent = ({ userInfo }: MainContentProps) => {
   return (
     <div>
       <button
-        className="fixed top-4 right-4 z-10 text-gray-500"
+        className="fixed top-4 right-4 z-10 border-b border-gray-500 text-gray-500"
         onClick={handleLogout}
       >
         Log out
