@@ -18,6 +18,7 @@ import { meetingSocketState } from "@/app/store/socket";
 import { avatarState } from "@/app/store/avatar";
 import { keywords } from "../../../../public/data/keywords.js";
 import AvatarCollection from "@/containers/main/AvatarCollection";
+import { userState } from "@/app/store/userInfo";
 
 // type Props = {
 //   sessionId: string;
@@ -57,6 +58,8 @@ const Meeting = () => {
   const [isOpenCam, setIsOpenCam] = useState<boolean>(false);
   const [socket, setSocket] = useRecoilState(meetingSocketState);
   const [isFull, setIsFull] = useState<boolean>(false);
+  const userInfo = useRecoilValue(userState);
+
 
   // const socket = io(`${url}/meeting`, {
   //   transports: ["websocket"],
@@ -208,10 +211,9 @@ const Meeting = () => {
       sessionStorage.getItem("ovInfo")!,
     );
     console.log(sessionId);
-
     // Connect to the session
     newSession
-      .connect(token, { clientData: participantName, gender: "male" })
+      .connect(token, { clientData: participantName, gender: userInfo?.gender as string })
       .then(async () => {
         const arStream = captureCanvas();
         const publisher = await OV.initPublisherAsync(undefined, {
@@ -816,23 +818,31 @@ const Meeting = () => {
     meetingCamEvent();
   }, [publisher]);
 
+  const getUserGender = (person: StreamManager) : string => {
+    const genderMatch = person.stream.connection.data.match(/"gender":"(MALE|FEMALE)"/);
+    const gender = genderMatch ? genderMatch[1] : "";
+
+    return gender;
+  }
+
   // 내 성별 기준으로 서브 정렬
   const sortSubscribers = (myGender: string) => {
-    let oppositeGen = "";
-    if (myGender === "male") {
-      oppositeGen = "female";
+    let oppositeGender = "";
+    if (myGender === "MALE") {
+      oppositeGender = "FEMALE";
     } else {
-      oppositeGen = "male";
+      oppositeGender = "MALE";
     }
+    
     subscribers.forEach(subscriber => {
-      if (subscriber.stream.connection.data.includes(myGender))
+      if (getUserGender(subscriber) === myGender)
         setSortedSubscribers(prevSortedSubScribers => [
           ...prevSortedSubScribers,
           subscriber,
         ]);
     });
     subscribers.forEach(subscriber => {
-      if (subscriber.stream.connection.data.includes(oppositeGen))
+      if (getUserGender(subscriber) === oppositeGender)
         setSortedSubscribers(prevSortedSubScribers => [
           ...prevSortedSubScribers,
           subscriber,
@@ -843,10 +853,10 @@ const Meeting = () => {
   useEffect(() => {
     console.log("subscribers", subscribers);
     if (subscribers.length === 5) {
-      if (publisher?.stream.connection.data.includes("male")) {
-        sortSubscribers("male");
+      if (getUserGender(publisher!) === "MALE") {
+        sortSubscribers("MALE");
       } else {
-        sortSubscribers("female");
+        sortSubscribers("FEMALE");
       }
       setIsFull(true);
     }
