@@ -86,9 +86,11 @@ const Meeting = (props: Props) => {
     newSession
       .connect(token, { clientData: participantName, gender: userInfo?.gender as string })
       .then(async () => {
+        const arStream = captureCanvas();
         const publisher = await OV.initPublisherAsync(undefined, {
           audioSource: undefined,
-          videoSource: undefined,
+          // videoSource: undefined, // todo : 테스트용이라 다시 arStream으로 변경
+          videoSource: arStream,
           publishAudio: true,
           publishVideo: true,
           resolution: "640x480",
