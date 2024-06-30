@@ -512,6 +512,94 @@ const Meeting = (props: Props) => {
         console.error(e);
       }
     });
+
+    type cupidResult = {
+      lover: string;
+      loser: Array<string>;
+    };
+
+    // 선택 결과 받고 1:1 모드로 변경
+    socket?.on("cupidResult", response => {
+      try {
+        console.log("cupidResult 도착", response);
+        const { lover, loser } = response as cupidResult;
+        console.log(lover, loser);
+
+        // 매칭 된 사람의 경우
+        setTimeout(() => {
+          console.log("큐피드result로 계산 시작");
+          const subElements = Array.from(
+            document.getElementsByClassName("sub"),
+          );
+          if (lover != "0") {
+            console.log("이거도 없니?", keywordRef.current);
+            if (keywordRef.current) {
+              console.log("즐거운 시간 보내라고 p 태그 변경");
+              keywordRef.current.innerText = "즐거운 시간 보내세요~";
+            }
+            const loverElement = document
+              .getElementById(lover)
+              ?.closest(".stream-container") as HTMLDivElement;
+            // sub들 흑백으로 만들기
+            subElements.forEach(subElement => {
+              if (subElement === loverElement) {
+                return;
+              }
+              subElement.classList.toggle("black-white");
+              console.log("나머지 흑백 만들기");
+            });
+
+            setOneToOneMode(loverElement);
+            setTimeout(() => {
+              // console.log("1:1 모드 해제")
+              if (keywordRef.current) {
+                keywordRef.current.innerText = "";
+                console.log("즐거운시간 삭제");
+              }
+              undoOneToOneMode(loverElement);
+              subElements.forEach(subElement => {
+                if (subElement === loverElement) {
+                  return;
+                }
+                subElement.classList.toggle("black-white");
+              });
+            }, 60000); // 1분 후 원 위치
+          }
+          // 매칭 안된 사람들의 경우
+          else {
+            // const pubElement = document.getElementsByClassName("pub")[0] as HTMLDivElement;
+            // pubElement.classList.toggle("black-white");
+            if (keywordRef.current) {
+              keywordRef.current.innerText =
+                "당신은 선택받지 못했습니다. 1분 간 오디오가 차단됩니다.";
+              console.log("미선택자 p태그 변경", keywordRef.current);
+            }
+            loser.forEach(loser => {
+              const loserElement = document.getElementById(
+                loser,
+              ) as HTMLDivElement;
+              console.log("loser:", loser);
+              loserElement.classList.toggle("black-white");
+              setTimeout(() => {
+                // pubElement.classList.toggle("black-white");
+                loserElement.classList.toggle("black-white");
+              }, 60000); // 1분 후 흑백 해제
+            });
+            muteAudio();
+            setTimeout(() => {
+              if (keywordRef.current) {
+                keywordRef.current.innerText = "";
+                console.log("미선택자 p태그 초기화", keywordRef.current);
+              }
+              unMuteAudio();
+            }, 60000); // 1분 후 음소거 해제
+          }
+        }, 10000);
+      } catch (e: any) {
+        console.error(e);
+      }
+    });
+
       return;
     }
     videoContainer.classList.remove('one-one-four');
