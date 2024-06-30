@@ -704,6 +704,16 @@ const Meeting = (props: Props) => {
   };
 
   useEffect(() => {
+    console.log("subscribers", subscribers);
+    if (subscribers.length === 5) {
+      if (getUserGender(publisher!) === "MALE") {
+        sortSubscribers("MALE");
+      } else {
+        sortSubscribers("FEMALE");
+      }
+      setIsFull(true);
+    }
+  }, [subscribers]);
     joinSession();
   });
 
