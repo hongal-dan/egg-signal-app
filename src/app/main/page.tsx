@@ -37,10 +37,23 @@ const Main = async () => {
     console.log("토큰 없음!");
     redirect("/login");
   }
+  const currentUser = await handleGetUserInfo(token);
+  console.log(currentUser);
+
   const userInfo = decodeJwt(token.value);
   console.log(userInfo);
 
-  return <div>{token ? <MainContent nickname={userInfo.nickname} /> : <div>Redirecting...</div>}</div>;
+  return (
+    <div>
+      {token && currentUser ? (
+        <CommonSocketProvider>
+          <MainContent userInfo={currentUser} />
+        </CommonSocketProvider>
+      ) : (
+        <div>Redirecting...</div>
+      )}
+    </div>
+  );
 };
 
 export default Main;
