@@ -639,6 +639,30 @@ const Meeting = (props: Props) => {
       }
     });
   };
+
+  const [min, setMin] = useState(5); // todo: 시작 시간 서버로부터 받기
+  const [sec, setSec] = useState(0);
+  const time = useRef(300);
+  const timerId = useRef<null | NodeJS.Timeout>(null);
+  const totalTime = 300;
+  const [progressWidth, setProgressWidth] = useState("0%");
+
+  useEffect(() => {
+    timerId.current = setInterval(() => {
+      setMin(Math.floor(time.current / 60));
+      setSec(time.current % 60);
+      time.current -= 1;
+    }, 1000);
+    return () => clearInterval(timerId.current!);
+  }, []);
+
+  useEffect(() => {
+    if (time.current <= 0) {
+      console.log("time out");
+      clearInterval(timerId.current!);
+    }
+    setProgressWidth(`${((totalTime - time.current) / totalTime) * 100}%`);
+  }, [sec]);
       return;
     }
     videoContainer.classList.remove('one-one-four');
