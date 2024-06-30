@@ -3,6 +3,7 @@ import { NextResponse, NextRequest } from "next/server";
 export function middleware(request: NextRequest) {
   const { cookies } = request;
   const accessTokenExists = cookies.has("access_token");
+  // console.log(accessTokenExists);
   const pathUrl = request.nextUrl.pathname;
 
   // 로그인 된 사용자가 로그인/회원가입 페이지 요청 시 /main 페이지로 강제 리다이렉트
