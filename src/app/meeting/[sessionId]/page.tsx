@@ -152,6 +152,12 @@ const Meeting = (props: Props) => {
     });
   };
 
+  // 선택된 표시 제거
+  const removeChooseSign = () => {
+    const chosenElements = document.getElementsByClassName("chosen-stream");
+    Array.from(chosenElements).forEach(chosenElement => {
+      chosenElement.classList.remove("chosen-stream");
+    });
   };
 
   const leaveSession = () => {
