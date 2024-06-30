@@ -26,6 +26,8 @@ const MainContent = ({ nickname }: MainContentProps) => {
   // });
 
   const [socket, setSocket] = useRecoilState(meetingSocketState);
+  const enterBtnRef = useRef<HTMLParagraphElement>(null);
+  const [isEnterLoading, setIsEnterLoading] = useState<boolean>(false);
 
   useEffect(() => {
     if (!socket) {
@@ -53,8 +55,8 @@ const MainContent = ({ nickname }: MainContentProps) => {
     }
   };
 
+  const randomNum = Math.floor(Math.random() * 1000).toString();  // 테스트용 익명 닉네임 부여
   const handleLoadingOn: React.MouseEventHandler<HTMLButtonElement> = () => {
-    const randomNum = Math.floor(Math.random() * 1000).toString();  // 테스트용 익명 닉네임 부여
     socket?.emit("ready", { participantName: `${nickname}-${randomNum}` });
     if (startButton.current) startButton.current.disabled = true;
     setIsLoading(true);
@@ -62,12 +64,16 @@ const MainContent = ({ nickname }: MainContentProps) => {
       console.log(ovInfo);
       sessionStorage.setItem("ovInfo", JSON.stringify(ovInfo)); // 세션 스토리지에 저장
       setIsLoading(false);
+      setIsEnterLoading(true);
       router.push(`/meeting/${ovInfo.sessionId}`);
+      setTimeout(() => {
+        setIsEnterLoading(false);
+      }, 2000);
     });
   };
 
   const handleLoadingCancel = () => {
-    socket?.emit("cancel", { participantName: nickname });
+    socket?.emit("cancel", { participantName: `${nickname}-${randomNum}` }); // 테스트용 익명 닉네임 부여
     if (startButton.current) startButton.current.disabled = false;
     setIsLoading(false);
   };
@@ -101,6 +107,12 @@ const MainContent = ({ nickname }: MainContentProps) => {
     startWebCam();
   }, []);
 
+  useEffect(() => {
+    if (isEnterLoading && enterBtnRef.current) {
+      enterBtnRef.current.innerText = "입장 중입니다.";
+    }
+  }, [isEnterLoading]);
+
   // return avatar == null ? (
   //   <AvatarCollection />
   // ) :
@@ -120,9 +132,9 @@ const MainContent = ({ nickname }: MainContentProps) => {
         </div>
       </div>
       {/* <UserVideoComponent2 /> */}
-      <video id="myCam" className="mx-auto" autoPlay playsInline width={320} height={240}></video>
+      <video id="myCam" className="mx-auto w-[320px] h-[240px]" autoPlay playsInline></video>
       <div className="grid grid-rows-2">
-        <label className="inline-flex items-center justify-center cursor-pointer">
+        {/* <label className="inline-flex items-center justify-center cursor-pointer">
           <input
             type="checkbox"
             value=""
@@ -137,7 +149,7 @@ const MainContent = ({ nickname }: MainContentProps) => {
           <span className="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">
             {avatarOn ? "아바타 off" : " 아바타 on"}
           </span>
-        </label>
+        </label> */}
         <div>
           <button
             className="w-full h-12 bg-amber-400 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mb-1 z-10 relative"
@@ -164,7 +176,7 @@ const MainContent = ({ nickname }: MainContentProps) => {
                 ></path>
               </svg>
             ) : (
-              <p className="w-full text-2xl font-bold">입장하기</p>
+              <p className="w-full text-2xl font-bold" ref={enterBtnRef}>입장하기</p>
             )}
           </button>
           {isLoading && (
