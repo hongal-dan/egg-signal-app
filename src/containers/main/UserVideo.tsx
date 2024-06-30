@@ -53,6 +53,47 @@ class Avatar {
     this.gltf = gltf;
   }
 
+  // 모델 돌면서 자원 해제
+  disposeResources(): void {
+    const scene = this.gltf?.scene;
+    scene?.traverse((object: THREE.Object3D) => {
+      if (!(object as THREE.Mesh).isMesh) {
+        const mesh = object as THREE.Mesh;
+        if (mesh.geometry) {
+          mesh.geometry.dispose();
+        }
+        if (mesh.material) {
+          if (Array.isArray(mesh.material)) {
+            mesh.material.forEach(material => this.disposeMaterial(material));
+          } else {
+            this.disposeMaterial(mesh.material);
+          }
+        }
+        return;
+      }
+    });
+  }
+
+  disposeMaterial(material: THREE.Material): void {
+    const materialsWithMaps = [
+      'map',
+      'lightMap',
+      'bumpMap',
+      'normalMap',
+      'envMap'
+    ] as const;
+
+    materialsWithMaps.forEach((mapName) => {
+      const materialWithMap = material as THREE.MeshStandardMaterial;
+      if (materialWithMap[mapName]) {
+        (materialWithMap[mapName] as THREE.Texture).dispose();
+      }
+    });
+
+    material.dispose();
+  }
+
+  // 모델 형태 변환
   updateBlendshapes(blendshapes: Blendshapes) {
     const categories = blendshapes.categories;
     const coefsMap = new Map();
