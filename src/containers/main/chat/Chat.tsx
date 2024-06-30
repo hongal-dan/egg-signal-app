@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
+import { useChatSocket } from "@/contexts/ChatSocketContext";
 
 interface Props {
   friend: {
@@ -11,9 +12,24 @@ interface Props {
 }
 
 const Chat: React.FC<Props> = ({ friend, onClose }) => {
+  const chatSocket = useChatSocket();
   const [chat, setChat] = useState<string[]>([]);
   const [message, setMessage] = useState("");
   const chatContainerRef = useRef(null);
+
+  // useEffect(() => {
+  //   if (chatSocket) {
+  //     chatSocket.on("message", message => {
+  //       setMessages(prevMessages => [...prevMessages, message]);
+  //     });
+  //   }
+
+  //   return () => {
+  //     if (chatSocket) {
+  //       chatSocket.off("message");
+  //     }
+  //   };
+  // }, [chatSocket]);
 
   useEffect(() => {
     if (chatContainerRef.current) {

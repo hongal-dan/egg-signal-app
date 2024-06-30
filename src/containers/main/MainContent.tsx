@@ -11,6 +11,7 @@ import { meetingSocketState } from "@/app/store/socket";
 import { avatarState } from "@/app/store/avatar";
 import { userState } from "@/app/store/userInfo";
 import AvatarCollection from "./AvatarCollection";
+import { ChatSocketProvider } from "@/contexts/ChatSocketContext";
 
 interface Friend {
   friend: string;
@@ -207,7 +208,9 @@ const MainContent = ({ userInfo }: MainContentProps) => {
         </button>
         {isFriendListVisible && (
           <div className="absolute bottom-[50px] right-1 bg-white shadow-md rounded-lg p-4 z-10">
-            <FriendList onClose={() => setIsFriendListVisible(false)} />
+            <ChatSocketProvider>
+              <FriendList onClose={() => setIsFriendListVisible(false)} />
+            </ChatSocketProvider>
           </div>
         )}
       </div>
