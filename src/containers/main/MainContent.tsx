@@ -77,6 +77,48 @@ const MainContent = ({nickname}: MainContentProps) => {
     setIsNotiVisible(prev => !prev);
   };
 
+  const startWebCam = async () => {
+    try {
+      const constraints = {
+        video: true,
+        audio: false,
+      };
+
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      const video = document.getElementById("myCam");
+      if (video && video instanceof HTMLVideoElement) {
+        video.srcObject = stream;
+      }
+    } catch (error) {
+      console.error("Error accessing the webcam: ", error);
+    }
+  };
+
+
+
+  useEffect(() => {
+    startWebCam();
+  }, []);
+
+  useEffect(() => {
+    if (isEnterLoading && enterBtnRef.current) {
+      enterBtnRef.current.innerText = "입장 중입니다.";
+    }
+  }, [isEnterLoading]);
+
+  useEffect(() => {
+    if (commonSocket) {
+      commonSocket.on("newMessageNotification", res => {
+        console.log(res);
+        setNewMessageSenders(prev => [...prev, res]);
+        setNewMessage(true);
+      });
+    }
+  }, [commonSocket]);
+
+  // return avatar == null ? (
+  //   <AvatarCollection />
+  // ) :
   return (
     <div className="grid grid-rows-3 justify-center px-6 py-8 md:h-screen">
       <div className="w-full flex items-end justify-end gap-[10px] mb-5">
