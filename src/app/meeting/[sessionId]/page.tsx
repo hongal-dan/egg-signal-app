@@ -13,7 +13,7 @@ import {
 } from "openvidu-browser";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { useRecoilValue } from "recoil";
+import { useRecoilValue, useRecoilState } from "recoil";
 import { meetingSocketState } from "@/app/store/socket";
 import { avatarState } from "@/app/store/avatar";
 import { keywords } from "../../../../public/data/keywords.js";
@@ -34,6 +34,9 @@ const Meeting = () => {
   const [session, setSession] = useState<Session | undefined>(undefined);
   const [publisher, setPublisher] = useState<Publisher | undefined>(undefined);
   const [subscribers, setSubscribers] = useState<StreamManager[]>([]);
+  const [sortedSubscribers, setSortedSubscribers] = useState<StreamManager[]>(
+    [],
+  );
   const [mainStreamManager, setMainStreamManager] = useState<StreamManager>();
   const [, setCurrentVideoDevice] = useState<Device | null>(null);
   const [speakingPublisherId, setSpeakingPublisherId] = useState<string | null>(
@@ -48,10 +51,12 @@ const Meeting = () => {
   const pubRef = useRef<HTMLDivElement>(null);
   const subRef = useRef<Array<HTMLDivElement | null>>([]);
 
-  const socket = useRecoilValue(meetingSocketState);
+  // const socket = useRecoilValue(meetingSocketState);
 
   const avatar = useRecoilValue(avatarState);
   const [isOpenCam, setIsOpenCam] = useState<boolean>(false);
+  const [socket, setSocket] = useRecoilState(meetingSocketState);
+  const [isFull, setIsFull] = useState<boolean>(false);
 
   // const socket = io(`${url}/meeting`, {
   //   transports: ["websocket"],
@@ -112,6 +117,7 @@ const Meeting = () => {
   // };
 
   const captureCanvas = () => {
+    console.log("캡쳐 시작");
     const canvas = document.querySelector("canvas");
     if (!canvas) {
       console.error("Canvas element not found");
@@ -202,9 +208,10 @@ const Meeting = () => {
       sessionStorage.getItem("ovInfo")!,
     );
     console.log(sessionId);
+
     // Connect to the session
     newSession
-      .connect(token, { clientData: participantName })
+      .connect(token, { clientData: participantName, gender: "male" })
       .then(async () => {
         const arStream = captureCanvas();
         const publisher = await OV.initPublisherAsync(undefined, {
@@ -269,7 +276,7 @@ const Meeting = () => {
 
     // 세션에서 발화자 이벤트 리스너 추가
     newSession.on("publisherStartSpeaking", (event: PublisherSpeakingEvent) => {
-      console.log("Publisher started speaking:", event.connection);
+      // console.log("Publisher started speaking:", event.connection);
       const streamId = event.connection.stream?.streamId;
       if (streamId !== undefined) {
         setSpeakingPublisherId(streamId);
@@ -279,7 +286,7 @@ const Meeting = () => {
     });
 
     newSession.on("publisherStopSpeaking", (event: PublisherSpeakingEvent) => {
-      console.log("Publisher stopped speaking:", event.connection);
+      // console.log("Publisher stopped speaking:", event.connection);
       setSpeakingPublisherId(null);
     });
   };
@@ -298,11 +305,14 @@ const Meeting = () => {
     }
     if (socket) {
       socket.disconnect();
+      setSocket(null);
     }
 
     setSession(undefined);
     setSubscribers([]);
     setPublisher(undefined);
+    setSortedSubscribers([]);
+    setIsFull(false);
     router.push("/main");
   };
 
@@ -359,6 +369,10 @@ const Meeting = () => {
   };
 
   const changeLoveStickMode = (datas: Array<chooseResult>) => {
+    if (keywordRef.current) {
+      keywordRef.current.innerText = "에그 시그널 결과";
+      console.log("에그시그널 결과라고 p태그 변경했음");
+    }
     const videoContainer =
       document.getElementsByClassName("video-container")[0];
     const videoElements = document.querySelectorAll("video");
@@ -383,6 +397,10 @@ const Meeting = () => {
   };
 
   const undoLoveStickMode = () => {
+    // if (keywordRef.current) {
+    //   keywordRef.current.innerText = '';
+    //   console.log("에그시그널 결과라고 p태그 변경한거 삭제함");
+    // }
     const videoContainer =
       document.getElementsByClassName("video-container")[0];
     console.log("사랑의 작대기 모드 해제");
@@ -436,6 +454,10 @@ const Meeting = () => {
   const undoChooseMode = () => {
     // 선택 모드 일 때는 마우스 하버시에 선택 가능한 상태로 변경
     // 클릭 시에 선택된 상태로 변경
+    if (keywordRef.current) {
+      keywordRef.current.innerText = "";
+      console.log("선택모드 p태그 삭제");
+    }
     const chooseBtns = document.getElementsByClassName("choose-btn");
     const btnArray = Array.from(chooseBtns);
     btnArray.forEach(btn => {
@@ -446,10 +468,14 @@ const Meeting = () => {
   const setChooseMode = () => {
     // 선택 모드 일 때는 마우스 하버시에 선택 가능한 상태로 변경
     // 클릭 시에 선택된 상태로 변경
+    if (keywordRef.current) {
+      keywordRef.current.innerText = "대화해보고 싶은 사람을 선택해주세요";
+    }
+    console.log("선택 모드로 변경");
     const chooseBtns = document.getElementsByClassName("choose-btn");
     const btnArray = Array.from(chooseBtns);
     btnArray.forEach(btn => {
-      btn.classList.add("hidden");
+      btn.classList.remove("hidden");
     });
   };
 
@@ -653,6 +679,11 @@ const Meeting = () => {
             document.getElementsByClassName("sub"),
           );
           if (lover != "0") {
+            console.log("이거도 없니?", keywordRef.current);
+            if (keywordRef.current) {
+              console.log("즐거운 시간 보내라고 p 태그 변경");
+              keywordRef.current.innerText = "즐거운 시간 보내세요~";
+            }
             const loverElement = document
               .getElementById(lover)
               ?.closest(".stream-container") as HTMLDivElement;
@@ -668,6 +699,10 @@ const Meeting = () => {
             setOneToOneMode(loverElement);
             setTimeout(() => {
               // console.log("1:1 모드 해제")
+              if (keywordRef.current) {
+                keywordRef.current.innerText = "";
+                console.log("즐거운시간 삭제");
+              }
               undoOneToOneMode(loverElement);
               subElements.forEach(subElement => {
                 if (subElement === loverElement) {
@@ -681,6 +716,11 @@ const Meeting = () => {
           else {
             // const pubElement = document.getElementsByClassName("pub")[0] as HTMLDivElement;
             // pubElement.classList.toggle("black-white");
+            if (keywordRef.current) {
+              keywordRef.current.innerText =
+                "당신은 선택받지 못했습니다. 1분 간 오디오가 차단됩니다.";
+              console.log("미선택자 p태그 변경", keywordRef.current);
+            }
             loser.forEach(loser => {
               const loserElement = document.getElementById(
                 loser,
@@ -693,7 +733,13 @@ const Meeting = () => {
               }, 60000); // 1분 후 흑백 해제
             });
             muteAudio();
-            setTimeout(() => unMuteAudio(), 60000); // 1분 후 음소거 해제
+            setTimeout(() => {
+              if (keywordRef.current) {
+                keywordRef.current.innerText = "";
+                console.log("미선택자 p태그 초기화", keywordRef.current);
+              }
+              unMuteAudio();
+            }, 60000); // 1분 후 음소거 해제
           }
         }, 10000);
       } catch (e: any) {
@@ -704,7 +750,7 @@ const Meeting = () => {
     // 선택시간 신호 받고 선택 모드로 변경
     socket?.on("cupidTime", (response: number) => {
       try {
-        console.log(response);
+        console.log("cupidTime 도착", response);
         setChooseMode();
       } catch (e: any) {
         console.error(e);
@@ -764,10 +810,54 @@ const Meeting = () => {
   }, [sec]);
 
   useEffect(() => {
+    if (!publisher) {
+      return;
+    }
+    meetingCamEvent();
+  }, [publisher]);
+
+  // 내 성별 기준으로 서브 정렬
+  const sortSubscribers = (myGender: string) => {
+    let oppositeGen = "";
+    if (myGender === "male") {
+      oppositeGen = "female";
+    } else {
+      oppositeGen = "male";
+    }
+    subscribers.forEach(subscriber => {
+      if (subscriber.stream.connection.data.includes(myGender))
+        setSortedSubscribers(prevSortedSubScribers => [
+          ...prevSortedSubScribers,
+          subscriber,
+        ]);
+    });
+    subscribers.forEach(subscriber => {
+      if (subscriber.stream.connection.data.includes(oppositeGen))
+        setSortedSubscribers(prevSortedSubScribers => [
+          ...prevSortedSubScribers,
+          subscriber,
+        ]);
+    });
+  };
+
+  useEffect(() => {
+    console.log("subscribers", subscribers);
+    if (subscribers.length === 5) {
+      if (publisher?.stream.connection.data.includes("male")) {
+        sortSubscribers("male");
+      } else {
+        sortSubscribers("female");
+      }
+      setIsFull(true);
+    }
+  }, [subscribers]);
+
+  useEffect(() => {
     if (!avatar) {
       console.log("avatar가 없습니ㅏㄷ!!!!!!!!!!!!!!!!!!");
       return;
     }
+
     captureCamInit(); // 캡쳐용 비디오, 캔버스 display none
     joinSession();
 
@@ -798,80 +888,88 @@ const Meeting = () => {
     meetingEvent();
   }, [avatar]);
 
-  useEffect(() => {
-    if (!publisher) {
-      return;
-    }
-    meetingCamEvent();
-  }, [publisher]);
-
-  useEffect(() => {
-    console.log("subscribers", subscribers);
-  }, [subscribers]);
-
-  return avatar == null ? (
+  return !avatar ? (
     <AvatarCollection />
   ) : (
-    <div className="container">
-      <div id="session">
-        <div id="session-header">
-          <input
-            className="btn btn-large btn-danger"
-            type="button"
-            id="buttonLeaveSession"
-            onClick={leaveSession}
-            value="Leave session"
-          />
-          <div className="flex items-center">
-            <Image src="/img/egg1.png" alt="" width={50} height={50} />
-            <p
-              className="bg-orange-300 h-[20px] rounded-lg"
-              style={{
-                width: progressWidth,
-              }}
-            ></p>
-            <Image src="/img/egg2.png" alt="" width={50} height={50} />
+    <>
+      {!isFull ? (
+        <div className="w-[100vw] h-[100vh] flex flex-col justify-center items-center gap-24">
+          <div className="flex flex-col items-center gap-4 text-3xl">
+            <p>다른 사람들의 접속을 기다리고 있습니다</p>
+            <p>잠시만 기다려주세요</p>
           </div>
+          <span className="pan"></span>
         </div>
-        <div className="keyword-wrapper">
-          <p className="keyword" ref={keywordRef}></p>
-          <audio
-            id="tickSound"
-            src="/sound/tick.mp3"
-            className="hidden"
-          ></audio>
-        </div>
-        {!isOpenCam ? (
-          <div ref={captureRef} className="hidden">
-            <UserVideoComponent2 />
-          </div>
-        ) : null}
-        <div className="col-md-6 video-container">
-          {publisher !== undefined ? (
-            <div
-              className={`stream-container col-md-6 col-xs-6 pub ${publisher.stream.streamId === speakingPublisherId ? "speaking" : ""}`}
-              // onClick={() => handleMainVideoStream(publisher)}
-            >
-              <UserVideoComponent streamManager={publisher} socket={socket} />
-            </div>
-          ) : null}
-          {subscribers.map(sub => (
-            <div
-              key={sub.stream.streamId}
-              className={`stream-container col-md-6 col-xs-6 sub ${sub.stream.streamId === speakingPublisherId ? "speaking" : ""}`}
-              // onClick={() => handleMainVideoStream(sub)}
-            >
-              <span>{sub.id}</span>
-              <UserVideoComponent
-                key={sub.stream.streamId}
-                streamManager={sub}
-                socket={socket}
+      ) : (
+        <div className="container">
+          <div id="session">
+            <div id="session-header">
+              <input
+                className="btn btn-large btn-danger"
+                type="button"
+                id="buttonLeaveSession"
+                onClick={leaveSession}
+                value="Leave session"
               />
+              <div className="flex items-center">
+                <Image src="/img/egg1.png" alt="" width={50} height={50} />
+                <p
+                  className="bg-orange-300 h-[20px] rounded-lg"
+                  style={{
+                    width: progressWidth,
+                  }}
+                ></p>
+                <Image src="/img/egg2.png" alt="" width={50} height={50} />
+              </div>
             </div>
-          ))}
+            <div className="keyword-wrapper">
+              <p className="keyword" ref={keywordRef}></p>
+              <audio
+                id="tickSound"
+                src="/sound/tick.mp3"
+                className="hidden"
+              ></audio>
+            </div>
+
+            {/* <div ref={captureRef} className="hidden">
+          <UserVideoComponent2 />
+        </div> */}
+            <div className="col-md-6 video-container">
+              {publisher !== undefined ? (
+                <div
+                  className={`stream-container col-md-6 col-xs-6 pub ${publisher.stream.streamId === speakingPublisherId ? "speaking" : ""}`}
+                  // onClick={() => handleMainVideoStream(publisher)}
+                >
+                  <UserVideoComponent
+                    streamManager={publisher}
+                    socket={socket}
+                  />
+                </div>
+              ) : null}
+              {sortedSubscribers.map(sub => (
+                <div
+                  key={sub.stream.streamId}
+                  className={`stream-container col-md-6 col-xs-6 sub ${sub.stream.streamId === speakingPublisherId ? "speaking" : ""}`}
+                  // onClick={() => handleMainVideoStream(sub)}
+                >
+                  <UserVideoComponent
+                    key={sub.stream.streamId}
+                    streamManager={sub}
+                    socket={socket}
+                  />
+                  <span>{sub.stream.connection.data}</span>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
+      )}
+      {!isOpenCam ? (
+        <div ref={captureRef} className="hidden">
+          <UserVideoComponent2 />
+        </div>
+      ) : null}
+    </>
   );
 };
 

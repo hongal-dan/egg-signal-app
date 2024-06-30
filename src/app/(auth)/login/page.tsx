@@ -24,7 +24,7 @@ export default function Login() {
 
   const handleLogIn = async (values: FormValues) => {
     try {
-      const response = await loginUser(values);
+      const response = await loginUser(values) as Response;
       console.log(response);
       if (response.status == 200) {
         router.replace("/main");

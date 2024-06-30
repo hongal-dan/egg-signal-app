@@ -6,11 +6,9 @@ import FriendList from "./chat/FriendList";
 import Notifications from "./Notifications";
 import io from "socket.io-client";
 import { useRouter } from "next/navigation";
-import { useRecoilState, useRecoilValue } from "recoil";
+import { useRecoilState } from "recoil";
 import { meetingSocketState } from "@/app/store/socket";
-import { avatarState } from "@/app/store/avatar";
 import { userState } from "@/app/store/userInfo";
-import AvatarCollection from "./AvatarCollection";
 import { logoutUser } from "@/services/auth";
 import { useCommonSocket } from "@/contexts/CommonSocketContext";
 
@@ -48,7 +46,8 @@ const MainContent = ({ userInfo }: MainContentProps) => {
   const [socket, setSocket] = useRecoilState(meetingSocketState);
   const [, setCurrentUser] = useRecoilState(userState);
   setCurrentUser(userInfo);
-  const avatar = useRecoilValue(avatarState);
+  const enterBtnRef = useRef<HTMLParagraphElement>(null);
+  const [isEnterLoading, setIsEnterLoading] = useState<boolean>(false);
 
   useEffect(() => {
     if (!socket) {
@@ -73,20 +72,29 @@ const MainContent = ({ userInfo }: MainContentProps) => {
     }
   };
 
+  const randomNum = Math.floor(Math.random() * 1000).toString(); // 테스트용 익명 닉네임 부여
   const handleLoadingOn: React.MouseEventHandler<HTMLButtonElement> = () => {
-    socket?.emit("ready", { participantName: userInfo.nickname });
+    socket?.emit("ready", {
+      participantName: `${userInfo.nickname}-${randomNum}`,
+    });
     if (startButton.current) startButton.current.disabled = true;
     setIsLoading(true);
     socket?.on("startCall", async ovInfo => {
       console.log(ovInfo);
       sessionStorage.setItem("ovInfo", JSON.stringify(ovInfo)); // 세션 스토리지에 저장
       setIsLoading(false);
+      setIsEnterLoading(true);
       router.push(`/meeting/${ovInfo.sessionId}`);
+      setTimeout(() => {
+        setIsEnterLoading(false);
+      }, 2000);
     });
   };
 
   const handleLoadingCancel = () => {
-    socket?.emit("cancel", { participantName: userInfo.nickname });
+    socket?.emit("cancel", {
+      participantName: `${userInfo.nickname}-${randomNum}`,
+    }); // 테스트용 익명 닉네임 부여
     if (startButton.current) startButton.current.disabled = false;
     setIsLoading(false);
   };
@@ -129,6 +137,12 @@ const MainContent = ({ userInfo }: MainContentProps) => {
     startWebCam();
   }, []);
 
+  useEffect(() => {
+    if (isEnterLoading && enterBtnRef.current) {
+      enterBtnRef.current.innerText = "입장 중입니다.";
+    }
+  }, [isEnterLoading]);
+
   // return avatar == null ? (
   //   <AvatarCollection />
   // ) :
@@ -154,32 +168,13 @@ const MainContent = ({ userInfo }: MainContentProps) => {
             )}
           </div>
         </div>
-        {/* <UserVideoComponent2 /> */}
         <video
           id="myCam"
-          className="mx-auto"
+          className="mx-auto w-[320px] h-[240px]"
           autoPlay
           playsInline
-          width={320}
-          height={240}
         ></video>
         <div className="grid grid-rows-2">
-          <label className="inline-flex items-center justify-center cursor-pointer">
-            <input
-              type="checkbox"
-              value=""
-              className="sr-only peer"
-              checked={avatarOn}
-              onChange={() => {}}
-            />
-            <div
-              className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"
-              onClick={toggleCamera}
-            ></div>
-            <span className="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">
-              {avatarOn ? "아바타 off" : " 아바타 on"}
-            </span>
-          </label>
           <div>
             <button
               className="w-full h-12 bg-amber-400 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mb-1 z-10 relative"
@@ -206,7 +201,9 @@ const MainContent = ({ userInfo }: MainContentProps) => {
                   ></path>
                 </svg>
               ) : (
-                <p className="w-full text-2xl font-bold">입장하기</p>
+                <p className="w-full text-2xl font-bold" ref={enterBtnRef}>
+                  입장하기
+                </p>
               )}
             </button>
             {isLoading && (

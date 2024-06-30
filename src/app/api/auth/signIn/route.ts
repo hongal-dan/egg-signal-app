@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
     }
 
     return nextResponse;
-  } catch (error) {
+  } catch (error:any) {
     console.error("Error fetching data: ", error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: error.response?.status || 500 });
   }
