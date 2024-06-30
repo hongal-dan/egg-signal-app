@@ -30,12 +30,13 @@ const OpenViduVideoComponent = (props: Props) => {
       ?.closest(".streamcomponent")
       ?.querySelector(".nickname");
     console.log(currentNickname?.textContent);
+    const currStreamContainer = containerRef.current?.closest(".stream-container");
     if (isChosen) {
-      containerRef.current?.classList.remove("chosen-stream");
+      currStreamContainer!.classList.remove("chosen-stream");
       setIsChosen(false);
       return;
     }
-    containerRef.current?.classList.add("chosen-stream");
+    currStreamContainer!.classList.add("chosen-stream");
     socket.emit("choose", {
       sender: myName?.textContent,
       receiver: currentNickname?.textContent,
