@@ -68,6 +68,12 @@ const Meeting = (props: Props) => {
 
   const joinSession = () => {
     const OV = new OpenVidu();
+    OV.setAdvancedConfiguration({
+      publisherSpeakingEventsOptions: {
+        interval: 100, // Frequency of the polling of audio streams in ms (default 100)
+        threshold: -50, // Threshold volume in dB (default -50)
+      },
+    });
 
     const newSession = OV.initSession();
     setSession(newSession);
