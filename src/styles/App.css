@@ -1,5 +1,8 @@
 .stream-container {
-	padding: 0;
+  box-sizing: border-box;
+  border: 3px solid transparent;
+  border-radius: 15px;
+  padding: 0;
 }
 
 .video-hidden {
