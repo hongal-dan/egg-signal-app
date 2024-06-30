@@ -359,23 +359,23 @@ const Meeting = (props: Props) => {
   const undoOneToOneMode = (loverElement: HTMLDivElement) => {
     console.log("1:1 모드 해제");
     const videoContainer =
-      document.getElementsByClassName('video-container')[0];
-    const videoElements = document.querySelectorAll('video');
-    const canvasElements = document.querySelectorAll('canvas');
-    const streamElements = document.getElementsByClassName('stream-container');
-    videoElements.forEach((video) => {
-      video.style.width = '100%';
-      video.style.height = '100%';
-    });
-    canvasElements.forEach((canvas) => {
-      canvas.style.width = '100%';
-      canvas.style.height = '100%';
-    });
-    if (!isOneToOneMode) {
-      videoContainer.classList.add('one-one-four');
-      for (let i = 0; i < streamElements.length; i++) {
-        const className = String.fromCharCode(97 + i);
-        streamElements[i].classList.add(className);
+      document.getElementsByClassName("video-container")[0];
+    const streamElements = document.getElementsByClassName("stream-container");
+    videoContainer.classList.remove("one-one-four");
+    streamElements[0].classList.remove("a");
+    let acc = 2;
+    for (let i = 1; i < streamElements.length; i++) {
+      if (streamElements[i].classList.contains("b")) {
+        continue;
+      }
+      const className = String.fromCharCode(97 + acc);
+      streamElements[i].classList.remove(className);
+      acc += 1;
+    }
+    loverElement?.classList.remove("b");
+    console.log("나자신", streamElements[0]);
+    console.log("상대방: ", loverElement);
+  };
       }
       setIsOneToOneMode(true);
       return;
