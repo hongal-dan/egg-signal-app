@@ -1,9 +1,10 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Friend from "./Friend";
 import Chat from "./Chat";
 import { userState } from "@/app/store/userInfo";
 import { useRecoilValue } from "recoil";
+import { useCommonSocket } from "@/contexts/CommonSocketContext";
 
 interface FriendListProps {
   onClose: () => void;
@@ -11,10 +12,12 @@ interface FriendListProps {
 
 interface Friend {
   friend: string;
+  chatRoomId: string;
 }
 
 const FriendList: React.FC<FriendListProps> = ({ onClose }) => {
   const currentUser = useRecoilValue(userState);
+  const { commonSocket, isConnected } = useCommonSocket();
   const [selectedFriend, setSelectedFriend] = useState<Friend | null>(null);
   const [isChatVisible, setIsChatVisible] = useState<boolean>(false);
 
@@ -24,6 +27,11 @@ const FriendList: React.FC<FriendListProps> = ({ onClose }) => {
   };
 
   const closeChat = () => {
+    if (commonSocket) {
+      const chatRoomId = selectedFriend?.chatRoomId;
+      console.log(chatRoomId);
+      commonSocket.emit("closeChat", { chatRoomdId: chatRoomId });
+    }
     setSelectedFriend(null);
     setIsChatVisible(false);
   };

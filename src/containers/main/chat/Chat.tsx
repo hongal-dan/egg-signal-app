@@ -1,15 +1,26 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
+import { useCommonSocket } from "@/contexts/CommonSocketContext";
+import { userState } from "@/app/store/userInfo";
+import { useRecoilValue } from "recoil";
 
 interface Props {
   friend: {
     friend: string;
+    chatRoomId: string;
   };
   onClose: () => void;
 }
 
+interface Chat {
+  sender: string;
+  message: string;
+}
+
 const Chat: React.FC<Props> = ({ friend, onClose }) => {
-  const [chat, setChat] = useState<string[]>([]);
+  const { commonSocket, isConnected } = useCommonSocket();
+  const currentUser = useRecoilValue(userState);
+  const [chat, setChat] = useState<Chat[]>([]);
   const [message, setMessage] = useState("");
   const chatContainerRef = useRef(null);
 
@@ -20,11 +31,56 @@ const Chat: React.FC<Props> = ({ friend, onClose }) => {
     }
   }, [chat]);
 
+  useEffect(() => {
+    console.log("joinChat emit: ", friend.chatRoomId);
+    if (commonSocket) {
+      const newChatRoomId = friend.chatRoomId;
+      commonSocket.emit("joinchat", { newChatRoomId: newChatRoomId });
+      commonSocket.on("chatHistory", res => {
+        console.log("chat histroy: ", res);
+        const chatHistory = res.map(msg => ({
+          sender: msg.sender,
+          message: msg.message,
+        }));
+        // todo: message에 chat history 넣기
+        setChat(chatHistory);
+      });
+      commonSocket.on("message", res => {
+        if (res.sender === currentUser?.nickname) {
+          return;
+        }
+        const newChat = {
+          sender: res.sender,
+          message: res.message,
+        };
+        setChat(prevChat => [...prevChat, newChat]);
+      });
+    }
+  }, []);
+
+  useEffect(() => {
+    console.log(chat);
+    chat.map(msg => console.log(msg));
+  }, [chat]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (message.trim() === "") return;
-    setChat(prevChat => [...prevChat, message]);
-    setMessage("");
+    if (currentUser) {
+      const newChat: Chat = {
+        sender: currentUser?.nickname,
+        message: message,
+      };
+      setChat(prevChat => [...prevChat, newChat]);
+      // sendMessage emit -message 전송
+      commonSocket?.emit("sendMessage", {
+        userNickname: currentUser.nickname,
+        chatRoomId: friend.chatRoomId,
+        message: message,
+        receiverNickname: friend.friend,
+      });
+      setMessage("");
+    }
   };
 
   return (
@@ -42,9 +98,12 @@ const Chat: React.FC<Props> = ({ friend, onClose }) => {
         >
           <div className="space-y-4">
             {chat.map((msg, index) => (
-              <div key={index} className="flex justify-end">
+              <div
+                key={index}
+                className={`flex ${msg.sender === currentUser?.nickname ? "justify-end" : "justify-start"}`}
+              >
                 <span className="border border-gray-400 p-2 rounded-lg">
-                  {msg}
+                  {msg.message}
                 </span>
               </div>
             ))}
