@@ -718,29 +718,16 @@ const Meeting = (props: Props) => {
   return !avatar ? (
     <AvatarCollection />
   ) : (
-
-        <div className="col-md-6 video-container">
-          {publisher !== undefined ? (
-            <div
-              className="stream-container col-md-6 col-xs-6 pub"
-              // onClick={() => handleMainVideoStream(publisher)}
-            >
-              <UserVideoComponent streamManager={publisher}/>
-            </div>
-          ) : null}
-          {subscribers.map((sub, i) => (
-            <div
-              key={sub.id}
-              className="stream-container col-md-6 col-xs-6 sub"
-              // onClick={() => handleMainVideoStream(sub)}
-            >
-              <span>{sub.id}</span>
-              <UserVideoComponent streamManager={sub}/>
-            </div>
-          ))}
+    <>
+      {!isFull ? (
+        <div className="w-[100vw] h-[100vh] flex flex-col justify-center items-center gap-24">
+          <div className="flex flex-col items-center gap-4 text-3xl">
+            <p>다른 사람들의 접속을 기다리고 있습니다</p>
+            <p>잠시만 기다려주세요</p>
+          </div>
+          <span className="pan"></span>
         </div>
-      </div>
-    </div>
+      ) : (
   );
 };
 
