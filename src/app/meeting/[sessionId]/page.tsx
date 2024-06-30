@@ -376,8 +376,70 @@ const Meeting = (props: Props) => {
     console.log("나자신", streamElements[0]);
     console.log("상대방: ", loverElement);
   };
-      }
-      setIsOneToOneMode(true);
+  const randomUser = (keywordIdx: number, pickUser: string) => {
+    const streamElements = document.getElementsByClassName("stream-container");
+    const tickSound = document.getElementById("tickSound") as HTMLAudioElement;
+
+    if (keywordRef.current) {
+      keywordRef.current.innerText =
+        "곧 한 참가자가 선택됩니다. 선택된 사람은 질문에 답변해주세요";
+    }
+
+    const animationDuration = 10000; // 초기 강조 애니메이션 기본 지속 시간
+    const currentIndex = 0;
+    let currentDuration = 50;
+    let isAnimating = true;
+
+    // speaking 클래스 제거
+    for (let i = 0; i < streamElements.length; i++) {
+      streamElements[i].classList.remove("speaking");
+    }
+
+    const highlightUser = (index: number) => {
+      if (!isAnimating) return;
+      // 현재 인덱스의 참여자를 강조 (빨간색 border 추가)
+      streamElements[index].classList.add("highlighted");
+
+      // 룰렛 소리 재생
+      tickSound.currentTime = 0; // 오디오를 처음부터 재생
+      tickSound.play();
+
+      // 일정 시간 후에 border 초기화 (빨간색 border 제거)
+      setTimeout(() => {
+        streamElements[index].classList.remove("highlighted");
+        streamElements[(index + 1) % streamElements.length].classList.add(
+          "highlighted",
+        );
+
+        // 다음 참여자 강조 시작 (재귀 호출)
+        setTimeout(() => {
+          currentDuration += 10;
+          highlightUser((index + 1) % streamElements.length);
+        }, currentDuration - 10);
+
+        setTimeout(() => {
+          isAnimating = false;
+          for (let i = 0; i < streamElements.length; i++) {
+            streamElements[i].classList.remove("highlighted");
+          }
+          openKeyword(keywordIdx);
+          // todo1: random user nickname(pickUser) 으로 video 찾아서 발표자 화면 출력하기
+          const presenterElement = Array.prototype.filter.call(
+            streamElements,
+            function (element) {
+              const nestedDiv = element.querySelector(
+                `div > div[id=${pickUser}]`,
+              );
+              return nestedDiv !== null;
+            },
+          )[0];
+          changePresentationMode(presenterElement, 10);
+        }, animationDuration);
+      }, currentDuration - 10);
+    };
+    // 초기 강조 시작
+    highlightUser(currentIndex);
+  };
       return;
     }
     videoContainer.classList.remove('one-one-four');
