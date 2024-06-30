@@ -77,6 +77,16 @@ const Meeting = (props: Props) => {
     }
   };
 
+  const unMuteAudio = () => {
+    if (publisher) {
+      const audioTracks = publisher.stream.getMediaStream().getAudioTracks();
+      audioTracks.forEach(track => {
+        track.enabled = true;
+      });
+      console.log("Audio tracks enabled");
+    }
+  };
+
   const joinSession = () => {
     const OV = new OpenVidu();
     OV.setAdvancedConfiguration({
