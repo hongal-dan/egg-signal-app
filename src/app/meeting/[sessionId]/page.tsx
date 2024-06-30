@@ -663,14 +663,13 @@ const Meeting = (props: Props) => {
     }
     setProgressWidth(`${((totalTime - time.current) / totalTime) * 100}%`);
   }, [sec]);
+
+  useEffect(() => {
+    if (!publisher) {
       return;
     }
-    videoContainer.classList.remove('one-one-four');
-    for (let i = 0; i < streamElements.length; i++) {
-      const className = String.fromCharCode(97 + i);
-      streamElements[i].classList.remove(className);
-    }
-    setIsOneToOneMode(false);
+    meetingCamEvent();
+  }, [publisher]);
   };
 
   useEffect(() => {
