@@ -65,6 +65,17 @@ const Meeting = (props: Props) => {
       prevSubscribers.filter(sub => sub !== streamManager),
     );
   };
+  const muteAudio = () => {
+    if (publisher) {
+      // 오디오 트랙 비활성화
+      const audioTracks = publisher.stream.getMediaStream().getAudioTracks();
+      audioTracks.forEach(track => {
+        track.enabled = false;
+        track.stop();
+      });
+      console.log("Audio tracks disabled");
+    }
+  };
 
   const joinSession = () => {
     const OV = new OpenVidu();
