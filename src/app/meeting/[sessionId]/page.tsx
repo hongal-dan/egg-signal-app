@@ -267,6 +267,23 @@ const Meeting = (props: Props) => {
     }, time * 1000);
   };
 
+  const captureCamInit = () => {
+    const videoElement = captureRef.current?.querySelector(
+      "video",
+    ) as HTMLVideoElement;
+    const canvasElement = captureRef.current?.querySelector(
+      "canvas",
+    ) as HTMLCanvasElement;
+    if (videoElement) {
+      videoElement.style.display = "none";
+    }
+    if (canvasElement) {
+      canvasElement.style.display = "none";
+    }
+  };
+
+
+
   const setChooseMode = () => {
     // 선택 모드 일 때는 마우스 하버시에 선택 가능한 상태로 변경
     // 클릭 시에 선택된 상태로 변경
