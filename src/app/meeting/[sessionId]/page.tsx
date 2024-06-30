@@ -1,46 +1,66 @@
 "use client";
-import axios from "axios";
-import React, { useEffect, useState } from "react";
+
+import React, { useEffect, useState, useRef } from "react";
 import UserVideoComponent from "@/containers/meeting/UserVideoComponent";
+import UserVideoComponent2 from "@/containers/main/UserVideo";
 import {
   OpenVidu,
   Session,
   Publisher,
   StreamManager,
   Device,
-  Subscriber,
+  PublisherSpeakingEvent,
 } from "openvidu-browser";
+import { useRouter } from "next/navigation";
+import Image from "next/image";
+import { useRecoilValue, useRecoilState } from "recoil";
+import { meetingSocketState } from "@/app/store/socket";
+import { avatarState } from "@/app/store/avatar";
+import { keywords } from "../../../../public/data/keywords.js";
+import AvatarCollection from "@/containers/main/AvatarCollection";
+import { userState } from "@/app/store/userInfo";
 
-// import io from "socket.io-client";
+// type Props = {
+//   sessionId: string;
+//   token: string;
+//   participantName: string;
+// };
 
-type Props = {
-  sessionId: string;
-  token: string;
-  participantName: string;
+type chooseResult = {
+  sender: string;
+  receiver: string;
 };
 
-const Meeting = (props: Props) => {
-  const [myUserName, setMyUserName] = useState<string>(
-    "Participant" + Math.floor(Math.random() * 100),
-  );
+const Meeting = () => {
   const [session, setSession] = useState<Session | undefined>(undefined);
-  const [mainStreamManager, setMainStreamManager] = useState<any>(undefined);
   const [publisher, setPublisher] = useState<Publisher | undefined>(undefined);
   const [subscribers, setSubscribers] = useState<StreamManager[]>([]);
-  const [currentVideoDevice, setCurrentVideoDevice] = useState<Device | null>(
+  const [sortedSubscribers, setSortedSubscribers] = useState<StreamManager[]>(
+    [],
+  );
+  const [mainStreamManager, setMainStreamManager] = useState<StreamManager>();
+  const [, setCurrentVideoDevice] = useState<Device | null>(null);
+  const [speakingPublisherId, setSpeakingPublisherId] = useState<string | null>(
     null,
   );
-  const [isAvatar, setIsAvatar] = useState<boolean>(true);
-  const [isLoveMode, setIsLoveMode] = useState<boolean>(false);
-  const [isMatched, setIsMatched] = useState<boolean>(true);
-  const [isChooseMode, setIsChooseMode] = useState<boolean>(false);
-  const [isOneToOneMode, setIsOneToOneMode] = useState<boolean>(false);
 
-  // const socket = io("http://localhost:5002/meeting", {
-  //   transports: ["websocket"],
-  // });
+  // const [isLoveMode, setIsLoveMode] = useState<boolean>(false);
+  // const [isChooseMode, setIsChooseMode] = useState<boolean>(false);
+  // const [isOneToOneMode, setIsOneToOneMode] = useState<boolean>(false);
+  const captureRef = useRef<HTMLDivElement>(null);
+  const keywordRef = useRef<HTMLParagraphElement>(null);
+  const pubRef = useRef<HTMLDivElement>(null);
+  const subRef = useRef<Array<HTMLDivElement | null>>([]);
 
-  // const socket = JSON.parse(sessionStorage.getItem('session')!)
+  // const socket = useRecoilValue(meetingSocketState);
+
+  const avatar = useRecoilValue(avatarState);
+  const [isOpenCam, setIsOpenCam] = useState<boolean>(false);
+  const [socket, setSocket] = useRecoilState(meetingSocketState);
+  const [isFull, setIsFull] = useState<boolean>(false);
+  const userInfo = useRecoilValue(userState);
+
+  const router = useRouter();
 
   // 어떻게든 종료 하면 세션에서 나가게함.
   useEffect(() => {
@@ -51,7 +71,7 @@ const Meeting = (props: Props) => {
       window.removeEventListener("beforeunload", handleBeforeUnload);
       console.log("메인이 종료되었습니다.");
     };
-  });
+  }, []);
 
   // 메인 비디오 스트림을 변경
   // const handleMainVideoStream = (stream: StreamManager) => {
@@ -145,8 +165,6 @@ const Meeting = (props: Props) => {
     const { sessionId, token, participantName } = JSON.parse(
       sessionStorage.getItem("ovInfo")!,
     );
-    console.log("===========세션에 저장된 오픈비두 ===============")
-    console.log(sessionId, token, participantName);
     // Connect to the session
     newSession
       .connect(token, { clientData: participantName, gender: userInfo?.gender as string })
@@ -202,7 +220,6 @@ const Meeting = (props: Props) => {
       const subscriber = newSession.subscribe(event.stream, undefined);
       // 구독한 스트림을 구독자 목록에 추가
       setSubscribers(prevSubscribers => [...prevSubscribers, subscriber]);
-      console.log("setSubscribers", subscribers);
     });
 
     newSession.on("streamDestroyed", event => {
