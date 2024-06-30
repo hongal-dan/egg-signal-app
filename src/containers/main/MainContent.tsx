@@ -18,24 +18,28 @@ interface Friend {
 }
 
 interface MainContentProps {
-  // userId: string;
-  nickname: string;
+  userInfo: {
+    id: string;
+    nickname: string;
+    gender: "MALE" | "FEMALE";
+    newNotification: boolean;
+    notifications: string[];
+    friends: Friend[];
+  };
 }
 
-const MainContent = ({nickname}: MainContentProps) => {
+const MainContent = ({ userInfo }: MainContentProps) => {
+  const router = useRouter();
+  const { commonSocket } = useCommonSocket();
   const [avatarOn, setAvatarOn] = useState<boolean>(true);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isFriendListVisible, setIsFriendListVisible] =
     useState<boolean>(false);
   const [isNotiVisible, setIsNotiVisible] = useState<boolean>(false);
   const startButton = useRef<HTMLButtonElement>(null);
-  const socket = io("http://localhost:5002/meeting", {
-    transports: ["websocket"],
-  });
-  // const [OVInfo, setOVInfo] = useState<OVInfo>({
-  //   sessionId: "",
-  //   token: "",
-  //   participantName: "",
+  const url = process.env.NEXT_PUBLIC_API_SERVER;
+  // const socket = io(`${url}/meeting`, {
+  //   transports: ["websocket"],
   // });
 
   const [socket, setSocket] = useRecoilState(meetingSocketState);
