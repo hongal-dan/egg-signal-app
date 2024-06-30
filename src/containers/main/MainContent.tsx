@@ -61,7 +61,9 @@ const MainContent = ({nickname}: MainContentProps) => {
   };
 
   const handleLoadingCancel = () => {
-    socket.emit("cancel", { participantName: nickname });
+    socket?.emit("cancel", {
+      participantName: `${userInfo.nickname}-${randomNum}`,
+    }); // 테스트용 익명 닉네임 부여
     if (startButton.current) startButton.current.disabled = false;
     setIsLoading(false);
     // todo: 매칭 취소 api 요청
