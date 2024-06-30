@@ -153,64 +153,55 @@ const Meeting = (props: Props) => {
     router.push("/main");
   };
 
-  const datass: Array<showArrowProps> = [
-    { from: 'a', to: 'd' },
-    { from: 'b', to: 'e' },
-    { from: 'c', to: 'f' },
-    { from: 'd', to: 'a' },
-    { from: 'e', to: 'b' },
-    { from: 'f', to: 'c' },
-  ];
-
-  const showArrow = (datas: Array<showArrowProps>) => {
+  const showArrow = (datas: Array<chooseResult>) => {
     const acc = [-2, -1, 0, 1, 2, 3];
-    datas.forEach(({ from, to }, idx) => {
-      const fromUser = document.getElementById(from) as HTMLDivElement;
-      const toUser = document.getElementById(to) as HTMLDivElement;
+    datas.forEach(({ sender, receiver }, idx) => {
+      const fromUser = document.getElementById(sender) as HTMLDivElement;
+      const toUser = document.getElementById(receiver) as HTMLDivElement;
       const arrowContainer = fromUser?.querySelector(
-        '.arrow-container'
+        ".arrow-container",
       ) as HTMLDivElement;
       const arrowBody = arrowContainer?.querySelector(
-        '.arrow-body'
+        ".arrow-body",
       ) as HTMLDivElement;
-      console.log(from, to);
-      console.log(fromUser, toUser, arrowContainer, arrowBody);
+      // console.log(sender, receiver);
+      // console.log(fromUser, toUser, arrowContainer, arrowBody);
 
       const rect1 = fromUser.getBoundingClientRect();
       const rect2 = toUser.getBoundingClientRect();
-      console.log(rect1, rect2);
+      // console.log(rect1, rect2);
       const centerX1 = rect1.left + rect1.width / 2 + acc[idx] * 10;
       const centerY1 = rect1.top + rect1.height / 2 + acc[idx] * 10;
       const centerX2 = rect2.left + rect2.width / 2 + acc[idx] * 10;
       const centerY2 = rect2.top + rect2.height / 2 + acc[idx] * 10;
-      const halfWidth = Math.abs(rect1.right - rect1.left) * (3 / 4);
+      // const halfWidth = Math.abs(rect1.right - rect1.left) * (3 / 4);
 
       const deltaX = centerX2 - centerX1;
       const deltaY = centerY2 - centerY1;
       const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-      const arrowWidth = distance - halfWidth;
+      // const arrowWidth = distance - halfWidth;
 
       if (idx > 2) {
-        arrowBody.style.backgroundColor = '#33C4D7';
+        arrowBody.style.backgroundColor = "#33C4D7";
         const arrowHead = arrowBody.querySelector(
           '.arrow-head'
         ) as HTMLDivElement;
-        arrowHead.style.borderBottom = '20px solid #33C4D7';
+        arrowHead.style.borderBottom = "20px solid #33C4D7";
       }
-      arrowBody.style.width = distance + 'px';
-      arrowContainer.style.top = centerY1 - rect1.top + 'px';
-      arrowContainer.style.left = centerX1 - rect1.left + 'px';
+      arrowBody.style.width = distance + "px";
+      arrowContainer.style.top = centerY1 - rect1.top + "px";
+      arrowContainer.style.left = centerX1 - rect1.left + "px";
       arrowContainer.style.transform = `rotate(${
         (Math.atan2(deltaY, deltaX) * 180) / Math.PI
       }deg)`;
-      arrowContainer.classList.remove('hidden');
+      arrowContainer.classList.remove("hidden");
     });
   };
 
   const hideArrow = () => {
-    const arrowContainers = document.querySelectorAll('.arrow-container');
-    arrowContainers.forEach((arrowContainer) => {
-      arrowContainer.classList.add('hidden');
+    const arrowContainers = document.querySelectorAll(".arrow-container");
+    arrowContainers.forEach(arrowContainer => {
+      arrowContainer.classList.add("hidden");
     });
   };
 
