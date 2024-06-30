@@ -48,6 +48,8 @@ const MainContent = ({ userInfo }: MainContentProps) => {
   setCurrentUser(userInfo);
   const enterBtnRef = useRef<HTMLParagraphElement>(null);
   const [isEnterLoading, setIsEnterLoading] = useState<boolean>(false);
+  const [newMessage, setNewMessage] = useState<boolean>(false);
+  const [newMessageSenders, setNewMessageSenders] = useState<string[]>([]);
 
   useEffect(() => {
     if (!socket) {
@@ -124,9 +126,9 @@ const MainContent = ({ userInfo }: MainContentProps) => {
     }
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     try {
-      logoutUser();
+      await logoutUser();
       router.push("/login");
     } catch (error) {
       console.error("Log out Error: ", error);
@@ -142,6 +144,16 @@ const MainContent = ({ userInfo }: MainContentProps) => {
       enterBtnRef.current.innerText = "입장 중입니다.";
     }
   }, [isEnterLoading]);
+
+  useEffect(() => {
+    if (commonSocket) {
+      commonSocket.on("newMessageNotification", res => {
+        console.log(res);
+        setNewMessageSenders(prev => [...prev, res]);
+        setNewMessage(true);
+      });
+    }
+  }, [commonSocket]);
 
   // return avatar == null ? (
   //   <AvatarCollection />
@@ -215,14 +227,20 @@ const MainContent = ({ userInfo }: MainContentProps) => {
         </div>
         <div className="z-10 absolute bottom-10 right-10">
           <button
-            className="w-48 h-10 flex items-center justify-center relative bg-amber-100 rounded-2xl shadow"
+            className="relative w-48 h-10 flex items-center justify-center bg-amber-100 rounded-2xl shadow"
             onClick={toggleFriendList}
           >
+            {newMessage && (
+              <div className="absolute left-[-5px] top-[-5px] w-5 h-5 rounded-full bg-red-600" />
+            )}
             <p className="text-xl font-bold">친구</p>
           </button>
           {isFriendListVisible && (
             <div className="absolute bottom-[50px] right-1 bg-white shadow-md rounded-lg p-4 z-10">
-              <FriendList onClose={() => setIsFriendListVisible(false)} />
+              <FriendList
+                onClose={() => setIsFriendListVisible(false)}
+                newMessageSenders={newMessageSenders}
+              />
             </div>
           )}
         </div>

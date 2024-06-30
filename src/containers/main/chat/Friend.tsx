@@ -1,7 +1,6 @@
 import React from "react";
 
 interface Props {
-  key: number;
   friend: {
     friend: string;
     chatRoomId: string;
@@ -12,11 +11,11 @@ interface Props {
 const Friend: React.FC<Props> = ({ friend, onChat }) => {
   return (
     <div
-      className="flex justify-between items-center mb-1 mt-1"
+      className="flex justify-between items-center mb-1 mt-1 text-lg p-2 border-b border-gray-300"
       onClick={onChat}
     >
       <span>{friend.friend}</span>
-      <div className="w-4 h-4 rounded-full bg-slate-300" />
+      <div className="w-5 h-5 rounded-full bg-slate-300" />
     </div>
   );
 };

@@ -34,8 +34,7 @@ const Chat: React.FC<Props> = ({ friend, onClose }) => {
   useEffect(() => {
     console.log("joinChat emit: ", friend.chatRoomId);
     if (commonSocket) {
-      const newChatRoomId = friend.chatRoomId;
-      commonSocket.emit("joinchat", { newChatRoomId: newChatRoomId });
+      commonSocket.emit("joinchat", { newChatRoomId: friend.chatRoomId });
       commonSocket.on("chatHistory", res => {
         console.log("chat histroy: ", res);
         const chatHistory = res.map(msg => ({
@@ -56,6 +55,10 @@ const Chat: React.FC<Props> = ({ friend, onClose }) => {
         setChat(prevChat => [...prevChat, newChat]);
       });
     }
+
+    return () => {
+      commonSocket?.emit("closeChat", { newChatRoomId: friend.chatRoomId });
+    };
   }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
