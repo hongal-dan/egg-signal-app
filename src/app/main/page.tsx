@@ -4,6 +4,7 @@ import { RequestCookie } from "next/dist/compiled/@edge-runtime/cookies";
 import MainContent from "@/containers/main/MainContent";
 import { getUserInfo } from "@/services/users";
 import { CommonSocketProvider } from "@/contexts/CommonSocketContext";
+import ServerError from "@/containers/error/ServerError";
 
 const Main = async () => {
   const cookieStore = cookies();
@@ -50,7 +51,7 @@ const Main = async () => {
           <MainContent userInfo={currentUser} />
         </CommonSocketProvider>
       ) : (
-        <div>Redirecting...</div>
+        <ServerError />
       )}
     </div>
   );
