@@ -31,7 +31,7 @@ interface MainContentProps {
 
 const MainContent = ({ userInfo }: MainContentProps) => {
   const router = useRouter();
-  const [avatarOn, setAvatarOn] = useState<boolean>(true);
+  // const [avatarOn, setAvatarOn] = useState<boolean>(true);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isFriendListVisible, setIsFriendListVisible] =
     useState<boolean>(false);
@@ -93,19 +93,19 @@ const MainContent = ({ userInfo }: MainContentProps) => {
     }
   }, [socket, setSocket, commonSocket, setCommonSocket]);
 
-  const toggleCamera = () => {
-    const canvas = document.querySelector("canvas");
-    console.log(canvas);
-    if (canvas && avatarOn) {
-      canvas.style.display = "none";
-      setAvatarOn(false);
-      return;
-    }
-    if (canvas) {
-      canvas.style.display = "block";
-      setAvatarOn(true);
-    }
-  };
+  // const toggleCamera = () => {
+  //   const canvas = document.querySelector("canvas");
+  //   console.log(canvas);
+  //   if (canvas && avatarOn) {
+  //     canvas.style.display = "none";
+  //     setAvatarOn(false);
+  //     return;
+  //   }
+  //   if (canvas) {
+  //     canvas.style.display = "block";
+  //     setAvatarOn(true);
+  //   }
+  // };
 
   const randomNum = Math.floor(Math.random() * 1000).toString(); // 테스트용 익명 닉네임 부여
   const handleLoadingOn: React.MouseEventHandler<HTMLButtonElement> = () => {

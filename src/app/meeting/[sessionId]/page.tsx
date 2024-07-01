@@ -167,7 +167,10 @@ const Meeting = () => {
     );
     // Connect to the session
     newSession
-      .connect(token, { clientData: participantName, gender: userInfo?.gender as string })
+      .connect(token, {
+        clientData: participantName,
+        gender: userInfo?.gender as string,
+      })
       .then(async () => {
         const arStream = captureCanvas();
         const publisher = await OV.initPublisherAsync(undefined, {
@@ -182,7 +185,7 @@ const Meeting = () => {
           mirror: false,
         });
 
-        console.log("Publisher created:", publisher);
+        console.log("Publisher created:", publisher, sessionId);
         publisher.updatePublisherSpeakingEventsOptions({
           interval: 100, // 발화자 이벤트 감지 주기 (밀리초)
           threshold: -50, // 발화자 이벤트 발생 임계값 (데시벨)
@@ -242,7 +245,7 @@ const Meeting = () => {
     });
 
     newSession.on("publisherStopSpeaking", (event: PublisherSpeakingEvent) => {
-      // console.log("Publisher stopped speaking:", event.connection);
+      console.log("Publisher stopped speaking:", event.connection);
       setSpeakingPublisherId(null);
     });
   };
@@ -303,7 +306,7 @@ const Meeting = () => {
       if (idx > 2) {
         arrowBody.style.backgroundColor = "#33C4D7";
         const arrowHead = arrowBody.querySelector(
-          '.arrow-head'
+          ".arrow-head",
         ) as HTMLDivElement;
         arrowHead.style.borderBottom = "20px solid #33C4D7";
       }
@@ -741,7 +744,7 @@ const Meeting = () => {
     });
   };
 
-  const [min, setMin] = useState(5); // todo: 시작 시간 서버로부터 받기
+  const [, setMin] = useState(5); // todo: 시작 시간 서버로부터 받기
   const [sec, setSec] = useState(0);
   const time = useRef(300);
   const timerId = useRef<null | NodeJS.Timeout>(null);
@@ -772,12 +775,14 @@ const Meeting = () => {
     meetingCamEvent();
   }, [publisher]);
 
-  const getUserGender = (person: StreamManager) : string => {
-    const genderMatch = person.stream.connection.data.match(/"gender":"(MALE|FEMALE)"/);
+  const getUserGender = (person: StreamManager): string => {
+    const genderMatch = person.stream.connection.data.match(
+      /"gender":"(MALE|FEMALE)"/,
+    );
     const gender = genderMatch ? genderMatch[1] : "";
 
     return gender;
-  }
+  };
 
   // 내 성별 기준으로 서브 정렬
   const sortSubscribers = (myGender: string) => {
@@ -787,7 +792,7 @@ const Meeting = () => {
     } else {
       oppositeGender = "MALE";
     }
-    
+
     subscribers.forEach(subscriber => {
       if (getUserGender(subscriber) === myGender)
         setSortedSubscribers(prevSortedSubScribers => [
