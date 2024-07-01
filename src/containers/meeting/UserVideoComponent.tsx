@@ -19,11 +19,6 @@ export default function UserVideoComponent(props: {
   nickname = JSON.parse(jsonString).clientData;
   // console.log(rawData)
 
-  useEffect(() => {
-    if (streamComponentRef.current) {
-      streamComponentRef.current.id = nickname;
-    }
-  }, []);
 
   return (
     <div>
