@@ -9,7 +9,7 @@ import { useRecoilState } from "recoil";
 import { meetingSocketState } from "@/app/store/socket";
 import { commonSocketState } from "@/app/store/commonSocket";
 import { userState } from "@/app/store/userInfo";
-import { chatRoomState } from "@/app/store/chatRoom";
+import { chatRoomState } from "@/app/store/chat";
 import { logoutUser } from "@/services/auth";
 
 interface Friend {

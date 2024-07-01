@@ -2,8 +2,9 @@
 import React, { useState, useEffect, useRef } from "react";
 import { userState } from "@/app/store/userInfo";
 import { commonSocketState } from "@/app/store/commonSocket";
-import { chatRoomState } from "@/app/store/chatRoom";
+import { chatRoomState } from "@/app/store/chat";
 import { useRecoilValue, useRecoilState } from "recoil";
+import { FaCircleArrowUp } from "react-icons/fa6";
 
 interface Props {
   friend: {
@@ -118,9 +119,9 @@ const Chat: React.FC<Props> = ({ friend, onClose }) => {
             type="text"
             value={message}
             onChange={e => setMessage(e.target.value)}
-            className="w-full h-[30px] bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:outline-none p-2"
+            className="w-full h-[30px] relative bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:outline-none p-2"
           />
-          <button className="ml-1">✉️</button>
+          <FaCircleArrowUp className="h-[20px] absolute flex right-[25px] mt-1" />
         </form>
       </div>
     </div>
