@@ -507,9 +507,9 @@ const Meeting = () => {
     let isAnimating = true;
 
     // speaking 클래스 제거
-    for (let i = 0; i < streamElements.length; i++) {
-      streamElements[i].classList.remove("speaking");
-    }
+    // for (let i = 0; i < streamElements.length; i++) {
+    //   streamElements[i].classList.remove("speaking");
+    // } // todo: 이거 살려야함
 
     const highlightUser = (index: number) => {
       if (!isAnimating) return;
@@ -708,6 +708,35 @@ const Meeting = () => {
         console.error(e);
       }
     });
+
+    // 자기소개 시간
+    socket?.on("Introduce", response => {
+      try {
+        if (keywordRef.current) {
+          keywordRef.current.innerText = "잠시 후 화면에 표시된 사람은 자기소개를 시작해주세요";
+        }
+        console.log(response)
+        
+        setTimeout(() => {
+          if (keywordRef.current) {
+            keywordRef.current.innerText = "20초간 간단한 자기소개 해주세요";
+          }
+          const participantsArray: Array<string> = response;
+          console.log("Introduce 도착", participantsArray);
+          let idx = 0;
+          const participantElement = document.getElementById(participantsArray[idx]) as HTMLDivElement;
+          changePresentationMode(participantElement, 20);
+          const timeInterval = setInterval(() => {  
+            idx += 1;
+            const participantElement = document.getElementById(participantsArray[idx]) as HTMLDivElement;
+            changePresentationMode(participantElement, 20);
+            if(idx == 5) clearInterval(timeInterval);
+            }, 21000);
+        }, 5000);
+      } catch (e: any) {
+        console.error(e);
+      }
+    });
   };
 
   const meetingCamEvent = () => {
@@ -869,7 +898,7 @@ const Meeting = () => {
           <span className="pan"></span>
         </div>
       ) : (
-        <div className="container">
+        <div className="container mx-auto">
           <div id="session">
             <div id="session-header">
               <input
@@ -905,8 +934,11 @@ const Meeting = () => {
             <div className="col-md-6 video-container" ref={videoContainerRef}>
               {publisher !== undefined ? (
                 <div
-                  className={`stream-container col-md-6 col-xs-6 pub ${publisher.stream.streamId === speakingPublisherId ? "speaking" : ""} ${getUserGender(publisher)}`}
+                  // className={`stream-container col-md-6 col-xs-6 pub ${publisher.stream.streamId === speakingPublisherId ? "speaking" : ""} ${getUserGender(publisher)}`}
+                  className={`stream-container col-md-6 col-xs-6 pub ${getUserGender(publisher)}`}
                   // onClick={() => handleMainVideoStream(publisher)}
+                  id={getUserID(publisher)}
+                  ref={pubRef}
                 >
                   <UserVideoComponent
                     streamManager={publisher}
@@ -914,18 +946,21 @@ const Meeting = () => {
                   />
                 </div>
               ) : null}
-              {sortedSubscribers.map(sub => (
+              {sortedSubscribers.map((sub, idx) => (
                 <div
                   key={sub.stream.streamId}
-                  className={`stream-container col-md-6 col-xs-6 sub ${sub.stream.streamId === speakingPublisherId ? "speaking" : ""} ${getUserGender(sub)}`}
+                  // className={`stream-container col-md-6 col-xs-6 sub ${sub.stream.streamId === speakingPublisherId ? "speaking" : ""} ${getUserGender(sub)}`}
+                  className={`stream-container col-md-6 col-xs-6 sub ${getUserGender(sub)}`}
+
                   // onClick={() => handleMainVideoStream(sub)}
+                  id={getUserID(sub)}
+                  ref={el => {subRef.current[idx] = el}}
                 >
                   <UserVideoComponent
                     key={sub.stream.streamId}
                     streamManager={sub}
                     socket={socket}
                   />
-                  {/* <span>{sub.stream.connection.data}</span> */}
                 </div>
               ))}
             </div>
