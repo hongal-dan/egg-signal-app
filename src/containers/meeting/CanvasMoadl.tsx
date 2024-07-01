@@ -108,13 +108,28 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
     );
     console.log(blob);
     if (blob) {
-      const arrayBuffer = await blob.arrayBuffer();
+      const resizedBlob = await resizeAndCompressImage(blob, canvas.width);
+      const arrayBuffer = await resizedBlob.arrayBuffer();
       socket.emit("forwardDrawing", {
         userName: userInfo?.nickname,
         drawing: arrayBuffer,
       });
     }
   };
+
+  const resizeAndCompressImage = async (blob: Blob, width: number) => {
+    const file = new File([blob], "drawing", {
+      type: "image/webp",
+    });
+
+    return await imageCompression(file, {
+      maxSizeMB: 0.1,
+      maxWidthOrHeight: width * 0.5,
+      useWebWorker: true,
+      fileType: "image/webp",
+    } as any);
+  };
+
   };
 
   return (
