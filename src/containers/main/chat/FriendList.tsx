@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import Friend from "./Friend";
 import Chat from "./Chat";
 import { userState } from "@/app/store/userInfo";
@@ -9,6 +9,7 @@ import { useRecoilValue } from "recoil";
 
 interface FriendListProps {
   onClose: () => void;
+  onlineList: string[];
 }
 
 interface Friend {
@@ -16,7 +17,7 @@ interface Friend {
   chatRoomId: string;
 }
 
-const FriendList: React.FC<FriendListProps> = ({ onClose }) => {
+const FriendList: React.FC<FriendListProps> = ({ onClose, onlineList }) => {
   const currentUser = useRecoilValue(userState);
   const commonSocket = useRecoilValue(commonSocketState);
   const newMessageSenders = useRecoilValue(newMessageSenderState);
@@ -46,9 +47,9 @@ const FriendList: React.FC<FriendListProps> = ({ onClose }) => {
     setIsChatVisible(false);
   };
 
-  useEffect(() => {
-    console.log(newMessageSenders);
-  });
+  const checkFriendOnline = (friendNickName: string) => {
+    return onlineList.includes(friendNickName);
+  };
 
   return (
     <div className="w-72 h-[700px] overflow-auto">
@@ -63,7 +64,11 @@ const FriendList: React.FC<FriendListProps> = ({ onClose }) => {
             newMessageSenders.find(el => el === friend.chatRoomId) && (
               <div className="absolute left-0 top-0 w-3 h-3 rounded-full bg-red-600" />
             )}
-          <Friend friend={friend} onChat={() => toggleChat(friend)} />
+          <Friend
+            friend={friend}
+            onChat={() => toggleChat(friend)}
+            isOnline={checkFriendOnline(friend.friend)}
+          />
         </div>
       ))}
       {isChatVisible && selectedFriend && (

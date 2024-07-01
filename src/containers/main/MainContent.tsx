@@ -49,6 +49,15 @@ const MainContent = ({ userInfo }: MainContentProps) => {
     newMessageSenderState,
   );
   const [openedChatRoomId, setOpenedChatRoomId] = useRecoilState(chatRoomState);
+  const [onlineList, setOnlineList] = useState<string[]>([]);
+
+  const checkOnlineFriends = () => {
+    const onlineList = localStorage.getItem("onlineFriends");
+    if (!onlineList || onlineList.length === 0) {
+      return;
+    }
+    setOnlineList(JSON.parse(onlineList));
+  };
 
   // 내가 접속하지 않은 동안 온 메시지가 있으면 알람 표시
   const checkNewMessage = () => {
@@ -81,6 +90,7 @@ const MainContent = ({ userInfo }: MainContentProps) => {
         commonSocket.emit("serverCertificate");
         console.log("common connected");
       });
+
       checkNewMessage();
       commonSocket.on("newMessageNotification", res => {
         console.log(res);
@@ -88,6 +98,33 @@ const MainContent = ({ userInfo }: MainContentProps) => {
           setNewMessageSenders([res]);
         } else {
           setNewMessageSenders([...res]);
+        }
+      });
+
+      commonSocket.on("friendOnline", (res: string) => {
+        console.log("온라인 유저: ", res);
+        // recoil로 관리하려니까 브라우저 새로고침하면 온라인 친구 목록 없어짐
+        const onlineList = localStorage.getItem("onlineFriends");
+        if (!onlineList || onlineList.length === 0) {
+          localStorage.setItem("onlineFriends", JSON.stringify([res]));
+        } else {
+          const prevList = JSON.parse(onlineList);
+          prevList.push(res);
+          const newList = Array.from(new Set(prevList)) as string[];
+          localStorage.setItem("onlineFriends", JSON.stringify(newList));
+          setOnlineList(newList);
+        }
+      });
+
+      commonSocket.on("friendOffline", (res: string) => {
+        console.log(res, "접속 종료");
+        const onlineList = localStorage.getItem("onlineFriends");
+        if (onlineList) {
+          const prevList = JSON.parse(onlineList);
+          const newList = prevList.filter((el: string) => el !== res);
+          console.log(newList);
+          localStorage.setItem("onlineFriends", JSON.stringify(newList));
+          setOnlineList(newList);
         }
       });
     }
@@ -171,6 +208,7 @@ const MainContent = ({ userInfo }: MainContentProps) => {
 
   useEffect(() => {
     startWebCam();
+    checkOnlineFriends();
   }, []);
 
   useEffect(() => {
@@ -264,14 +302,17 @@ const MainContent = ({ userInfo }: MainContentProps) => {
             className="relative w-48 h-10 flex items-center justify-center bg-amber-100 rounded-2xl shadow"
             onClick={toggleFriendList}
           >
-            {newMessageSenders && (
+            {newMessageSenders?.length !== 0 && newMessageSenders && (
               <div className="absolute left-[-5px] top-[-5px] w-5 h-5 rounded-full bg-red-600" />
             )}
             <p className="text-xl font-bold">친구</p>
           </button>
           {isFriendListVisible && (
             <div className="absolute bottom-[50px] right-1 bg-white shadow-md rounded-lg p-4 z-10">
-              <FriendList onClose={() => setIsFriendListVisible(false)} />
+              <FriendList
+                onClose={() => setIsFriendListVisible(false)}
+                onlineList={onlineList}
+              />
             </div>
           )}
         </div>
