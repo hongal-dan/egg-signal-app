@@ -9,7 +9,7 @@ import { useRecoilState } from "recoil";
 import { meetingSocketState } from "@/app/store/socket";
 import { commonSocketState } from "@/app/store/commonSocket";
 import { userState } from "@/app/store/userInfo";
-import { chatRoomState } from "@/app/store/chat";
+import { chatRoomState, newMessageSenderState } from "@/app/store/chat";
 import { logoutUser } from "@/services/auth";
 
 interface Friend {
@@ -45,9 +45,23 @@ const MainContent = ({ userInfo }: MainContentProps) => {
   setCurrentUser(userInfo);
   const enterBtnRef = useRef<HTMLParagraphElement>(null);
   const [isEnterLoading, setIsEnterLoading] = useState<boolean>(false);
-  const [newMessage, setNewMessage] = useState<boolean>(false);
-  const [newMessageSenders, setNewMessageSenders] = useState<string[]>([]);
+  const [newMessageSenders, setNewMessageSenders] = useRecoilState(
+    newMessageSenderState,
+  );
   const [openedChatRoomId, setOpenedChatRoomId] = useRecoilState(chatRoomState);
+
+  // 내가 접속하지 않은 동안 온 메시지가 있으면 알람 표시
+  const checkNewMessage = () => {
+    if (userInfo.friends) {
+      const senders: string[] = [];
+      userInfo.friends.map(f => {
+        if (f.newMessage) {
+          senders.push(f.chatRoomId);
+        }
+      });
+      setNewMessageSenders(senders);
+    }
+  };
 
   useEffect(() => {
     if (!socket) {
@@ -67,11 +81,14 @@ const MainContent = ({ userInfo }: MainContentProps) => {
         commonSocket.emit("serverCertificate");
         console.log("common connected");
       });
-
+      checkNewMessage();
       commonSocket.on("newMessageNotification", res => {
         console.log(res);
-        setNewMessageSenders(prev => [...prev, res]);
-        setNewMessage(true);
+        if (newMessageSenders === null) {
+          setNewMessageSenders([res]);
+        } else {
+          setNewMessageSenders([...res]);
+        }
       });
     }
   }, [socket, setSocket, commonSocket, setCommonSocket]);
@@ -247,17 +264,14 @@ const MainContent = ({ userInfo }: MainContentProps) => {
             className="relative w-48 h-10 flex items-center justify-center bg-amber-100 rounded-2xl shadow"
             onClick={toggleFriendList}
           >
-            {newMessage && (
+            {newMessageSenders && (
               <div className="absolute left-[-5px] top-[-5px] w-5 h-5 rounded-full bg-red-600" />
             )}
             <p className="text-xl font-bold">친구</p>
           </button>
           {isFriendListVisible && (
             <div className="absolute bottom-[50px] right-1 bg-white shadow-md rounded-lg p-4 z-10">
-              <FriendList
-                onClose={() => setIsFriendListVisible(false)}
-                newMessageSenders={newMessageSenders}
-              />
+              <FriendList onClose={() => setIsFriendListVisible(false)} />
             </div>
           )}
         </div>

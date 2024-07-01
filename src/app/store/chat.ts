@@ -8,3 +8,10 @@ export const chatRoomState = atom<string | null>({
   default: null,
   dangerouslyAllowMutability: true,
 });
+
+// 나한테 채팅 알람 보낸 사람 정보
+export const newMessageSenderState = atom<string[] | null>({
+  key: "newMessageSenderState",
+  default: null,
+  dangerouslyAllowMutability: true,
+});

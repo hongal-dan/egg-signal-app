@@ -4,11 +4,11 @@ import Friend from "./Friend";
 import Chat from "./Chat";
 import { userState } from "@/app/store/userInfo";
 import { commonSocketState } from "@/app/store/commonSocket";
+import { newMessageSenderState } from "@/app/store/chat";
 import { useRecoilValue } from "recoil";
 
 interface FriendListProps {
   onClose: () => void;
-  newMessageSenders: string[];
 }
 
 interface Friend {
@@ -16,12 +16,10 @@ interface Friend {
   chatRoomId: string;
 }
 
-const FriendList: React.FC<FriendListProps> = ({
-  newMessageSenders,
-  onClose,
-}) => {
+const FriendList: React.FC<FriendListProps> = ({ onClose }) => {
   const currentUser = useRecoilValue(userState);
   const commonSocket = useRecoilValue(commonSocketState);
+  const newMessageSenders = useRecoilValue(newMessageSenderState);
   const [selectedFriend, setSelectedFriend] = useState<Friend | null>(null);
   const [isChatVisible, setIsChatVisible] = useState<boolean>(false);
 
