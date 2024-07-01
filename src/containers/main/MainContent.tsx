@@ -79,56 +79,57 @@ const MainContent = ({ userInfo }: MainContentProps) => {
       });
       setSocket(newSocket);
     }
-    if (!commonSocket) {
-      const newCommonSocket = io(`${url}/common`, {
-        transports: ["websocket"],
-        withCredentials: true,
-      });
-      setCommonSocket(newCommonSocket);
-    } else {
-      commonSocket.on("connect", () => {
-        commonSocket.emit("serverCertificate");
-        console.log("common connected");
-      });
+  }, [socket, setSocket]);
 
-      checkNewMessage();
-      commonSocket.on("newMessageNotification", res => {
-        console.log(res);
-        if (newMessageSenders === null) {
-          setNewMessageSenders([res]);
-        } else {
-          setNewMessageSenders([...res]);
-        }
-      });
+  useEffect(() => {
+    const newCommonSocket = io(`${url}/common`, {
+      transports: ["websocket"],
+      withCredentials: true,
+    });
+    setCommonSocket(newCommonSocket);
 
-      commonSocket.on("friendOnline", (res: string) => {
-        console.log("온라인 유저: ", res);
-        // recoil로 관리하려니까 브라우저 새로고침하면 온라인 친구 목록 없어짐
-        const onlineList = localStorage.getItem("onlineFriends");
-        if (!onlineList || onlineList.length === 0) {
-          localStorage.setItem("onlineFriends", JSON.stringify([res]));
-        } else {
-          const prevList = JSON.parse(onlineList);
-          prevList.push(res);
-          const newList = Array.from(new Set(prevList)) as string[];
-          localStorage.setItem("onlineFriends", JSON.stringify(newList));
-          setOnlineList(newList);
-        }
-      });
+    newCommonSocket.on("connect", () => {
+      newCommonSocket.emit("serverCertificate");
+      console.log("common connected");
+    });
 
-      commonSocket.on("friendOffline", (res: string) => {
-        console.log(res, "접속 종료");
-        const onlineList = localStorage.getItem("onlineFriends");
-        if (onlineList) {
-          const prevList = JSON.parse(onlineList);
-          const newList = prevList.filter((el: string) => el !== res);
-          console.log(newList);
-          localStorage.setItem("onlineFriends", JSON.stringify(newList));
-          setOnlineList(newList);
-        }
-      });
-    }
-  }, [socket, setSocket, commonSocket, setCommonSocket]);
+    checkNewMessage();
+    newCommonSocket.on("newMessageNotification", res => {
+      console.log(res);
+      if (newMessageSenders === null) {
+        setNewMessageSenders([res]);
+      } else {
+        setNewMessageSenders([...res]);
+      }
+    });
+
+    newCommonSocket.on("friendOnline", (res: string) => {
+      console.log("온라인 유저: ", res);
+      // recoil로 관리하려니까 브라우저 새로고침하면 온라인 친구 목록 없어짐
+      const onlineList = localStorage.getItem("onlineFriends");
+      if (!onlineList || onlineList.length === 0) {
+        localStorage.setItem("onlineFriends", JSON.stringify([res]));
+      } else {
+        const prevList = JSON.parse(onlineList);
+        prevList.push(res);
+        const newList = Array.from(new Set(prevList)) as string[];
+        localStorage.setItem("onlineFriends", JSON.stringify(newList));
+        setOnlineList(newList);
+      }
+    });
+
+    newCommonSocket.on("friendOffline", (res: string) => {
+      console.log(res, "접속 종료");
+      const onlineList = localStorage.getItem("onlineFriends");
+      if (onlineList) {
+        const prevList = JSON.parse(onlineList);
+        const newList = prevList.filter((el: string) => el !== res);
+        console.log(newList);
+        localStorage.setItem("onlineFriends", JSON.stringify(newList));
+        setOnlineList(newList);
+      }
+    });
+  }, []);
 
   // const toggleCamera = () => {
   //   const canvas = document.querySelector("canvas");
