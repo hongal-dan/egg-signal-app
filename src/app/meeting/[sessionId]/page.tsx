@@ -51,6 +51,7 @@ const Meeting = () => {
   const keywordRef = useRef<HTMLParagraphElement>(null);
   const pubRef = useRef<HTMLDivElement>(null);
   const subRef = useRef<Array<HTMLDivElement | null>>([]);
+  const videoContainerRef = useRef<HTMLDivElement>(null);
 
   // const socket = useRecoilValue(meetingSocketState);
 
@@ -329,8 +330,6 @@ const Meeting = () => {
       keywordRef.current.innerText = "에그 시그널 결과";
       console.log("에그시그널 결과라고 p태그 변경했음");
     }
-    const videoContainer =
-      document.getElementsByClassName("video-container")[0];
     const videoElements = document.querySelectorAll("video");
     const canvasElements = document.querySelectorAll("canvas");
     videoElements.forEach(video => {
@@ -342,7 +341,7 @@ const Meeting = () => {
       canvas.style.height = "100%";
     });
     // if (!isLoveMode) {
-    videoContainer.classList.add("love-stick");
+    videoContainerRef.current?.classList.add("love-stick");
     showArrow(datas);
     // setIsLoveMode(true);
     return;
@@ -357,10 +356,8 @@ const Meeting = () => {
     //   keywordRef.current.innerText = '';
     //   console.log("에그시그널 결과라고 p태그 변경한거 삭제함");
     // }
-    const videoContainer =
-      document.getElementsByClassName("video-container")[0];
     console.log("사랑의 작대기 모드 해제");
-    videoContainer.classList.remove("love-stick");
+    videoContainerRef.current?.classList.remove("love-stick");
     hideArrow();
   };
   // time 초 동안 발표 모드 (presenter: 발표자, time: 발표 시간(초))
@@ -437,9 +434,6 @@ const Meeting = () => {
 
   const setOneToOneMode = (loverElement: HTMLDivElement) => {
     console.log("1:1 모드로 시작");
-    const videoContainer = document.getElementsByClassName(
-      "video-container",
-    )[0] as HTMLDivElement;
     const videoElements = document.querySelectorAll("video");
     const canvasElements = document.querySelectorAll("canvas");
     const streamElements = document.getElementsByClassName(
@@ -455,13 +449,13 @@ const Meeting = () => {
     });
     // if (!isOneToOneMode) {
     console.log("1:1 모드로 변경");
-    videoContainer.classList.add("one-one-four");
+    videoContainerRef.current?.classList.add("one-one-four");
     streamElements[0].classList.add("a");
     if (!loverElement) {
       console.log("상대방이 없습니다.");
     }
     loverElement?.classList.add("b");
-    console.log("컨테이너", videoContainer);
+    console.log("컨테이너", videoContainerRef.current);
     console.log("나자신", streamElements[0]);
     console.log("상대방: ", loverElement);
     let acc = 2;
@@ -477,10 +471,8 @@ const Meeting = () => {
 
   const undoOneToOneMode = (loverElement: HTMLDivElement) => {
     console.log("1:1 모드 해제");
-    const videoContainer =
-      document.getElementsByClassName("video-container")[0];
     const streamElements = document.getElementsByClassName("stream-container");
-    videoContainer.classList.remove("one-one-four");
+    videoContainerRef.current?.classList.remove("one-one-four");
     streamElements[0].classList.remove("a");
     let acc = 2;
     for (let i = 1; i < streamElements.length; i++) {
@@ -898,7 +890,7 @@ const Meeting = () => {
             {/* <div ref={captureRef} className="hidden">
           <UserVideoComponent2 />
         </div> */}
-            <div className="col-md-6 video-container">
+            <div className="col-md-6 video-container" ref={videoContainerRef}>
               {publisher !== undefined ? (
                 <div
                   className={`stream-container col-md-6 col-xs-6 pub ${publisher.stream.streamId === speakingPublisherId ? "speaking" : ""} ${getUserGender(publisher)}`}
