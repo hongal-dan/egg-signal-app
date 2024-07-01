@@ -89,6 +89,22 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
     socket.emit("joinSession", { userName: userInfo?.nickname });
   };
 
+  const handleForwardDrawing = async () => {
+    const canvas = canvasRef.current!;
+    const blob = await new Promise<Blob | null>(resolve =>
+      canvas.toBlob(resolve, "image/webp"),
+    );
+    console.log(blob);
+    if (blob) {
+      const arrayBuffer = await blob.arrayBuffer();
+      socket.emit("forwardDrawing", {
+        userName: userInfo?.nickname,
+        drawing: arrayBuffer,
+      });
+    }
+  };
+  };
+
   return (
     <div className="modal">
       <div className="modal-content">
