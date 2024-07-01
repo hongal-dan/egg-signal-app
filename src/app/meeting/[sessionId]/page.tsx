@@ -18,6 +18,7 @@ import { meetingSocketState } from "@/app/store/socket";
 import { avatarState } from "@/app/store/avatar";
 import { keywords } from "../../../../public/data/keywords.js";
 import AvatarCollection from "@/containers/main/AvatarCollection";
+import CanvasModal from "@/containers/meeting/CanvasMoadl";
 
 // type Props = {
 //   sessionId: string;
@@ -42,6 +43,7 @@ const Meeting = () => {
   const [speakingPublisherId, setSpeakingPublisherId] = useState<string | null>(
     null,
   );
+  const [isCanvasModalOpen, setIsCanvasModalOpen] = useState<boolean>(false);
 
   // const [isLoveMode, setIsLoveMode] = useState<boolean>(false);
   // const [isChooseMode, setIsChooseMode] = useState<boolean>(false);
@@ -756,6 +758,11 @@ const Meeting = () => {
         console.error(e);
       }
     });
+
+    socket?.on("drawingContest", response => {
+      console.log("drawingContest 도착", response);
+      setIsCanvasModalOpen(true);
+    });
   };
 
   const meetingCamEvent = () => {
@@ -963,6 +970,9 @@ const Meeting = () => {
             </div>
           </div>
         </div>
+      )}
+      {isCanvasModalOpen && (
+        <CanvasModal onClose={() => setIsCanvasModalOpen(false)} />
       )}
       {!isOpenCam ? (
         <div ref={captureRef} className="hidden">
