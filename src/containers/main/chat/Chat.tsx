@@ -1,8 +1,10 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
-import { useCommonSocket } from "@/contexts/CommonSocketContext";
 import { userState } from "@/app/store/userInfo";
-import { useRecoilValue } from "recoil";
+import { commonSocketState } from "@/app/store/commonSocket";
+import { chatRoomState, newMessageSenderState } from "@/app/store/chat";
+import { useRecoilValue, useRecoilState } from "recoil";
+import { FaCircleArrowUp } from "react-icons/fa6";
 
 interface Props {
   friend: {
@@ -18,11 +20,15 @@ interface Chat {
 }
 
 const Chat: React.FC<Props> = ({ friend, onClose }) => {
-  const { commonSocket } = useCommonSocket();
+  const commonSocket = useRecoilValue(commonSocketState);
   const currentUser = useRecoilValue(userState);
+  const [newMessageSenders, setNewMessageSenders] = useRecoilState(
+    newMessageSenderState,
+  );
   const [chat, setChat] = useState<Chat[]>([]);
   const [message, setMessage] = useState("");
-  const chatContainerRef = useRef(null);
+  const [chatRoomId, setChatRoomId] = useRecoilState(chatRoomState);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (chatContainerRef.current) {
@@ -35,13 +41,13 @@ const Chat: React.FC<Props> = ({ friend, onClose }) => {
     console.log("joinChat emit: ", friend.chatRoomId);
     if (commonSocket) {
       commonSocket.emit("joinchat", { newChatRoomId: friend.chatRoomId });
+      setChatRoomId(friend.chatRoomId);
       commonSocket.on("chatHistory", res => {
         console.log("chat histroy: ", res);
-        const chatHistory = res.map(msg => ({
+        const chatHistory = res.map((msg: Chat) => ({
           sender: msg.sender,
           message: msg.message,
         }));
-        // todo: message에 chat history 넣기
         setChat(chatHistory);
       });
       commonSocket.on("message", res => {
@@ -56,8 +62,23 @@ const Chat: React.FC<Props> = ({ friend, onClose }) => {
       });
     }
 
+    // 알람 켜져있었으면 알람 끄기
+    if (
+      newMessageSenders &&
+      newMessageSenders.find(el => el === friend.chatRoomId)
+    ) {
+      const updateSenders = newMessageSenders.filter(
+        el => el !== friend.chatRoomId,
+      );
+      if (updateSenders.length === 0) {
+        setNewMessageSenders(null);
+      } else {
+        setNewMessageSenders(updateSenders);
+      }
+    }
+
     return () => {
-      commonSocket?.emit("closeChat", { newChatRoomId: friend.chatRoomId });
+      commonSocket?.emit("closeChat", { chatRoomdId: chatRoomId });
     };
   }, []);
 
@@ -70,7 +91,6 @@ const Chat: React.FC<Props> = ({ friend, onClose }) => {
         message: message,
       };
       setChat(prevChat => [...prevChat, newChat]);
-      // sendMessage emit -message 전송
       commonSocket?.emit("sendMessage", {
         userNickname: currentUser.nickname,
         chatRoomId: friend.chatRoomId,
@@ -115,9 +135,9 @@ const Chat: React.FC<Props> = ({ friend, onClose }) => {
             type="text"
             value={message}
             onChange={e => setMessage(e.target.value)}
-            className="w-full h-[30px] bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:outline-none p-2"
+            className="w-full h-[30px] relative bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:outline-none p-2"
           />
-          <button className="ml-1">✉️</button>
+          <FaCircleArrowUp className="h-[20px] absolute flex right-[25px] mt-1" />
         </form>
       </div>
     </div>

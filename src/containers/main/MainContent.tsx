@@ -7,9 +7,10 @@ import io from "socket.io-client";
 import { useRouter } from "next/navigation";
 import { useRecoilState } from "recoil";
 import { meetingSocketState } from "@/app/store/socket";
+import { commonSocketState } from "@/app/store/commonSocket";
 import { userState } from "@/app/store/userInfo";
+import { chatRoomState, newMessageSenderState } from "@/app/store/chat";
 import { logoutUser } from "@/services/auth";
-import { useCommonSocket } from "@/contexts/CommonSocketContext";
 
 interface Friend {
   friend: string;
@@ -30,25 +31,37 @@ interface MainContentProps {
 
 const MainContent = ({ userInfo }: MainContentProps) => {
   const router = useRouter();
-  const { commonSocket } = useCommonSocket();
-  const [avatarOn, setAvatarOn] = useState<boolean>(true);
+  // const [avatarOn, setAvatarOn] = useState<boolean>(true);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isFriendListVisible, setIsFriendListVisible] =
     useState<boolean>(false);
   const [isNotiVisible, setIsNotiVisible] = useState<boolean>(false);
   const startButton = useRef<HTMLButtonElement>(null);
   const url = process.env.NEXT_PUBLIC_API_SERVER;
-  // const socket = io(`${url}/meeting`, {
-  //   transports: ["websocket"],
-  // });
 
   const [socket, setSocket] = useRecoilState(meetingSocketState);
+  const [commonSocket, setCommonSocket] = useRecoilState(commonSocketState);
   const [, setCurrentUser] = useRecoilState(userState);
   setCurrentUser(userInfo);
   const enterBtnRef = useRef<HTMLParagraphElement>(null);
   const [isEnterLoading, setIsEnterLoading] = useState<boolean>(false);
-  const [newMessage, setNewMessage] = useState<boolean>(false);
-  const [newMessageSenders, setNewMessageSenders] = useState<string[]>([]);
+  const [newMessageSenders, setNewMessageSenders] = useRecoilState(
+    newMessageSenderState,
+  );
+  const [openedChatRoomId, setOpenedChatRoomId] = useRecoilState(chatRoomState);
+
+  // 내가 접속하지 않은 동안 온 메시지가 있으면 알람 표시
+  const checkNewMessage = () => {
+    if (userInfo.friends) {
+      const senders: string[] = [];
+      userInfo.friends.map(f => {
+        if (f.newMessage) {
+          senders.push(f.chatRoomId);
+        }
+      });
+      setNewMessageSenders(senders);
+    }
+  };
 
   useEffect(() => {
     if (!socket) {
@@ -57,21 +70,42 @@ const MainContent = ({ userInfo }: MainContentProps) => {
       });
       setSocket(newSocket);
     }
-  }, [socket, setSocket]);
+    if (!commonSocket) {
+      const newCommonSocket = io(`${url}/common`, {
+        transports: ["websocket"],
+        withCredentials: true,
+      });
+      setCommonSocket(newCommonSocket);
+    } else {
+      commonSocket.on("connect", () => {
+        commonSocket.emit("serverCertificate");
+        console.log("common connected");
+      });
+      checkNewMessage();
+      commonSocket.on("newMessageNotification", res => {
+        console.log(res);
+        if (newMessageSenders === null) {
+          setNewMessageSenders([res]);
+        } else {
+          setNewMessageSenders([...res]);
+        }
+      });
+    }
+  }, [socket, setSocket, commonSocket, setCommonSocket]);
 
-  const toggleCamera = () => {
-    const canvas = document.querySelector("canvas");
-    console.log(canvas);
-    if (canvas && avatarOn) {
-      canvas.style.display = "none";
-      setAvatarOn(false);
-      return;
-    }
-    if (canvas) {
-      canvas.style.display = "block";
-      setAvatarOn(true);
-    }
-  };
+  // const toggleCamera = () => {
+  //   const canvas = document.querySelector("canvas");
+  //   console.log(canvas);
+  //   if (canvas && avatarOn) {
+  //     canvas.style.display = "none";
+  //     setAvatarOn(false);
+  //     return;
+  //   }
+  //   if (canvas) {
+  //     canvas.style.display = "block";
+  //     setAvatarOn(true);
+  //   }
+  // };
 
   const randomNum = Math.floor(Math.random() * 1000).toString(); // 테스트용 익명 닉네임 부여
   const handleLoadingOn: React.MouseEventHandler<HTMLButtonElement> = () => {
@@ -128,6 +162,7 @@ const MainContent = ({ userInfo }: MainContentProps) => {
   const handleLogout = async () => {
     try {
       await logoutUser();
+      commonSocket?.disconnect();
       router.push("/login");
     } catch (error) {
       console.error("Log out Error: ", error);
@@ -145,14 +180,14 @@ const MainContent = ({ userInfo }: MainContentProps) => {
   }, [isEnterLoading]);
 
   useEffect(() => {
-    if (commonSocket) {
-      commonSocket.on("newMessageNotification", res => {
-        console.log(res);
-        setNewMessageSenders(prev => [...prev, res]);
-        setNewMessage(true);
-      });
+    if (!isFriendListVisible) {
+      if (openedChatRoomId !== null) {
+        console.log("closeChat: ", openedChatRoomId);
+        commonSocket?.emit("closeChat", { chatRoomdId: openedChatRoomId });
+        setOpenedChatRoomId(null);
+      }
     }
-  }, [commonSocket]);
+  }, [isFriendListVisible]);
 
   // return avatar == null ? (
   //   <AvatarCollection />
@@ -229,17 +264,14 @@ const MainContent = ({ userInfo }: MainContentProps) => {
             className="relative w-48 h-10 flex items-center justify-center bg-amber-100 rounded-2xl shadow"
             onClick={toggleFriendList}
           >
-            {newMessage && (
+            {newMessageSenders && (
               <div className="absolute left-[-5px] top-[-5px] w-5 h-5 rounded-full bg-red-600" />
             )}
             <p className="text-xl font-bold">친구</p>
           </button>
           {isFriendListVisible && (
             <div className="absolute bottom-[50px] right-1 bg-white shadow-md rounded-lg p-4 z-10">
-              <FriendList
-                onClose={() => setIsFriendListVisible(false)}
-                newMessageSenders={newMessageSenders}
-              />
+              <FriendList onClose={() => setIsFriendListVisible(false)} />
             </div>
           )}
         </div>

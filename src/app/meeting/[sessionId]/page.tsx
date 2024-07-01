@@ -186,7 +186,7 @@ const Meeting = () => {
           mirror: false,
         });
 
-        console.log("Publisher created:", publisher);
+        console.log("Publisher created:", publisher, sessionId);
         publisher.updatePublisherSpeakingEventsOptions({
           interval: 100, // 발화자 이벤트 감지 주기 (밀리초)
           threshold: -50, // 발화자 이벤트 발생 임계값 (데시벨)
@@ -246,7 +246,7 @@ const Meeting = () => {
     });
 
     newSession.on("publisherStopSpeaking", (event: PublisherSpeakingEvent) => {
-      // console.log("Publisher stopped speaking:", event.connection);
+      console.log("Publisher stopped speaking:", event.connection);
       setSpeakingPublisherId(null);
     });
   };
@@ -770,7 +770,7 @@ const Meeting = () => {
     });
   };
 
-  const [min, setMin] = useState(5); // todo: 시작 시간 서버로부터 받기
+  const [, setMin] = useState(5); // todo: 시작 시간 서버로부터 받기
   const [sec, setSec] = useState(0);
   const time = useRef(300);
   const timerId = useRef<null | NodeJS.Timeout>(null);
