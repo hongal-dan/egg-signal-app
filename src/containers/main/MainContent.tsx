@@ -7,9 +7,9 @@ import io from "socket.io-client";
 import { useRouter } from "next/navigation";
 import { useRecoilState } from "recoil";
 import { meetingSocketState } from "@/app/store/socket";
+import { commonSocketState } from "@/app/store/commonSocket";
 import { userState } from "@/app/store/userInfo";
 import { logoutUser } from "@/services/auth";
-import { useCommonSocket } from "@/contexts/CommonSocketContext";
 
 interface Friend {
   friend: string;
@@ -30,7 +30,6 @@ interface MainContentProps {
 
 const MainContent = ({ userInfo }: MainContentProps) => {
   const router = useRouter();
-  const { commonSocket } = useCommonSocket();
   const [avatarOn, setAvatarOn] = useState<boolean>(true);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isFriendListVisible, setIsFriendListVisible] =
@@ -38,11 +37,9 @@ const MainContent = ({ userInfo }: MainContentProps) => {
   const [isNotiVisible, setIsNotiVisible] = useState<boolean>(false);
   const startButton = useRef<HTMLButtonElement>(null);
   const url = process.env.NEXT_PUBLIC_API_SERVER;
-  // const socket = io(`${url}/meeting`, {
-  //   transports: ["websocket"],
-  // });
 
   const [socket, setSocket] = useRecoilState(meetingSocketState);
+  const [commonSocket, setCommonSocket] = useRecoilState(commonSocketState);
   const [, setCurrentUser] = useRecoilState(userState);
   setCurrentUser(userInfo);
   const enterBtnRef = useRef<HTMLParagraphElement>(null);
@@ -57,7 +54,25 @@ const MainContent = ({ userInfo }: MainContentProps) => {
       });
       setSocket(newSocket);
     }
-  }, [socket, setSocket]);
+    if (!commonSocket) {
+      const newCommonSocket = io(`${url}/common`, {
+        transports: ["websocket"],
+        withCredentials: true,
+      });
+      setCommonSocket(newCommonSocket);
+    } else {
+      commonSocket.on("connect", () => {
+        commonSocket.emit("serverCertificate");
+        console.log("common connected");
+      });
+
+      commonSocket.on("newMessageNotification", res => {
+        console.log(res);
+        setNewMessageSenders(prev => [...prev, res]);
+        setNewMessage(true);
+      });
+    }
+  }, [socket, setSocket, commonSocket, setCommonSocket]);
 
   const toggleCamera = () => {
     const canvas = document.querySelector("canvas");
@@ -128,6 +143,7 @@ const MainContent = ({ userInfo }: MainContentProps) => {
   const handleLogout = async () => {
     try {
       await logoutUser();
+      commonSocket?.disconnect();
       router.push("/login");
     } catch (error) {
       console.error("Log out Error: ", error);
@@ -143,16 +159,6 @@ const MainContent = ({ userInfo }: MainContentProps) => {
       enterBtnRef.current.innerText = "입장 중입니다.";
     }
   }, [isEnterLoading]);
-
-  useEffect(() => {
-    if (commonSocket) {
-      commonSocket.on("newMessageNotification", res => {
-        console.log(res);
-        setNewMessageSenders(prev => [...prev, res]);
-        setNewMessage(true);
-      });
-    }
-  }, [commonSocket]);
 
   // return avatar == null ? (
   //   <AvatarCollection />

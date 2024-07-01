@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
-import { useCommonSocket } from "@/contexts/CommonSocketContext";
 import { userState } from "@/app/store/userInfo";
+import { commonSocketState } from "@/app/store/commonSocket";
 import { useRecoilValue } from "recoil";
 
 interface Props {
@@ -18,11 +18,11 @@ interface Chat {
 }
 
 const Chat: React.FC<Props> = ({ friend, onClose }) => {
-  const { commonSocket } = useCommonSocket();
+  const commonSocket = useRecoilValue(commonSocketState);
   const currentUser = useRecoilValue(userState);
   const [chat, setChat] = useState<Chat[]>([]);
   const [message, setMessage] = useState("");
-  const chatContainerRef = useRef(null);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (chatContainerRef.current) {
@@ -37,7 +37,7 @@ const Chat: React.FC<Props> = ({ friend, onClose }) => {
       commonSocket.emit("joinchat", { newChatRoomId: friend.chatRoomId });
       commonSocket.on("chatHistory", res => {
         console.log("chat histroy: ", res);
-        const chatHistory = res.map(msg => ({
+        const chatHistory = res.map((msg: Chat) => ({
           sender: msg.sender,
           message: msg.message,
         }));

@@ -3,8 +3,8 @@ import React, { useEffect, useState } from "react";
 import Friend from "./Friend";
 import Chat from "./Chat";
 import { userState } from "@/app/store/userInfo";
+import { commonSocketState } from "@/app/store/commonSocket";
 import { useRecoilValue } from "recoil";
-import { useCommonSocket } from "@/contexts/CommonSocketContext";
 
 interface FriendListProps {
   onClose: () => void;
@@ -21,7 +21,7 @@ const FriendList: React.FC<FriendListProps> = ({
   onClose,
 }) => {
   const currentUser = useRecoilValue(userState);
-  const { commonSocket } = useCommonSocket();
+  const commonSocket = useRecoilValue(commonSocketState);
   const [selectedFriend, setSelectedFriend] = useState<Friend | null>(null);
   const [isChatVisible, setIsChatVisible] = useState<boolean>(false);
 
