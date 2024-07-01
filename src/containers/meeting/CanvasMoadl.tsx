@@ -90,7 +90,52 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
   };
 
   return (
-<div></div>
+    <div className="modal">
+      <div className="modal-content">
+        <span className="close" onClick={onClose}>
+          &times;
+        </span>
+        {currentStage === "drawing" && (
+          <>
+            <h1>사생대회 ㅎㅎ</h1>
+            <canvas
+              ref={canvasRef}
+              onMouseDown={startDrawing}
+              onMouseUp={finishDrawing}
+              onMouseMove={draw}
+              style={{ border: "1px solid black", backgroundColor: "#f0f0f0" }}
+            />
+            <div>
+              <label>색을 골라보세요 </label>
+              {["red", "orange", "green", "blue", "black", "white"].map(col => (
+                <button
+                  key={col}
+                  onClick={() => setColor(col)}
+                  style={{ backgroundColor: col, margin: "0 5px" }}
+                >
+                  {col}
+                </button>
+              ))}
+            </div>
+            <div>
+              <label>굵기: </label>
+              {[5, 8, 12].map(size => (
+                <button
+                  key={size}
+                  onClick={() => setBrushSize(size)}
+                  style={{ margin: "0 5px" }}
+                >
+                  {size}px
+                </button>
+              ))}
+            </div>
+            <div>
+              <button onClick={clearCanvas}>전부 지우기</button>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
   );
 };
 
