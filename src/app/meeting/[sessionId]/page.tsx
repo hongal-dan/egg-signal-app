@@ -168,7 +168,10 @@ const Meeting = () => {
     );
     // Connect to the session
     newSession
-      .connect(token, { clientData: participantName, gender: userInfo?.gender as string })
+      .connect(token, {
+        clientData: participantName,
+        gender: userInfo?.gender as string,
+      })
       .then(async () => {
         const arStream = captureCanvas();
         const publisher = await OV.initPublisherAsync(undefined, {
@@ -304,7 +307,7 @@ const Meeting = () => {
       if (idx > 2) {
         arrowBody.style.backgroundColor = "#33C4D7";
         const arrowHead = arrowBody.querySelector(
-          '.arrow-head'
+          ".arrow-head",
         ) as HTMLDivElement;
         arrowHead.style.borderBottom = "20px solid #33C4D7";
       }
@@ -363,10 +366,10 @@ const Meeting = () => {
   // time 초 동안 발표 모드 (presenter: 발표자, time: 발표 시간(초))
   const changePresentationMode = (presenter: HTMLDivElement, time: number) => {
     const videoSet = new Set<HTMLDivElement | null>();
-    videoSet.add(presenter);  // 발표자 추가
-    videoSet.add(pubRef.current);  // 다음으로 퍼블리셔 추가
+    videoSet.add(presenter); // 발표자 추가
+    videoSet.add(pubRef.current); // 다음으로 퍼블리셔 추가
     subRef.current.forEach(sub => {
-      videoSet.add(sub);  // 나머지 사람들 다 추가 
+      videoSet.add(sub); // 나머지 사람들 다 추가
     });
     const videoArray = Array.from(videoSet); // 중복 제거된 순서대로 발표자 > 나 > 나머지 순서대로 정렬
     videoContainerRef.current?.classList.add("presentation-mode");
@@ -765,12 +768,14 @@ const Meeting = () => {
     meetingCamEvent();
   }, [publisher]);
 
-  const getUserGender = (person: StreamManager) : string => {
-    const genderMatch = person.stream.connection.data.match(/"gender":"(MALE|FEMALE)"/);
+  const getUserGender = (person: StreamManager): string => {
+    const genderMatch = person.stream.connection.data.match(
+      /"gender":"(MALE|FEMALE)"/,
+    );
     const gender = genderMatch ? genderMatch[1] : "";
 
     return gender;
-  }
+  };
 
   // 내 성별 기준으로 서브 정렬
   const sortSubscribers = (myGender: string) => {
@@ -780,7 +785,7 @@ const Meeting = () => {
     } else {
       oppositeGender = "MALE";
     }
-    
+
     subscribers.forEach(subscriber => {
       if (getUserGender(subscriber) === myGender)
         setSortedSubscribers(prevSortedSubScribers => [
