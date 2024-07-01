@@ -64,6 +64,8 @@ video {
   grid-template-areas:
     "a a a a b b b b"
     "a a a a b b b b"
+    "a a a a b b b b"
+    "a a a a b b b b"
     ". . c d e f . .";
 }
 
