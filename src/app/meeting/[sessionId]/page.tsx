@@ -363,13 +363,13 @@ const Meeting = () => {
   // time 초 동안 발표 모드 (presenter: 발표자, time: 발표 시간(초))
   const changePresentationMode = (presenter: HTMLDivElement, time: number) => {
     const videoSet = new Set<HTMLDivElement | null>();
-    videoSet.add(presenter);
-    videoSet.add(pubRef.current);
+    videoSet.add(presenter);  // 발표자 추가
+    videoSet.add(pubRef.current);  // 다음으로 퍼블리셔 추가
     subRef.current.forEach(sub => {
-      videoSet.add(sub);
+      videoSet.add(sub);  // 나머지 사람들 다 추가 
     });
-    const videoArray = Array.from(videoSet);
-
+    const videoArray = Array.from(videoSet); // 중복 제거된 순서대로 발표자 > 나 > 나머지 순서대로 정렬
+    videoContainerRef.current?.classList.add("presentation-mode");
     // 비디오 그리드 a: main , bcdef
     videoArray.forEach((video, idx) => {
       video?.classList.add(String.fromCharCode(97 + idx));
@@ -380,6 +380,7 @@ const Meeting = () => {
       videoArray.forEach((video, idx) => {
         video?.classList.remove(String.fromCharCode(97 + idx));
       });
+      videoContainerRef.current?.classList.remove("presentation-mode");
     }, time * 1000);
   };
 
