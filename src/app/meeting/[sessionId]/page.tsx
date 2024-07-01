@@ -768,6 +768,12 @@ const Meeting = () => {
     meetingCamEvent();
   }, [publisher]);
 
+  const getUserID = (person: StreamManager): string => {
+    const idMatch = person.stream.connection.data.match(/"clientData":"([a-zA-Z0-9-]+)"/);
+    const id = idMatch ? idMatch[1] : "";
+    return id;
+  };
+
   const getUserGender = (person: StreamManager): string => {
     const genderMatch = person.stream.connection.data.match(
       /"gender":"(MALE|FEMALE)"/,
