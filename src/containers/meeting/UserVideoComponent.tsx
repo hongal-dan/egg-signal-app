@@ -7,6 +7,7 @@ import { StreamManager } from "openvidu-browser";
 export default function UserVideoComponent(props: {
   streamManager: StreamManager;
   socket: any;
+  className: string;
 }) {
   const streamComponentRef = useRef<HTMLDivElement>(null);
   const rawData = props.streamManager.stream.connection.data;
@@ -23,7 +24,7 @@ export default function UserVideoComponent(props: {
   return (
     <div>
       {props.streamManager !== undefined ? (
-        <div className="streamcomponent" ref={streamComponentRef}>
+        <div className={`streamcomponent ${props.className}`} ref={streamComponentRef}>
           <div className="arrow-container hidden" id="arrow">
             <div className="arrow-body">
               <div className="arrow-head"></div>

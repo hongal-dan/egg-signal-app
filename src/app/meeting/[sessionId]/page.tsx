@@ -493,7 +493,7 @@ const Meeting = () => {
   };
 
   const randomUser = (keywordIdx: number, pickUser: string) => {
-    const streamElements = document.getElementsByClassName("stream-container");
+    const streamElements = document.getElementsByClassName("streamcomponent");
     const tickSound = document.getElementById("tickSound") as HTMLAudioElement;
 
     if (keywordRef.current) {
@@ -507,9 +507,9 @@ const Meeting = () => {
     let isAnimating = true;
 
     // speaking 클래스 제거
-    // for (let i = 0; i < streamElements.length; i++) {
-    //   streamElements[i].classList.remove("speaking");
-    // } // todo: 이거 살려야함
+    for (let i = 0; i < streamElements.length; i++) {
+      streamElements[i].classList.remove("speaking");
+    }
 
     const highlightUser = (index: number) => {
       if (!isAnimating) return;
@@ -943,6 +943,7 @@ const Meeting = () => {
                   <UserVideoComponent
                     streamManager={publisher}
                     socket={socket}
+                    className={publisher.stream.streamId === speakingPublisherId ? "speaking" : ""}
                   />
                 </div>
               ) : null}
@@ -960,6 +961,7 @@ const Meeting = () => {
                     key={sub.stream.streamId}
                     streamManager={sub}
                     socket={socket}
+                    className={sub.stream.streamId === speakingPublisherId ? "speaking" : ""}
                   />
                 </div>
               ))}
