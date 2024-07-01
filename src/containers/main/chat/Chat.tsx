@@ -2,7 +2,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import { userState } from "@/app/store/userInfo";
 import { commonSocketState } from "@/app/store/commonSocket";
-import { useRecoilValue } from "recoil";
+import { chatRoomState } from "@/app/store/chatRoom";
+import { useRecoilValue, useRecoilState } from "recoil";
 
 interface Props {
   friend: {
@@ -22,6 +23,7 @@ const Chat: React.FC<Props> = ({ friend, onClose }) => {
   const currentUser = useRecoilValue(userState);
   const [chat, setChat] = useState<Chat[]>([]);
   const [message, setMessage] = useState("");
+  const [chatRoomId, setChatRoomId] = useRecoilState(chatRoomState);
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -35,6 +37,7 @@ const Chat: React.FC<Props> = ({ friend, onClose }) => {
     console.log("joinChat emit: ", friend.chatRoomId);
     if (commonSocket) {
       commonSocket.emit("joinchat", { newChatRoomId: friend.chatRoomId });
+      setChatRoomId(friend.chatRoomId);
       commonSocket.on("chatHistory", res => {
         console.log("chat histroy: ", res);
         const chatHistory = res.map((msg: Chat) => ({
@@ -57,7 +60,7 @@ const Chat: React.FC<Props> = ({ friend, onClose }) => {
     }
 
     return () => {
-      commonSocket?.emit("closeChat", { newChatRoomId: friend.chatRoomId });
+      commonSocket?.emit("closeChat", { chatRoomdId: chatRoomId });
     };
   }, []);
 

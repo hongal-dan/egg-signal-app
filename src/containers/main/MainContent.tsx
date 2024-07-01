@@ -9,6 +9,7 @@ import { useRecoilState } from "recoil";
 import { meetingSocketState } from "@/app/store/socket";
 import { commonSocketState } from "@/app/store/commonSocket";
 import { userState } from "@/app/store/userInfo";
+import { chatRoomState } from "@/app/store/chatRoom";
 import { logoutUser } from "@/services/auth";
 
 interface Friend {
@@ -46,6 +47,7 @@ const MainContent = ({ userInfo }: MainContentProps) => {
   const [isEnterLoading, setIsEnterLoading] = useState<boolean>(false);
   const [newMessage, setNewMessage] = useState<boolean>(false);
   const [newMessageSenders, setNewMessageSenders] = useState<string[]>([]);
+  const [openedChatRoomId, setOpenedChatRoomId] = useRecoilState(chatRoomState);
 
   useEffect(() => {
     if (!socket) {
@@ -159,6 +161,16 @@ const MainContent = ({ userInfo }: MainContentProps) => {
       enterBtnRef.current.innerText = "입장 중입니다.";
     }
   }, [isEnterLoading]);
+
+  useEffect(() => {
+    if (!isFriendListVisible) {
+      if (openedChatRoomId !== null) {
+        console.log("closeChat: ", openedChatRoomId);
+        commonSocket?.emit("closeChat", { chatRoomdId: openedChatRoomId });
+        setOpenedChatRoomId(null);
+      }
+    }
+  }, [isFriendListVisible]);
 
   // return avatar == null ? (
   //   <AvatarCollection />
