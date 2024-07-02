@@ -1,11 +1,16 @@
-.stream-container {
+html {
   box-sizing: border-box;
+}
+
+.stream-container {
   border: 3px solid transparent;
   border-radius: 15px;
   padding: 0;
 }
 
-.stream-container.speaking {
+.streamcomponent.speaking {
+  width: 100%;
+  height: 100%;
   border: 5px solid transparent;
   border-color: #119b55;
 }
@@ -31,13 +36,19 @@ video {
 
 .streamcomponent {
   position: relative;
-  border: 1px solid white;
-  border-radius: 10px;
+  border-radius: 15px;
+  padding: 0;
 }
 
 .chosen-stream {
-  border: 5px solid pink;
-  border-radius: 10px;
+  background-image: url("/img/heart.png");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+.opacity {
+  opacity: 0.5;
 }
 
 .video-container {
@@ -51,17 +62,22 @@ video {
 }
 
 .love-stick {
+  position: relative;
   grid-template-columns: 1fr 1fr;
   grid-template-rows: 1fr 1fr 1fr;
   gap: 20px 20vw;
-  margin: 0 25vw;
+  margin: 0 20vw;
+  min-width: 40vw;
   margin-bottom: 10vh;
+  bottom: 20px;
 }
 
 .one-one-four {
   grid-template-columns: repeat(8, 1fr);
   grid-template-rows: 1fr 1fr 1fr;
   grid-template-areas:
+    "a a a a b b b b"
+    "a a a a b b b b"
     "a a a a b b b b"
     "a a a a b b b b"
     ". . c d e f . .";
@@ -140,6 +156,7 @@ video {
 
 .choose-btn:hover {
   background: rgba(0, 0, 0, 0.2);
+  opacity: 0.5;
   cursor: pointer;
 }
 
@@ -159,12 +176,11 @@ video {
 }
 
 .streamcomponent .nickname {
-  position: absolute;
-  padding-left: 5px;
-  padding-right: 5px;
-  color: #777777;
-  font-weight: bold;
-  border-bottom-right-radius: 4px;
+  /* position: absolute; */
+  @apply px-[5px] absolute bg-transparent text-[#777777] rounded-[4px] font-bold;
+  /* color: #ffffff; */
+  /* font-weight: bold;
+  border-bottom-right-radius: 4px; */
 }
 p {
   margin: 0;
