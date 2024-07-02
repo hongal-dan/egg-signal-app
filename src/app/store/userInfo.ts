@@ -17,7 +17,14 @@ interface userInfo {
   friends: Friend[];
 }
 
-export const userState = atom<userInfo | null>({
+export const userState = atom<userInfo>({
   key: "userState",
-  default: null,
+  default: {
+    id: "",
+    nickname: "",
+    gender: "MALE",
+    newNotification: false,
+    notifications: [],
+    friends: [],
+  },
 });

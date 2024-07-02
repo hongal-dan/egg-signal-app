@@ -2,24 +2,23 @@
 import React, { useEffect, useState } from "react";
 import Friend from "./Friend";
 import Chat from "./Chat";
-import { userState } from "@/app/store/userInfo";
-import { commonSocketState } from "@/app/store/commonSocket";
+import { commonSocketState, onlineListState } from "@/app/store/commonSocket";
 import { newMessageSenderState } from "@/app/store/chat";
-import { useRecoilValue } from "recoil";
-
-interface FriendListProps {
-  onClose: () => void;
-}
+import { useRecoilState, useRecoilValue } from "recoil";
 
 interface Friend {
   friend: string;
   chatRoomId: string;
 }
 
-const FriendList: React.FC<FriendListProps> = ({ onClose }) => {
-  const currentUser = useRecoilValue(userState);
+interface FriendListPros {
+  friendsList: Friend[];
+}
+
+const FriendList: React.FC<FriendListPros> = ({ friendsList }) => {
   const commonSocket = useRecoilValue(commonSocketState);
   const newMessageSenders = useRecoilValue(newMessageSenderState);
+  const [onlineList, setOnlineList] = useRecoilState(onlineListState);
   const [selectedFriend, setSelectedFriend] = useState<Friend | null>(null);
   const [isChatVisible, setIsChatVisible] = useState<boolean>(false);
 
@@ -46,24 +45,48 @@ const FriendList: React.FC<FriendListProps> = ({ onClose }) => {
     setIsChatVisible(false);
   };
 
+  const checkFriendOnline = (friendNickName: string) => {
+    return onlineList.includes(friendNickName);
+  };
+
   useEffect(() => {
-    console.log(newMessageSenders);
+    if (commonSocket) {
+      commonSocket.emit("friendStat");
+      commonSocket.on("friendStat", res => {
+        const onlineList = localStorage.getItem("onlineFriends");
+        if (!onlineList || onlineList.length === 0) {
+          localStorage.setItem("onlineFriends", JSON.stringify([res]));
+        } else {
+          const prevList = JSON.parse(onlineList);
+          prevList.push(res);
+          const newList = Array.from(new Set(prevList)) as string[];
+          localStorage.setItem("onlineFriends", JSON.stringify(newList));
+          setOnlineList(newList);
+        }
+      });
+    }
   });
 
   return (
-    <div className="w-72 h-[700px] overflow-auto">
-      <div className="text-end">
+    <div
+      className={`w-72 h-[700px] overflow-auto ${friendsList && friendsList.length > 0 ? "scrollbar-custom" : "scrollbar-hide"}`}
+    >
+      {/* <div className="text-end">
         <button onClick={onClose} className="font-bold">
           ✕
         </button>
-      </div>
-      {currentUser?.friends.map((friend, index) => (
+      </div> */}
+      {friendsList.map((friend, index) => (
         <div key={index} className="relative">
           {newMessageSenders &&
             newMessageSenders.find(el => el === friend.chatRoomId) && (
               <div className="absolute left-0 top-0 w-3 h-3 rounded-full bg-red-600" />
             )}
-          <Friend friend={friend} onChat={() => toggleChat(friend)} />
+          <Friend
+            friend={friend}
+            onChat={() => toggleChat(friend)}
+            isOnline={checkFriendOnline(friend.friend)}
+          />
         </div>
       ))}
       {isChatVisible && selectedFriend && (
