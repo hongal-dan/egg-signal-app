@@ -1,7 +1,9 @@
 "use client";
 
 import React, { useRef, useEffect, useState } from "react";
+import imageCompression from "browser-image-compression";
 import { useRecoilValue } from "recoil";
+import { userState } from "@/app/store/userInfo";
 import { meetingSocketState } from "@/app/store/socket";
 import "@/styles/canvas.css";
 
@@ -13,11 +15,13 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const contextRef = useRef<CanvasRenderingContext2D | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
-  const [color] = useState("black");
-  const [brushSize] = useState(8);
-  const [, setCurrentStage] = useState("drawing");
+  const [color, setColor] = useState("black");
+  const [brushSize, setBrushSize] = useState(8);
+  const [drawings, setDrawings] = useState<Record<string, string>>({});
+  const [currentStage, setCurrentStage] = useState("drawing");
 
   const socket = useRecoilValue(meetingSocketState)!;
+  const userInfo = useRecoilValue(userState);
 
   useEffect(() => {
     const canvas = canvasRef.current!;
@@ -37,6 +41,8 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
     socket.on("startDrawing", () => {
       setCurrentStage("drawing");
     });
+
+    
 
     return () => {
       socket.disconnect();
@@ -82,6 +88,34 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
     context.fillRect(0, 0, canvas.width, canvas.height);
   };
 
+  const handleForwardDrawing = async () => {
+    const canvas = canvasRef.current!;
+    const blob = await new Promise<Blob | null>(resolve =>
+      canvas.toBlob(resolve, "image/webp"),
+    );
+    if (blob) {
+      const resizedBlob = await resizeAndCompressImage(blob, canvas.width);
+      const arrayBuffer = await resizedBlob.arrayBuffer();
+      socket.emit("forwardDrawing", {
+        userName: userInfo?.nickname,
+        drawing: arrayBuffer,
+      });
+    }
+  };
+
+  const resizeAndCompressImage = async (blob: Blob, width: number) => {
+    const file = new File([blob], "drawing", {
+      type: "image/webp",
+    });
+
+    return await imageCompression(file, {
+      maxSizeMB: 0.1,
+      maxWidthOrHeight: width * 0.5,
+      useWebWorker: true,
+      fileType: "image/webp",
+    });
+  };
+
   return (
     <div className="canvas-modal">
       <div className="canvas-modal-content">
@@ -120,6 +154,7 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
             <div>
               <button onClick={clearCanvas}>전부 지우기</button>
             </div>
+            <button onClick={handleForwardDrawing}>그림 제출</button>
           </div>
         )}
       </div>
