@@ -18,6 +18,9 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
   const [color, setColor] = useState("black");
   const [brushSize, setBrushSize] = useState(8);
   const [drawings, setDrawings] = useState<Record<string, string>>({});
+  const [voteResults, setVoteResults] = useState<string | null>(null);
+  const [selectedUser, setSelectedUser] = useState<string | null>(null);
+  const [hasVoted, setHasVoted] = useState(false);
   const [currentStage, setCurrentStage] = useState("drawing");
 
   const socket = useRecoilValue(meetingSocketState)!;
