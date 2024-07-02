@@ -191,6 +191,24 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
     ));
   };
 
+  const renderSecondChoiceOptions = () => {
+    const otherUsers = Object.keys(drawings).filter(
+      user => user !== voteResults,
+    );
+    return otherUsers.map((user, index) => (
+      <div
+        key={index}
+        className={`canvas-grid-item ${selectedUser === user ? "selected" : ""}`}
+        onClick={() => setSelectedUser(user)}
+        style={{
+          border: selectedUser === user ? "2px solid #FFC90E" : "none",
+        }}
+      >
+        <img src={drawings[user]} alt={`Drawing ${index + 1}`} />
+      </div>
+    ));
+  };
+
   return (
     <div className="modal">
       <div className="modal-content">
