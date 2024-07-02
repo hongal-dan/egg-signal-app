@@ -159,6 +159,23 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
     }
   };
 
+  const handleWinnerPrizeSubmit = () => {
+    if (selectedUser) {
+      const winners = [voteResults!, selectedUser];
+      const losers = Object.keys(drawings).filter(
+        user => !winners.includes(user),
+      );
+      socket.emit("winnerPrize", {
+        winners,
+        losers,
+      });
+      setFinalResults({ winners, losers });
+      setCurrentStage("final");
+    } else {
+      alert("왜 아무도안골라");
+    }
+  };
+
   const renderDrawings = () => {
     return Object.entries(drawings).map(([user, drawing], index) => (
       <div
