@@ -7,7 +7,11 @@ import io from "socket.io-client";
 import { useRouter } from "next/navigation";
 import { useRecoilState } from "recoil";
 import { meetingSocketState } from "@/app/store/socket";
-import { commonSocketState } from "@/app/store/commonSocket";
+import {
+  commonSocketState,
+  notiListState,
+  onlineListState,
+} from "@/app/store/commonSocket";
 import { userState } from "@/app/store/userInfo";
 import { chatRoomState, newMessageSenderState } from "@/app/store/chat";
 import { logoutUser } from "@/services/auth";
@@ -29,6 +33,14 @@ interface MainContentProps {
   };
 }
 
+interface Notification {
+  _id: string;
+  from: string;
+  createdAt: string;
+  updatedAt: string;
+  __v: number;
+}
+
 const MainContent = ({ userInfo }: MainContentProps) => {
   const router = useRouter();
   // const [avatarOn, setAvatarOn] = useState<boolean>(true);
@@ -41,16 +53,15 @@ const MainContent = ({ userInfo }: MainContentProps) => {
 
   const [socket, setSocket] = useRecoilState(meetingSocketState);
   const [commonSocket, setCommonSocket] = useRecoilState(commonSocketState);
-  const [, setCurrentUser] = useRecoilState(userState);
-  setCurrentUser(userInfo);
+  const [currentUser, setCurrentUser] = useRecoilState(userState);
   const enterBtnRef = useRef<HTMLParagraphElement>(null);
   const [isEnterLoading, setIsEnterLoading] = useState<boolean>(false);
   const [newMessageSenders, setNewMessageSenders] = useRecoilState(
     newMessageSenderState,
   );
   const [openedChatRoomId, setOpenedChatRoomId] = useRecoilState(chatRoomState);
-  const [onlineList, setOnlineList] = useState<string[]>([]);
-  const [notiList, setNotiList] = useState([]);
+  const [, setOnlineList] = useRecoilState(onlineListState);
+  const [notiList, setNotiList] = useRecoilState(notiListState);
 
   const checkOnlineFriends = () => {
     const onlineList = localStorage.getItem("onlineFriends");
@@ -74,6 +85,8 @@ const MainContent = ({ userInfo }: MainContentProps) => {
   };
 
   useEffect(() => {
+    setCurrentUser(userInfo);
+
     if (!socket) {
       const newSocket = io(`${url}/meeting`, {
         transports: ["websocket"],
@@ -83,6 +96,7 @@ const MainContent = ({ userInfo }: MainContentProps) => {
   }, [socket, setSocket]);
 
   useEffect(() => {
+    console.log("MainContent: ", currentUser);
     const newCommonSocket = io(`${url}/common`, {
       transports: ["websocket"],
       withCredentials: true,
@@ -106,7 +120,6 @@ const MainContent = ({ userInfo }: MainContentProps) => {
 
     newCommonSocket.on("friendOnline", (res: string) => {
       console.log("온라인 유저: ", res);
-      // recoil로 관리하려니까 브라우저 새로고침하면 온라인 친구 목록 없어짐
       const onlineList = localStorage.getItem("onlineFriends");
       if (!onlineList || onlineList.length === 0) {
         localStorage.setItem("onlineFriends", JSON.stringify([res]));
@@ -132,25 +145,43 @@ const MainContent = ({ userInfo }: MainContentProps) => {
     });
 
     newCommonSocket.emit("reqGetNotifications");
+
     newCommonSocket.on("resGetNotifications", res => {
       console.log("내 알람?", res);
-      setNotiList(res);
+      const newNotiList = res.map((r: Notification) => r.from);
+      console.log(newNotiList);
+      setNotiList(newNotiList);
+    });
+
+    newCommonSocket.on("newFriendRequest", res => {
+      console.log("새로운 친구 요청", res);
+      const newNoti = res.userNickname; // 나한테 요청 보낸 친구
+      setNotiList(prev => [...prev, newNoti]);
+    });
+
+    newCommonSocket.on("resAcceptFriend", res => {
+      console.log("내가 상대방 요청 수락!! ", res);
+      const updateCurrentUser = {
+        id: res.id,
+        nickname: res.nickname,
+        gender: res.gender,
+        newNotification: res.newNotification,
+        notifications: res.notifications,
+        friends: res.friends,
+      };
+      console.log(updateCurrentUser);
+      setCurrentUser(updateCurrentUser);
+      window.location.reload();
+    });
+
+    newCommonSocket.on("friendRequestAccepted", res => {
+      console.log("상대방이 내 요청 수락!! ", res);
+      setCurrentUser(prevState => ({
+        ...prevState,
+        friends: [...prevState.friends, ...res.friends],
+      }));
     });
   }, []);
-
-  // const toggleCamera = () => {
-  //   const canvas = document.querySelector("canvas");
-  //   console.log(canvas);
-  //   if (canvas && avatarOn) {
-  //     canvas.style.display = "none";
-  //     setAvatarOn(false);
-  //     return;
-  //   }
-  //   if (canvas) {
-  //     canvas.style.display = "block";
-  //     setAvatarOn(true);
-  //   }
-  // };
 
   const randomNum = Math.floor(Math.random() * 1000).toString(); // 테스트용 익명 닉네임 부여
   const handleLoadingOn: React.MouseEventHandler<HTMLButtonElement> = () => {
@@ -320,10 +351,7 @@ const MainContent = ({ userInfo }: MainContentProps) => {
           </button>
           {isFriendListVisible && (
             <div className="absolute bottom-[50px] right-1 bg-white shadow-md rounded-lg p-4 z-10">
-              <FriendList
-                onClose={() => setIsFriendListVisible(false)}
-                onlineList={onlineList}
-              />
+              <FriendList friendsList={currentUser.friends} />
             </div>
           )}
         </div>

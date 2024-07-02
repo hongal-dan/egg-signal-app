@@ -1,23 +1,20 @@
 "use client";
 import React from "react";
 import { userState } from "@/app/store/userInfo";
-import { commonSocketState } from "@/app/store/commonSocket";
-import { useRecoilValue } from "recoil";
-
-interface NotificationsProps {
-  notiList: string[];
-}
+import { commonSocketState, notiListState } from "@/app/store/commonSocket";
+import { useRecoilState, useRecoilValue } from "recoil";
 
 interface Sender {
   sender: string;
 }
 
 const Notification: React.FC<Sender> = ({ sender }) => {
-  const currentUser = useRecoilValue(userState);
+  const [currentUser] = useRecoilState(userState);
   const commonSocket = useRecoilValue(commonSocketState);
 
   const acceptRequest = () => {
     if (commonSocket && currentUser) {
+      console.log("친구 수락");
       commonSocket.emit("reqAcceptFriend", {
         userNickname: currentUser.nickname,
         friendNickname: sender,
@@ -36,16 +33,15 @@ const Notification: React.FC<Sender> = ({ sender }) => {
           >
             수락
           </button>
-          <button className="bg-red-500 text-white rounded-lg  text-m px-3">
-            거절
-          </button>
         </div>
       </div>
     </div>
   );
 };
 
-const Notifications: React.FC<NotificationsProps> = ({ notiList }) => {
+const Notifications: React.FC = () => {
+  const notiList = useRecoilValue(notiListState);
+
   return (
     <div>
       <p>친구 요청</p>
