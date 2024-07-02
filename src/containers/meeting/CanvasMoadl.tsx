@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useRef, useEffect, useState } from "react";
+import imageCompression from "browser-image-compression";
 import { useRecoilValue } from "recoil";
 import { userState } from "@/app/store/userInfo";
 import { meetingSocketState } from "@/app/store/socket";
@@ -16,6 +17,7 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
   const [isDrawing, setIsDrawing] = useState(false);
   const [color, setColor] = useState("black");
   const [brushSize, setBrushSize] = useState(8);
+  const [drawings, setDrawings] = useState<Record<string, string>>({});
   const [currentStage, setCurrentStage] = useState("drawing");
 
   const socket = useRecoilValue(meetingSocketState)!;
@@ -175,6 +177,7 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
             <div>
               <button onClick={clearCanvas}>전부 지우기</button>
             </div>
+            <button onClick={handleForwardDrawing}>그림 제출</button>
           </>
         )}
       </div>
