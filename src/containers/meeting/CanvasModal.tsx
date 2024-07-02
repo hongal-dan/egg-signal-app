@@ -42,7 +42,16 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
       setCurrentStage("drawing");
     });
 
-    
+    socket.on("drawingSubmit", (drawings: Record<string, ArrayBuffer>) => {
+      const updatedDrawings: Record<string, string> = {};
+      Object.entries(drawings).forEach(([userName, drawingBuffer]) => {
+        const blob = new Blob([drawingBuffer], { type: "image/webp" });
+        const url = URL.createObjectURL(blob);
+        updatedDrawings[userName] = url;
+      });
+      setDrawings(updatedDrawings);
+      setCurrentStage("voting");
+    });
 
     return () => {
       socket.disconnect();
