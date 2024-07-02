@@ -46,12 +46,10 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
     contextRef.current = context;
 
     socket.on("startDrawing", () => {
-      console.log("###사생대회 시작###");
       setCurrentStage("drawing");
     });
 
     socket.on("drawingSubmit", (drawings: Record<string, ArrayBuffer>) => {
-      console.log("그림보여줄게:", drawings);
       const updatedDrawings: Record<string, string> = {};
       Object.entries(drawings).forEach(([userName, drawingBuffer]) => {
         const blob = new Blob([drawingBuffer], { type: "image/webp" });
@@ -126,7 +124,6 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
     const blob = await new Promise<Blob | null>(resolve =>
       canvas.toBlob(resolve, "image/webp"),
     );
-    console.log(blob);
     if (blob) {
       const resizedBlob = await resizeAndCompressImage(blob, canvas.width);
       const arrayBuffer = await resizedBlob.arrayBuffer();
