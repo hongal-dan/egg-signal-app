@@ -270,6 +270,14 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
             )}
           </>
         )}
+
+        {currentStage === "final" && finalResults && (
+          <>
+            <h2>최종 결과</h2>
+            <div>좋은시간보내세요 {finalResults.winners.join(", ")}</div>
+            <div>나머지: {finalResults.losers.join(", ")}</div>
+          </>
+        )}
       </div>
     </div>
   );
