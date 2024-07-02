@@ -11,6 +11,7 @@
   "dependencies": {
     "@types/three": "^0.136.0",
     "axios": "^1.7.2",
+    "browser-image-compression": "^2.0.2",
     "formik": "^2.4.6",
     "mind-ar": "^1.2.5",
     "next": "^14.2.4",
