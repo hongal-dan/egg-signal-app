@@ -15,6 +15,7 @@ import {
 import { userState } from "@/app/store/userInfo";
 import { chatRoomState, newMessageSenderState } from "@/app/store/chat";
 import { logoutUser } from "@/services/auth";
+import { Socket } from "socket.io-client";
 
 interface Friend {
   friend: string;
@@ -86,14 +87,7 @@ const MainContent = ({ userInfo }: MainContentProps) => {
 
   useEffect(() => {
     setCurrentUser(userInfo);
-
-    if (!socket) {
-      const newSocket = io(`${url}/meeting`, {
-        transports: ["websocket"],
-      });
-      setSocket(newSocket);
-    }
-  }, [socket, setSocket]);
+  }, []);
 
   useEffect(() => {
     console.log("MainContent: ", currentUser);
@@ -183,14 +177,29 @@ const MainContent = ({ userInfo }: MainContentProps) => {
     });
   }, []);
 
+  const connectSocket = async () => {
+    return new Promise((resolve) => {
+      const newSocket = io(`${url}/meeting`, {
+        transports: ["websocket"],
+      });
+      newSocket.on("connect", () => {
+        setSocket(newSocket);
+        resolve(newSocket);
+      });
+    });
+  };
+
   const randomNum = Math.floor(Math.random() * 1000).toString(); // 테스트용 익명 닉네임 부여
-  const handleLoadingOn: React.MouseEventHandler<HTMLButtonElement> = () => {
-    socket?.emit("ready", {
+  const handleLoadingOn: React.MouseEventHandler<HTMLButtonElement> = async () => {
+    const meetingSocket = await connectSocket() as Socket | null;
+    console.log("socket: ", meetingSocket);
+    meetingSocket?.emit("ready", {
       participantName: `${userInfo.nickname}-${randomNum}`,
+      gender: userInfo.gender,
     });
     if (startButton.current) startButton.current.disabled = true;
     setIsLoading(true);
-    socket?.on("startCall", async ovInfo => {
+    meetingSocket?.on("startCall", async ovInfo => {
       console.log(ovInfo);
       sessionStorage.setItem("ovInfo", JSON.stringify(ovInfo)); // 세션 스토리지에 저장
       setIsLoading(false);

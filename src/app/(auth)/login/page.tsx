@@ -22,6 +22,8 @@ export default function Login() {
     password: "",
   };
 
+  const errorStyle = "text-red-500 text-sm font-medium mt-1 ml-2";
+
   const handleLogIn = async (values: FormValues) => {
     try {
       const response = await loginUser(values) as Response;
@@ -38,7 +40,7 @@ export default function Login() {
     <div className="flex items-center justify-center px-6 py-8 mx-auto md:h-screen">
       <div className="w-1/2 p-5 px-[120px] bg-amber-50 rounded-2xl shadow">
         <div className="p-6 space-y-4 md:space-y-6 sm:p-8">
-          <p className="text-4xl text-center font-bold">Welcom to Egg Chat!</p>
+          <p className="text-4xl text-center font-sans">Egg Greeting Generator</p>
         </div>
         <Formik
           initialValues={initialValues}
@@ -56,7 +58,7 @@ export default function Login() {
                   name="id"
                   className="border border-gray-300 text-gray-900 rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
                 />
-                <ErrorMessage className="error" name="id" />
+                <ErrorMessage className={`error ${errorStyle}`} component="p" name="id" />
               </div>
               <div>
                 <label>Password</label>
@@ -65,7 +67,7 @@ export default function Login() {
                   type="password"
                   className="border border-gray-300 text-gray-900 rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
                 />
-                <ErrorMessage className="error" name="password" />
+                <ErrorMessage className={`error ${errorStyle}`} component="p" name="password" />
               </div>
 
               <div className="w-full flex justify-center">
