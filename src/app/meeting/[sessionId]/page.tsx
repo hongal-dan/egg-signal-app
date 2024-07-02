@@ -347,10 +347,15 @@ const Meeting = () => {
       canvas.style.width = "100%";
       canvas.style.height = "100%";
     });
-    // if (!isLoveMode) {
+
+    const videoArray = Array.from(subRef.current);
+    videoArray.unshift(pubRef.current);
+    videoArray.forEach((video, idx) => {
+      video?.classList.add(String.fromCharCode(97 + idx));
+    });
+
     videoContainerRef.current?.classList.add("love-stick");
     showArrow(datas);
-    // setIsLoveMode(true);
     return;
     // }
     // videoContainer.classList.remove("love-stick");
@@ -364,6 +369,11 @@ const Meeting = () => {
     //   console.log("에그시그널 결과라고 p태그 변경한거 삭제함");
     // }
     console.log("사랑의 작대기 모드 해제");
+    const videoArray = Array.from(subRef.current);
+    videoArray.unshift(pubRef.current);
+    videoArray.forEach((video, idx) => {
+      video?.classList.remove(String.fromCharCode(97 + idx));
+    });
     videoContainerRef.current?.classList.remove("love-stick");
     hideArrow();
   };
@@ -544,16 +554,28 @@ const Meeting = () => {
           }
           openKeyword(keywordIdx);
           // todo1: random user nickname(pickUser) 으로 video 찾아서 발표자 화면 출력하기
-          const presenterElement = Array.prototype.filter.call(
-            streamElements,
-            function (element) {
-              const nestedDiv = element.querySelector(
-                `div > div[id=${pickUser}]`,
-              );
-              return nestedDiv !== null;
-            },
-          )[0];
-          changePresentationMode(presenterElement, 10);
+          // const presenterElement = Array.prototype.filter.call(
+          //   streamElements,
+          //   function (element) {
+          //     const nestedDiv = element.querySelector(
+          //       `div > div[id=${pickUser}]`,
+          //     );
+          //     console.log("선택한 발표자 태그는 이거==============", nestedDiv);
+          //     return nestedDiv !== null;
+          //   },
+          // )[0];
+          // console.log("선택한 발표자 태그는 이거==============", presenterElement[0]);
+          if (pubRef.current?.classList.contains(pickUser)) {
+            changePresentationMode(pubRef.current, 10);
+          } else {
+            const presenterElement = subRef.current?.filter(
+              sub => sub?.id === pickUser,
+            )[0];
+            console.log(presenterElement);
+            if (presenterElement) {
+              changePresentationMode(presenterElement, 10);
+            }
+          }
         }, animationDuration);
       }, currentDuration - 10);
     };
@@ -610,6 +632,10 @@ const Meeting = () => {
           console.log("원 위치로 변경");
           // undoLoveStickMode(response.messageas as Array<chooseResult>);
           undoLoveStickMode();
+          if (keywordRef.current) {
+            console.log("잠시 후 1:1대화가 시작된다는 멘트 ");
+            keywordRef.current.innerText = "잠시 후 1:1대화가 시작됩니다.";
+          }
         }, 10000); // 10초 후 원 위치
       } catch (e: any) {
         console.error(e);
@@ -697,7 +723,7 @@ const Meeting = () => {
               unMuteAudio();
             }, 60000); // 1분 후 음소거 해제
           }
-        }, 10000);
+        }, 13000); // 결과 도착 후 13초뒤에 1:1 대화 진행
       } catch (e: any) {
         console.error(e);
       }
@@ -717,10 +743,11 @@ const Meeting = () => {
     socket?.on("Introduce", response => {
       try {
         if (keywordRef.current) {
-          keywordRef.current.innerText = "잠시 후 화면에 표시된 사람은 자기소개를 시작해주세요";
+          keywordRef.current.innerText =
+            "잠시 후 화면에 표시된 사람은 자기소개를 시작해주세요";
         }
-        console.log(response)
-        
+        console.log(response);
+
         setTimeout(() => {
           if (keywordRef.current) {
             keywordRef.current.innerText = "20초간 간단한 자기소개 해주세요";
@@ -728,14 +755,18 @@ const Meeting = () => {
           const participantsArray: Array<string> = response;
           console.log("Introduce 도착", participantsArray);
           let idx = 0;
-          const participantElement = document.getElementById(participantsArray[idx]) as HTMLDivElement;
+          const participantElement = document.getElementById(
+            participantsArray[idx],
+          ) as HTMLDivElement;
           changePresentationMode(participantElement, 20);
-          const timeInterval = setInterval(() => {  
+          const timeInterval = setInterval(() => {
             idx += 1;
-            const participantElement = document.getElementById(participantsArray[idx]) as HTMLDivElement;
+            const participantElement = document.getElementById(
+              participantsArray[idx],
+            ) as HTMLDivElement;
             changePresentationMode(participantElement, 20);
-            if(idx == 5) clearInterval(timeInterval);
-            }, 21000);
+            if (idx == 5) clearInterval(timeInterval);
+          }, 21000);
         }, 5000);
       } catch (e: any) {
         console.error(e);
@@ -802,7 +833,9 @@ const Meeting = () => {
   }, [publisher]);
 
   const getUserID = (person: StreamManager): string => {
-    const idMatch = person.stream.connection.data.match(/"clientData":"([a-zA-Z0-9-]+)"/);
+    const idMatch = person.stream.connection.data.match(
+      /"clientData":"([a-zA-Z0-9-]+)"/,
+    );
     const id = idMatch ? idMatch[1] : "";
     return id;
   };
@@ -947,7 +980,11 @@ const Meeting = () => {
                   <UserVideoComponent
                     streamManager={publisher}
                     socket={socket}
-                    className={publisher.stream.streamId === speakingPublisherId ? "speaking" : ""}
+                    className={
+                      publisher.stream.streamId === speakingPublisherId
+                        ? "speaking"
+                        : ""
+                    }
                   />
                 </div>
               ) : null}
@@ -956,16 +993,21 @@ const Meeting = () => {
                   key={sub.stream.streamId}
                   // className={`stream-container col-md-6 col-xs-6 sub ${sub.stream.streamId === speakingPublisherId ? "speaking" : ""} ${getUserGender(sub)}`}
                   className={`stream-container col-md-6 col-xs-6 sub ${getUserGender(sub)}`}
-
                   // onClick={() => handleMainVideoStream(sub)}
                   id={getUserID(sub)}
-                  ref={el => {subRef.current[idx] = el}}
+                  ref={el => {
+                    subRef.current[idx] = el;
+                  }}
                 >
                   <UserVideoComponent
                     key={sub.stream.streamId}
                     streamManager={sub}
                     socket={socket}
-                    className={sub.stream.streamId === speakingPublisherId ? "speaking" : ""}
+                    className={
+                      sub.stream.streamId === speakingPublisherId
+                        ? "speaking"
+                        : ""
+                    }
                   />
                 </div>
               ))}
