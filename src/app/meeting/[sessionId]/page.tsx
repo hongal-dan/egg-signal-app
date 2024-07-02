@@ -41,8 +41,8 @@ const Meeting = () => {
   );
   const [mainStreamManager, setMainStreamManager] = useState<StreamManager>();
   const [, setCurrentVideoDevice] = useState<Device | null>(null);
-  const [speakingPublisherId, setSpeakingPublisherId] = useState<string | null>(
-    null,
+  const [speakingPublisherIds, setSpeakingPublisherIds] = useState<string[]>(
+    [],
   );
   const [isCanvasModalOpen, setIsCanvasModalOpen] = useState<boolean>(false);
 
@@ -241,15 +241,20 @@ const Meeting = () => {
       // console.log("Publisher started speaking:", event.connection);
       const streamId = event.connection.stream?.streamId;
       if (streamId !== undefined) {
-        setSpeakingPublisherId(streamId);
+        setSpeakingPublisherIds(prevIds => [...prevIds, streamId]);
       } else {
         console.log("streamId undefined");
       }
     });
 
     newSession.on("publisherStopSpeaking", (event: PublisherSpeakingEvent) => {
+      const streamId = event.connection.stream?.streamId;
+      if (streamId !== undefined) {
+        setSpeakingPublisherIds(prevIds =>
+          prevIds.filter(id => id !== streamId),
+        );
+      }
       console.log("Publisher stopped speaking:", event.connection);
-      setSpeakingPublisherId(null);
     });
   };
 
@@ -908,16 +913,6 @@ const Meeting = () => {
         interval: 100, // 발화자 이벤트 감지 주기 (밀리초)
         threshold: -50, // 발화자 이벤트 발생 임계값 (데시벨)
       });
-
-      // publisher.on("publisherStartSpeaking", event => {
-      //   console.log("The local user started speaking", event.connection);
-      //   // 발화자가 말하기 시작했을 때 수행할 작업
-      // });
-
-      // publisher.on("publisherStopSpeaking", event => {
-      //   console.log("The local user stopped speaking", event.connection);
-      //   // 발화자가 말하기를 멈췄을 때 수행할 작업
-      // });
     }
 
     if (mainStreamManager) {
@@ -989,7 +984,7 @@ const Meeting = () => {
                     streamManager={publisher}
                     socket={socket}
                     className={
-                      publisher.stream.streamId === speakingPublisherId
+                      speakingPublisherIds.includes(publisher.stream.streamId)
                         ? "speaking"
                         : ""
                     }
@@ -1012,7 +1007,7 @@ const Meeting = () => {
                     streamManager={sub}
                     socket={socket}
                     className={
-                      sub.stream.streamId === speakingPublisherId
+                      speakingPublisherIds.includes(sub.stream.streamId)
                         ? "speaking"
                         : ""
                     }

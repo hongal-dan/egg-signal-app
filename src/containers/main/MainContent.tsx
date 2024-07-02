@@ -140,11 +140,11 @@ const MainContent = ({ userInfo }: MainContentProps) => {
 
     newCommonSocket.emit("reqGetNotifications");
 
-    newCommonSocket.on("resGetNotifications", res => {
+    newCommonSocket.on("resGetNotifications", (res: Notification) => {
       console.log("내 알람?", res);
-      const newNotiList = res.map((r: Notification) => r.from);
-      console.log(newNotiList);
-      setNotiList(newNotiList);
+      // const newNotiList = res
+      // console.log(newNotiList);
+      setNotiList([...notiList, res]);
     });
 
     newCommonSocket.on("newFriendRequest", res => {
