@@ -55,6 +55,12 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
       setCurrentStage("voting");
     });
 
+    socket.on("voteResults", results => {
+      const { winner } = results;
+      setVoteResults(winner);
+      setCurrentStage("winnerChoice");
+    });
+
     return () => {
       socket.disconnect();
     };
@@ -214,6 +220,22 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
               {renderDrawings()}
             </div>
             <button onClick={handleVoteSubmit}>투표 출발</button>
+          </>
+        )}
+
+        {currentStage === "winnerChoice" && voteResults && (
+          <>
+            <h2>투표 결과</h2>
+            <div>1등은 {voteResults}입니다~</div>
+            {userInfo?.nickname === voteResults && (
+              <div>
+                <h3>같이 있고 싶은 사람을 골라보세요</h3>
+                <div className="grid-container">
+                  {renderSecondChoiceOptions()}
+                </div>
+                <button onClick={handleWinnerPrizeSubmit}>이사람이요</button>
+              </div>
+            )}
           </>
         )}
 
