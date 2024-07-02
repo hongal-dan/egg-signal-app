@@ -164,6 +164,21 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
     ));
   };
 
+  const renderWinnerChoiceOptions = () => {
+    const otherUsers = Object.keys(drawings).filter(
+      user => user !== voteResults,
+    );
+    return otherUsers.map((user, index) => (
+      <div
+        key={index}
+        className={`canvas-grid-item ${selectedUser === user ? "selected" : ""}`}
+        onClick={() => setSelectedUser(user)}
+      >
+        <img src={drawings[user]} />
+      </div>
+    ));
+  };
+
   return (
     <div className="canvas-modal">
       <div className="canvas-modal-content">
@@ -221,6 +236,10 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
             {userInfo?.nickname === voteResults && (
               <div>
                 <h3>같이 있고 싶은 사람을 골라보세요</h3>
+                <div className="canvas-grid-container">
+                  {renderWinnerChoiceOptions()}
+                </div>
+                <button onClick={handleWinnerPrizeSubmit}>이사람이요</button>
               </div>
             )}
           </>
