@@ -144,7 +144,7 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
       maxWidthOrHeight: width * 0.5,
       useWebWorker: true,
       fileType: "image/webp",
-    } as any);
+    });
   };
 
   const handleVoteSubmit = () => {
@@ -188,11 +188,8 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
         key={index}
         className={`canvas-grid-item ${selectedUser === user ? "selected" : ""}`}
         onClick={() => setSelectedUser(user)}
-        style={{
-          border: selectedUser === user ? "2px solid #FFC90E" : "none",
-        }}
       >
-        <img src={drawing} alt={`Drawing ${index + 1}`} />
+        <img src={drawing} />
       </div>
     ));
   };
@@ -206,11 +203,8 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
         key={index}
         className={`canvas-grid-item ${selectedUser === user ? "selected" : ""}`}
         onClick={() => setSelectedUser(user)}
-        style={{
-          border: selectedUser === user ? "2px solid #FFC90E" : "none",
-        }}
       >
-        <img src={drawings[user]} alt={`Drawing ${index + 1}`} />
+        <img src={drawings[user]} />
       </div>
     ));
   };
@@ -222,13 +216,12 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
           &times;
         </span>
         {currentStage === "drawing" && (
-          <>
+          <div className="flex flex-col justify-center items-center">
             <canvas
               ref={canvasRef}
               onMouseDown={startDrawing}
               onMouseUp={finishDrawing}
               onMouseMove={draw}
-              style={{ border: "2px solid black", backgroundColor: "#f0f0f0" }}
             />
             <div>
               {["red", "orange", "green", "blue", "black", "white"].map(col => (
@@ -236,9 +229,7 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
                   key={col}
                   onClick={() => setColor(col)}
                   style={{ backgroundColor: col, margin: "0 5px" }}
-                >
-                  {col}
-                </button>
+                ></button>
               ))}
             </div>
             <div>
@@ -257,23 +248,13 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
               <button onClick={clearCanvas}>전부 지우기</button>
             </div>
             <button onClick={handleForwardDrawing}>그림 제출</button>
-          </>
+          </div>
         )}
 
         {currentStage === "voting" && (
           <>
             <h2>그림을 골라보세요</h2>
-            <div
-              className="canvas-grid-container"
-              style={{
-                display: "canvas-grid",
-                gridTemplateColumns: "repeat(3, 1fr)",
-                gridTemplateRows: "repeat(2, 1fr)",
-                gap: "10px",
-              }}
-            >
-              {renderDrawings()}
-            </div>
+            <div className="canvas-grid-container">{renderDrawings()}</div>
             <button onClick={handleVoteSubmit}>투표 출발</button>
           </>
         )}
