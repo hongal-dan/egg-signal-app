@@ -159,6 +159,19 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
     }
   };
 
+  const renderDrawings = () => {
+    return Object.entries(drawings).map(([user, drawing], index) => (
+      <div
+        key={index}
+        className={`canvas-grid-item ${selectedUser === user ? "selected" : ""}`}
+        onClick={() => setSelectedUser(user)}
+        style={{
+          border: selectedUser === user ? "2px solid #FFC90E" : "none",
+        }}
+      >
+        <img src={drawing} alt={`Drawing ${index + 1}`} />
+      </div>
+    ));
   };
 
   return (
