@@ -132,6 +132,24 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
     } as any);
   };
 
+  const handleVoteSubmit = () => {
+    if (hasVoted) {
+      alert("투표는 한번만이에요");
+      return;
+    }
+
+    if (selectedUser) {
+      socket.emit("submitVote", {
+        userName: userInfo?.nickname,
+        votedUser: selectedUser,
+      });
+      setSelectedUser(null);
+      setHasVoted(true);
+    } else {
+      alert("투표할 그림을 골라주세요.");
+    }
+  };
+
   };
 
   return (
@@ -180,6 +198,25 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
             <button onClick={handleForwardDrawing}>그림 제출</button>
           </>
         )}
+
+        {currentStage === "voting" && (
+          <>
+            <h2>그림을 골라보세요</h2>
+            <div
+              className="grid-container"
+              style={{
+                display: "canvas-grid",
+                gridTemplateColumns: "repeat(3, 1fr)",
+                gridTemplateRows: "repeat(2, 1fr)",
+                gap: "10px",
+              }}
+            >
+              {renderDrawings()}
+            </div>
+            <button onClick={handleVoteSubmit}>투표 출발</button>
+          </>
+        )}
+
       </div>
     </div>
   );
