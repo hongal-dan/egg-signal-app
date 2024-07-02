@@ -71,9 +71,7 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
       setCurrentStage("final");
     });
 
-    return () => {
-      socket.disconnect();
-    };
+    return () => {};
   }, []);
 
   useEffect(() => {
@@ -182,9 +180,7 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
     return Object.entries(drawings).map(([user, drawing], index) => (
       <div
         key={index}
-       cosnt canvasClass = (selectedUser === user) ? "selected" : "";
-
-        className={`canvas-grid-item ${cavasClass}`}
+        className={`canvas-grid-item ${selectedUser === user ? "selected" : ""}`}
         onClick={() => setSelectedUser(user)}
       >
         <img src={drawing} />
