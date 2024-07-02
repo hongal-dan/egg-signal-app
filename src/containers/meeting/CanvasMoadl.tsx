@@ -20,6 +20,10 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
   const [drawings, setDrawings] = useState<Record<string, string>>({});
   const [voteResults, setVoteResults] = useState<string | null>(null);
   const [selectedUser, setSelectedUser] = useState<string | null>(null);
+  const [finalResults, setFinalResults] = useState<{
+    winners: string[];
+    losers: string[];
+  } | null>(null);
   const [hasVoted, setHasVoted] = useState(false);
   const [currentStage, setCurrentStage] = useState("drawing");
 
@@ -62,6 +66,11 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
       const { winner } = results;
       setVoteResults(winner);
       setCurrentStage("winnerChoice");
+    });
+
+    socket.on("finalResults", results => {
+      setFinalResults(results);
+      setCurrentStage("final");
     });
 
     return () => {
@@ -290,6 +299,13 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
           </>
         )}
 
+        {currentStage === "final" && finalResults && (
+          <>
+            <h2>최종 결과</h2>
+            <div>좋은시간보내세요 {finalResults.winners.join(", ")}</div>
+            <div>나머지: {finalResults.losers.join(", ")}</div>
+          </>
+        )}
       </div>
     </div>
   );
