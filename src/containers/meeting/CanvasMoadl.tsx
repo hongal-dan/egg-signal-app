@@ -5,7 +5,7 @@ import imageCompression from "browser-image-compression";
 import { useRecoilValue } from "recoil";
 import { userState } from "@/app/store/userInfo";
 import { meetingSocketState } from "@/app/store/socket";
-// import styles from "@/styles/canvas.css";
+import "@/styles/canvas.css";
 
 type CanvasModalProps = {
   onClose: () => void;
@@ -219,23 +219,21 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
   };
 
   return (
-    <div className="modal">
-      <div className="modal-content">
-        <span className="close" onClick={onClose}>
+    <div className="canvas-modal">
+      <div className="canvas-modal-content">
+        <span className="canvas-close" onClick={onClose}>
           &times;
         </span>
         {currentStage === "drawing" && (
           <>
-            <h1>사생대회 ㅎㅎ</h1>
             <canvas
               ref={canvasRef}
               onMouseDown={startDrawing}
               onMouseUp={finishDrawing}
               onMouseMove={draw}
-              style={{ border: "1px solid black", backgroundColor: "#f0f0f0" }}
+              style={{ border: "2px solid black", backgroundColor: "#f0f0f0" }}
             />
             <div>
-              <label>색을 골라보세요 </label>
               {["red", "orange", "green", "blue", "black", "white"].map(col => (
                 <button
                   key={col}
@@ -247,7 +245,7 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
               ))}
             </div>
             <div>
-              <label>굵기: </label>
+              <label>굵기</label>
               {[5, 8, 12].map(size => (
                 <button
                   key={size}
@@ -269,7 +267,7 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
           <>
             <h2>그림을 골라보세요</h2>
             <div
-              className="grid-container"
+              className="canvas-grid-container"
               style={{
                 display: "canvas-grid",
                 gridTemplateColumns: "repeat(3, 1fr)",
@@ -290,7 +288,7 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
             {userInfo?.nickname === voteResults && (
               <div>
                 <h3>같이 있고 싶은 사람을 골라보세요</h3>
-                <div className="grid-container">
+                <div className="canvas-grid-container">
                   {renderSecondChoiceOptions()}
                 </div>
                 <button onClick={handleWinnerPrizeSubmit}>이사람이요</button>
