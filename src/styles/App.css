@@ -9,10 +9,7 @@ html {
 }
 
 .streamcomponent.speaking {
-  width: 100%;
-  height: 100%;
-  border: 5px solid transparent;
-  border-color: #119b55;
+  @apply shadow-lg shadow-green-300;
 }
 
 .MALE {

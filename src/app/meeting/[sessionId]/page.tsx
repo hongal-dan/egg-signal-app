@@ -40,8 +40,8 @@ const Meeting = () => {
   );
   const [mainStreamManager, setMainStreamManager] = useState<StreamManager>();
   const [, setCurrentVideoDevice] = useState<Device | null>(null);
-  const [speakingPublisherId, setSpeakingPublisherId] = useState<string | null>(
-    null,
+  const [speakingPublisherIds, setSpeakingPublisherIds] = useState<string[]>(
+    [],
   );
 
   // const [isLoveMode, setIsLoveMode] = useState<boolean>(false);
@@ -239,15 +239,20 @@ const Meeting = () => {
       // console.log("Publisher started speaking:", event.connection);
       const streamId = event.connection.stream?.streamId;
       if (streamId !== undefined) {
-        setSpeakingPublisherId(streamId);
+        setSpeakingPublisherIds(prevIds => [...prevIds, streamId]);
       } else {
         console.log("streamId undefined");
       }
     });
 
     newSession.on("publisherStopSpeaking", (event: PublisherSpeakingEvent) => {
+      const streamId = event.connection.stream?.streamId;
+      if (streamId !== undefined) {
+        setSpeakingPublisherIds(prevIds =>
+          prevIds.filter(id => id !== streamId),
+        );
+      }
       console.log("Publisher stopped speaking:", event.connection);
-      setSpeakingPublisherId(null);
     });
   };
 
@@ -717,10 +722,11 @@ const Meeting = () => {
     socket?.on("Introduce", response => {
       try {
         if (keywordRef.current) {
-          keywordRef.current.innerText = "잠시 후 화면에 표시된 사람은 자기소개를 시작해주세요";
+          keywordRef.current.innerText =
+            "잠시 후 화면에 표시된 사람은 자기소개를 시작해주세요";
         }
-        console.log(response)
-        
+        console.log(response);
+
         setTimeout(() => {
           if (keywordRef.current) {
             keywordRef.current.innerText = "20초간 간단한 자기소개 해주세요";
@@ -728,14 +734,18 @@ const Meeting = () => {
           const participantsArray: Array<string> = response;
           console.log("Introduce 도착", participantsArray);
           let idx = 0;
-          const participantElement = document.getElementById(participantsArray[idx]) as HTMLDivElement;
+          const participantElement = document.getElementById(
+            participantsArray[idx],
+          ) as HTMLDivElement;
           changePresentationMode(participantElement, 20);
-          const timeInterval = setInterval(() => {  
+          const timeInterval = setInterval(() => {
             idx += 1;
-            const participantElement = document.getElementById(participantsArray[idx]) as HTMLDivElement;
+            const participantElement = document.getElementById(
+              participantsArray[idx],
+            ) as HTMLDivElement;
             changePresentationMode(participantElement, 20);
-            if(idx == 5) clearInterval(timeInterval);
-            }, 21000);
+            if (idx == 5) clearInterval(timeInterval);
+          }, 21000);
         }, 5000);
       } catch (e: any) {
         console.error(e);
@@ -802,7 +812,9 @@ const Meeting = () => {
   }, [publisher]);
 
   const getUserID = (person: StreamManager): string => {
-    const idMatch = person.stream.connection.data.match(/"clientData":"([a-zA-Z0-9-]+)"/);
+    const idMatch = person.stream.connection.data.match(
+      /"clientData":"([a-zA-Z0-9-]+)"/,
+    );
     const id = idMatch ? idMatch[1] : "";
     return id;
   };
@@ -867,16 +879,6 @@ const Meeting = () => {
         interval: 100, // 발화자 이벤트 감지 주기 (밀리초)
         threshold: -50, // 발화자 이벤트 발생 임계값 (데시벨)
       });
-
-      // publisher.on("publisherStartSpeaking", event => {
-      //   console.log("The local user started speaking", event.connection);
-      //   // 발화자가 말하기 시작했을 때 수행할 작업
-      // });
-
-      // publisher.on("publisherStopSpeaking", event => {
-      //   console.log("The local user stopped speaking", event.connection);
-      //   // 발화자가 말하기를 멈췄을 때 수행할 작업
-      // });
     }
 
     if (mainStreamManager) {
@@ -947,7 +949,11 @@ const Meeting = () => {
                   <UserVideoComponent
                     streamManager={publisher}
                     socket={socket}
-                    className={publisher.stream.streamId === speakingPublisherId ? "speaking" : ""}
+                    className={
+                      speakingPublisherIds.includes(publisher.stream.streamId)
+                        ? "speaking"
+                        : ""
+                    }
                   />
                 </div>
               ) : null}
@@ -956,16 +962,21 @@ const Meeting = () => {
                   key={sub.stream.streamId}
                   // className={`stream-container col-md-6 col-xs-6 sub ${sub.stream.streamId === speakingPublisherId ? "speaking" : ""} ${getUserGender(sub)}`}
                   className={`stream-container col-md-6 col-xs-6 sub ${getUserGender(sub)}`}
-
                   // onClick={() => handleMainVideoStream(sub)}
                   id={getUserID(sub)}
-                  ref={el => {subRef.current[idx] = el}}
+                  ref={el => {
+                    subRef.current[idx] = el;
+                  }}
                 >
                   <UserVideoComponent
                     key={sub.stream.streamId}
                     streamManager={sub}
                     socket={socket}
-                    className={sub.stream.streamId === speakingPublisherId ? "speaking" : ""}
+                    className={
+                      speakingPublisherIds.includes(sub.stream.streamId)
+                        ? "speaking"
+                        : ""
+                    }
                   />
                 </div>
               ))}
