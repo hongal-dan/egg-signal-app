@@ -14,7 +14,15 @@ export const onlineListState = atom<string[]>({
   default: [],
 });
 
-export const notiListState = atom<string[]>({
+interface Notification {
+  _id: string;
+  from: string;
+  createdAt: string;
+  updatedAt: string;
+  __v: number;
+}
+
+export const notiListState = atom<Notification[]>({
   key: "notiListState",
   default: [],
 });
