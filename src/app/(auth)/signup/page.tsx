@@ -20,7 +20,8 @@ const validationSchema = Yup.object().shape({
   userName: Yup.string()
     .min(2, "닉네임은 최소 2자여야 합니다")
     .max(10, "닉네임은 10자를 넘을 수 없습니다.")
-    .required("닉네임은 필수 항목입니다"),
+    .required("닉네임은 필수 항목입니다")
+    .notOneOf(['MALE', 'FEMALE', 'male', 'female'], "사용할 수 없는 닉네임입니다."),
   password: Yup.string()
     .matches(
       /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{4,10}$/,
