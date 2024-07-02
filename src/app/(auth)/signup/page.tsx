@@ -45,6 +45,8 @@ export default function Signup() {
     confirmPassword: "",
   };
 
+  const errorStyle = "text-red-500 text-sm font-medium mt-1 ml-2";
+
   const handleSignUp = async (values: FormValues) => {
     const request = {
       id: values.id,
@@ -87,7 +89,7 @@ export default function Signup() {
                   name="id"
                   className="border border-gray-300 text-gray-900 rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
                 />
-                <ErrorMessage className="error" name="id" />
+                <ErrorMessage className={`error ${errorStyle}`} component="p" name="id" />
               </div>
               <div>
                 <label>Username</label>
@@ -95,7 +97,7 @@ export default function Signup() {
                   name="userName"
                   className="border border-gray-300 text-gray-900 rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
                 />
-                <ErrorMessage className="error" name="userName" />
+                <ErrorMessage className={`error ${errorStyle}`} component="p" name="userName" />
               </div>
               <div>
                 <label>Gender</label>
@@ -111,7 +113,7 @@ export default function Signup() {
                   type="password"
                   className="border border-gray-300 text-gray-900 rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
                 />
-                <ErrorMessage className="error" name="password" />
+                <ErrorMessage className={`error ${errorStyle}`} component="p" name="password" />
               </div>
               <div>
                 <label>Password Confirm</label>
@@ -120,7 +122,7 @@ export default function Signup() {
                   type="password"
                   className="border border-gray-300 text-gray-900 rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
                 />
-                <ErrorMessage className="error" name="confirmPassword" />
+                <ErrorMessage className={`error ${errorStyle}`} component="p" name="confirmPassword" />
               </div>
 
               <div className="w-full flex justify-center">
