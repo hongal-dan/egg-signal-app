@@ -187,6 +187,7 @@ const MainContent = ({ userInfo }: MainContentProps) => {
   const handleLoadingOn: React.MouseEventHandler<HTMLButtonElement> = () => {
     socket?.emit("ready", {
       participantName: `${userInfo.nickname}-${randomNum}`,
+      gender: userInfo.gender,
     });
     if (startButton.current) startButton.current.disabled = true;
     setIsLoading(true);
