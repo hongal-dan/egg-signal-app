@@ -62,6 +62,10 @@ video {
   position: relative;
   grid-template-columns: 1fr 1fr;
   grid-template-rows: 1fr 1fr 1fr;
+  grid-template-areas:
+    "a d"
+    "b e"
+    "c f";
   gap: 20px 20vw;
   margin: 0 20vw;
   min-width: 40vw;

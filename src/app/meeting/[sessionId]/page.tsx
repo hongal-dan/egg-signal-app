@@ -19,6 +19,7 @@ import { avatarState } from "@/app/store/avatar";
 import { keywords } from "../../../../public/data/keywords.js";
 import AvatarCollection from "@/containers/main/AvatarCollection";
 import { userState } from "@/app/store/userInfo";
+import CanvasModal from "@/containers/meeting/CanvasModal";
 
 // type Props = {
 //   sessionId: string;
@@ -43,6 +44,7 @@ const Meeting = () => {
   const [speakingPublisherIds, setSpeakingPublisherIds] = useState<string[]>(
     [],
   );
+  const [isCanvasModalOpen, setIsCanvasModalOpen] = useState<boolean>(false);
 
   // const [isLoveMode, setIsLoveMode] = useState<boolean>(false);
   // const [isChooseMode, setIsChooseMode] = useState<boolean>(false);
@@ -352,10 +354,15 @@ const Meeting = () => {
       canvas.style.width = "100%";
       canvas.style.height = "100%";
     });
-    // if (!isLoveMode) {
+
+    const videoArray = Array.from(subRef.current);
+    videoArray.unshift(pubRef.current);
+    videoArray.forEach((video, idx) => {
+      video?.classList.add(String.fromCharCode(97 + idx));
+    });
+
     videoContainerRef.current?.classList.add("love-stick");
     showArrow(datas);
-    // setIsLoveMode(true);
     return;
     // }
     // videoContainer.classList.remove("love-stick");
@@ -369,6 +376,11 @@ const Meeting = () => {
     //   console.log("에그시그널 결과라고 p태그 변경한거 삭제함");
     // }
     console.log("사랑의 작대기 모드 해제");
+    const videoArray = Array.from(subRef.current);
+    videoArray.unshift(pubRef.current);
+    videoArray.forEach((video, idx) => {
+      video?.classList.remove(String.fromCharCode(97 + idx));
+    });
     videoContainerRef.current?.classList.remove("love-stick");
     hideArrow();
   };
@@ -549,16 +561,28 @@ const Meeting = () => {
           }
           openKeyword(keywordIdx);
           // todo1: random user nickname(pickUser) 으로 video 찾아서 발표자 화면 출력하기
-          const presenterElement = Array.prototype.filter.call(
-            streamElements,
-            function (element) {
-              const nestedDiv = element.querySelector(
-                `div > div[id=${pickUser}]`,
-              );
-              return nestedDiv !== null;
-            },
-          )[0];
-          changePresentationMode(presenterElement, 10);
+          // const presenterElement = Array.prototype.filter.call(
+          //   streamElements,
+          //   function (element) {
+          //     const nestedDiv = element.querySelector(
+          //       `div > div[id=${pickUser}]`,
+          //     );
+          //     console.log("선택한 발표자 태그는 이거==============", nestedDiv);
+          //     return nestedDiv !== null;
+          //   },
+          // )[0];
+          // console.log("선택한 발표자 태그는 이거==============", presenterElement[0]);
+          if (pubRef.current?.classList.contains(pickUser)) {
+            changePresentationMode(pubRef.current, 10);
+          } else {
+            const presenterElement = subRef.current?.filter(
+              sub => sub?.id === pickUser,
+            )[0];
+            console.log(presenterElement);
+            if (presenterElement) {
+              changePresentationMode(presenterElement, 10);
+            }
+          }
         }, animationDuration);
       }, currentDuration - 10);
     };
@@ -615,6 +639,10 @@ const Meeting = () => {
           console.log("원 위치로 변경");
           // undoLoveStickMode(response.messageas as Array<chooseResult>);
           undoLoveStickMode();
+          if (keywordRef.current) {
+            console.log("잠시 후 1:1대화가 시작된다는 멘트 ");
+            keywordRef.current.innerText = "잠시 후 1:1대화가 시작됩니다.";
+          }
         }, 10000); // 10초 후 원 위치
       } catch (e: any) {
         console.error(e);
@@ -702,7 +730,7 @@ const Meeting = () => {
               unMuteAudio();
             }, 60000); // 1분 후 음소거 해제
           }
-        }, 10000);
+        }, 13000); // 결과 도착 후 13초뒤에 1:1 대화 진행
       } catch (e: any) {
         console.error(e);
       }
@@ -716,6 +744,12 @@ const Meeting = () => {
       } catch (e: any) {
         console.error(e);
       }
+    });
+
+    /**사생대회 모달 */
+    socket?.on("drawingContest", response => {
+      console.log("drawingContest 도착", response);
+      setIsCanvasModalOpen(true);
     });
 
     // 자기소개 시간
@@ -983,6 +1017,9 @@ const Meeting = () => {
             </div>
           </div>
         </div>
+      )}
+      {isCanvasModalOpen && (
+        <CanvasModal onClose={() => setIsCanvasModalOpen(false)} />
       )}
       {!isOpenCam ? (
         <div ref={captureRef} className="hidden">
