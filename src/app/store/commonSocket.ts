@@ -8,3 +8,13 @@ export const commonSocketState = atom<Socket | null>({
   default: null,
   dangerouslyAllowMutability: true,
 });
+
+export const onlineListState = atom<string[]>({
+  key: "onlineListState",
+  default: [],
+});
+
+export const notiListState = atom<string[]>({
+  key: "notiListState",
+  default: [],
+});
