@@ -82,7 +82,49 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
     context.fillRect(0, 0, canvas.width, canvas.height);
   };
 
-  return <div></div>;
+  return (
+    <div className="canvas-modal">
+      <div className="canvas-modal-content">
+        <span className="canvas-close" onClick={onClose}>
+          &times;
+        </span>
+        {currentStage === "drawing" && (
+          <div className="flex flex-col justify-center items-center">
+            <canvas
+              ref={canvasRef}
+              onMouseDown={startDrawing}
+              onMouseUp={finishDrawing}
+              onMouseMove={draw}
+            />
+            <div>
+              {["red", "orange", "green", "blue", "black", "white"].map(col => (
+                <button
+                  key={col}
+                  onClick={() => setColor(col)}
+                  style={{ backgroundColor: col, margin: "0 5px" }}
+                ></button>
+              ))}
+            </div>
+            <div>
+              <label>굵기</label>
+              {[5, 8, 12].map(size => (
+                <button
+                  key={size}
+                  onClick={() => setBrushSize(size)}
+                  style={{ margin: "0 5px" }}
+                >
+                  {size}px
+                </button>
+              ))}
+            </div>
+            <div>
+              <button onClick={clearCanvas}>전부 지우기</button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
 };
 
 export default CanvasModal;
