@@ -20,6 +20,10 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
   const [drawings, setDrawings] = useState<Record<string, string>>({});
   const [voteResults, setVoteResults] = useState<string | null>(null);
   const [selectedUser, setSelectedUser] = useState<string | null>(null);
+  const [finalResults, setFinalResults] = useState<{
+    winners: string[];
+    losers: string[];
+  } | null>(null);
   const [hasVoted, setHasVoted] = useState(false);
   const [currentStage, setCurrentStage] = useState("drawing");
 
@@ -60,6 +64,11 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
       const { winner } = results;
       setVoteResults(winner);
       setCurrentStage("winnerChoice");
+    });
+
+    socket.on("finalResults", results => {
+      setFinalResults(results);
+      setCurrentStage("final");
     });
 
     return () => {
@@ -149,6 +158,23 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
       setHasVoted(true);
     } else {
       alert("투표할 그림을 골라주세요.");
+    }
+  };
+
+  const handleWinnerPrizeSubmit = () => {
+    if (selectedUser) {
+      const winners = [voteResults!, selectedUser];
+      const losers = Object.keys(drawings).filter(
+        user => !winners.includes(user),
+      );
+      socket.emit("winnerPrize", {
+        winners,
+        losers,
+      });
+      setFinalResults({ winners, losers });
+      setCurrentStage("final");
+    } else {
+      alert("왜 아무도안골라");
     }
   };
 
