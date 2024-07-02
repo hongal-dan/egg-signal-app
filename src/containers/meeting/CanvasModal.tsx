@@ -18,6 +18,8 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
   const [color, setColor] = useState("black");
   const [brushSize, setBrushSize] = useState(8);
   const [drawings, setDrawings] = useState<Record<string, string>>({});
+  const [selectedUser, setSelectedUser] = useState<string | null>(null);
+  const [hasVoted, setHasVoted] = useState(false);
   const [currentStage, setCurrentStage] = useState("drawing");
 
   const socket = useRecoilValue(meetingSocketState)!;
@@ -125,6 +127,36 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
     });
   };
 
+  const handleVoteSubmit = () => {
+    if (hasVoted) {
+      alert("투표는 한번만이에요");
+      return;
+    }
+
+    if (selectedUser) {
+      socket.emit("submitVote", {
+        userName: userInfo?.nickname,
+        votedUser: selectedUser,
+      });
+      setSelectedUser(null);
+      setHasVoted(true);
+    } else {
+      alert("투표할 그림을 골라주세요.");
+    }
+  };
+
+  const renderDrawings = () => {
+    return Object.entries(drawings).map(([user, drawing], index) => (
+      <div
+        key={index}
+        className={`canvas-grid-item ${selectedUser === user ? "selected" : ""}`}
+        onClick={() => setSelectedUser(user)}
+      >
+        <img src={drawing} />
+      </div>
+    ));
+  };
+
   return (
     <div className="canvas-modal">
       <div className="canvas-modal-content">
@@ -165,6 +197,14 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
             </div>
             <button onClick={handleForwardDrawing}>그림 제출</button>
           </div>
+        )}
+
+        {currentStage === "voting" && (
+          <>
+            <h2>그림을 골라보세요</h2>
+            <div className="canvas-grid-container">{renderDrawings()}</div>
+            <button onClick={handleVoteSubmit}>투표 출발</button>
+          </>
         )}
       </div>
     </div>
