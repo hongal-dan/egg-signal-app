@@ -18,6 +18,7 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
   const [color, setColor] = useState("black");
   const [brushSize, setBrushSize] = useState(8);
   const [drawings, setDrawings] = useState<Record<string, string>>({});
+  const [voteResults, setVoteResults] = useState<string | null>(null);
   const [selectedUser, setSelectedUser] = useState<string | null>(null);
   const [hasVoted, setHasVoted] = useState(false);
   const [currentStage, setCurrentStage] = useState("drawing");
@@ -53,6 +54,12 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
       });
       setDrawings(updatedDrawings);
       setCurrentStage("voting");
+    });
+
+    socket.on("voteResults", results => {
+      const { winner } = results;
+      setVoteResults(winner);
+      setCurrentStage("winnerChoice");
     });
 
     return () => {
@@ -204,6 +211,18 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
             <h2>그림을 골라보세요</h2>
             <div className="canvas-grid-container">{renderDrawings()}</div>
             <button onClick={handleVoteSubmit}>투표 출발</button>
+          </>
+        )}
+
+        {currentStage === "winnerChoice" && voteResults && (
+          <>
+            <h2>투표 결과</h2>
+            <div>1등은 {voteResults}입니다~</div>
+            {userInfo?.nickname === voteResults && (
+              <div>
+                <h3>같이 있고 싶은 사람을 골라보세요</h3>
+              </div>
+            )}
           </>
         )}
       </div>
