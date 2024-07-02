@@ -12,6 +12,7 @@ type CanvasModalProps = {
 const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const contextRef = useRef<CanvasRenderingContext2D | null>(null);
+  const [isDrawing, setIsDrawing] = useState(false);
   const [color] = useState("black");
   const [brushSize] = useState(8);
   const [, setCurrentStage] = useState("drawing");
@@ -53,6 +54,33 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
       contextRef.current.lineWidth = brushSize;
     }
   }, [brushSize]);
+
+  const startDrawing = ({ nativeEvent }: React.MouseEvent) => {
+    const { offsetX, offsetY } = nativeEvent;
+    contextRef.current!.beginPath();
+    contextRef.current!.moveTo(offsetX * (270 / 360), offsetY * (240 / 320));
+    setIsDrawing(true);
+  };
+
+  const finishDrawing = () => {
+    contextRef.current!.closePath();
+    setIsDrawing(false);
+  };
+
+  const draw = ({ nativeEvent }: React.MouseEvent) => {
+    if (!isDrawing) return;
+    const { offsetX, offsetY } = nativeEvent;
+    contextRef.current!.lineTo(offsetX * (270 / 360), offsetY * (240 / 320));
+    contextRef.current!.stroke();
+  };
+
+  const clearCanvas = () => {
+    const canvas = canvasRef.current!;
+    const context = contextRef.current!;
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    context.fillStyle = "#f0f0f0";
+    context.fillRect(0, 0, canvas.width, canvas.height);
+  };
 
   return <div></div>;
 };
