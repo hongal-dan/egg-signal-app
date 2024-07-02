@@ -182,7 +182,9 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
     return Object.entries(drawings).map(([user, drawing], index) => (
       <div
         key={index}
-        className={`canvas-grid-item ${selectedUser === user ? "selected" : ""}`}
+       cosnt canvasClass = (selectedUser === user) ? "selected" : "";
+
+        className={`canvas-grid-item ${cavasClass}`}
         onClick={() => setSelectedUser(user)}
       >
         <img src={drawing} />
