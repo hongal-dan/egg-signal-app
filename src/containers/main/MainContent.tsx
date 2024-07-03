@@ -176,7 +176,6 @@ const MainContent = ({ userInfo }: MainContentProps) => {
 
     // 내가 접속하기 전부터 접속한 친구 확인용
     newCommonSocket.on("friendStat", res => {
-      console.log("friend state: ", res);
       const onlineList = localStorage.getItem("onlineFriends");
       if (!onlineList || onlineList.length === 0) {
         const newList: string[] = [];
@@ -187,6 +186,7 @@ const MainContent = ({ userInfo }: MainContentProps) => {
           }
         });
         console.log("friend state new List!!", newList);
+        setOnlineList(newList);
         localStorage.setItem("onlineFriends", JSON.stringify(newList));
       } else {
         const prevList = JSON.parse(onlineList);
