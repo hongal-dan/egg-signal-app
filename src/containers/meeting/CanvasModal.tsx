@@ -229,7 +229,7 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
   };
 
   const renderWinnerChoiceOptions = () => {
-    const otherUsers = Object.keys(drawings).filter(
+    const otherUsers = Object.keys(capturedPhoto).filter(
       user => user !== voteResults,
     );
     return otherUsers.map((user, index) => (
@@ -238,7 +238,7 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
         className={`canvas-grid-item ${selectedUser === user ? "selected" : ""}`}
         onClick={() => setSelectedUser(user)}
       >
-        <img src={drawings[user]} /> // FIXME 비디오 띄워주세요
+        <img src={capturedPhoto[user]} />
       </div>
     ));
   };
