@@ -10,6 +10,7 @@ import {
   StreamManager,
   Device,
   PublisherSpeakingEvent,
+  Subscriber,
 } from "openvidu-browser";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
@@ -132,26 +133,75 @@ const Meeting = () => {
     }
   };
 
-  const muteAudio = () => {
-    if (publisher) {
-      // 오디오 트랙 비활성화
-      const audioTracks = publisher.stream.getMediaStream().getAudioTracks();
-      audioTracks.forEach(track => {
-        track.enabled = false;
-        track.stop();
-      });
-      console.log("Audio tracks disabled");
+  // const muteAudio = () => {
+  //   if (publisher) {
+  //     // 오디오 트랙 비활성화
+  //     const audioTracks = publisher.stream.getMediaStream().getAudioTracks();
+  //     audioTracks.forEach(track => {
+  //       track.enabled = false;
+  //       track.stop();
+  //     });
+  //     console.log("Audio tracks disabled");
+  //   }
+  // };
+
+  // const unMuteAudio = () => {
+  //   if (publisher) {
+  //     const audioTracks = publisher.stream.getMediaStream().getAudioTracks();
+  //     audioTracks.forEach(track => {
+  //       track.enabled = true;
+  //     });
+  //     console.log("Audio tracks enabled");
+  //   }
+  // };
+
+  // 오디오 차단 관련
+  const getKeyById = (id: string) => {
+    const element = document.getElementById(id);
+    if (element) {
+      return element.getAttribute("data-key");
+    } else {
+      console.error("Element with id", id, "not found.");
+      return null;
     }
   };
 
-  const unMuteAudio = () => {
-    if (publisher) {
-      const audioTracks = publisher.stream.getMediaStream().getAudioTracks();
-      audioTracks.forEach(track => {
-        track.enabled = true;
-      });
-      console.log("Audio tracks enabled");
-    }
+  const muteLoserAudio = (partnerName: string) => {
+    const partnerStreamId = getKeyById(partnerName);
+    subscribers.forEach(sub => {
+      if (sub.stream.streamId !== partnerStreamId) {
+        (sub as Subscriber).subscribeToAudio(false);
+      }
+    });
+  };
+
+  const unMuteLoserAudio = (partnerName: string) => {
+    const partnerStreamId = getKeyById(partnerName);
+    subscribers.forEach(sub => {
+      if (sub.stream.streamId !== partnerStreamId) {
+        (sub as Subscriber).subscribeToAudio(true);
+      }
+    });
+  };
+
+  const muteLoverAudio = (loser: string[]) => {
+    loser.forEach(loserName => {
+      const loserStreamId = getKeyById(loserName);
+      const loserStream = subscribers.filter(
+        sub => sub.stream.streamId === loserStreamId,
+      )[0];
+      (loserStream as Subscriber).subscribeToAudio(false);
+    });
+  };
+
+  const unMuteLoverAudio = (loser: string[]) => {
+    loser.forEach(loserName => {
+      const loserStreamId = getKeyById(loserName);
+      const loserStream = subscribers.filter(
+        sub => sub.stream.streamId === loserStreamId,
+      )[0];
+      (loserStream as Subscriber).subscribeToAudio(true);
+    });
   };
 
   const joinSession = () => {
@@ -668,6 +718,7 @@ const Meeting = () => {
             document.getElementsByClassName("sub"),
           );
           if (lover != "0") {
+            muteLoserAudio(lover); // 나머지 오디오 차단
             console.log("이거도 없니?", keywordRef.current);
             if (keywordRef.current) {
               console.log("즐거운 시간 보내라고 p 태그 변경");
@@ -693,6 +744,7 @@ const Meeting = () => {
                 console.log("즐거운시간 삭제");
               }
               undoOneToOneMode(loverElement);
+              unMuteLoserAudio(lover); // 나머지 오디오 재개
               subElements.forEach(subElement => {
                 if (subElement === loverElement) {
                   return;
@@ -705,6 +757,7 @@ const Meeting = () => {
           else {
             // const pubElement = document.getElementsByClassName("pub")[0] as HTMLDivElement;
             // pubElement.classList.toggle("black-white");
+            muteLoverAudio(loser); // 매칭된 사람들 오디오 차단
             if (keywordRef.current) {
               keywordRef.current.innerText =
                 "당신은 선택받지 못했습니다. 1분 간 오디오가 차단됩니다.";
@@ -721,13 +774,14 @@ const Meeting = () => {
                 loserElement.classList.toggle("black-white");
               }, 60000); // 1분 후 흑백 해제
             });
-            muteAudio();
+            // muteAudio();
             setTimeout(() => {
               if (keywordRef.current) {
                 keywordRef.current.innerText = "";
                 console.log("미선택자 p태그 초기화", keywordRef.current);
               }
-              unMuteAudio();
+              // unMuteAudio();
+              unMuteLoverAudio(loser); // 오디오 재개
             }, 60000); // 1분 후 음소거 해제
           }
         }, 13000); // 결과 도착 후 13초뒤에 1:1 대화 진행
@@ -994,6 +1048,7 @@ const Meeting = () => {
               {sortedSubscribers.map((sub, idx) => (
                 <div
                   key={sub.stream.streamId}
+                  data-key={sub.stream.streamId}
                   // className={`stream-container col-md-6 col-xs-6 sub ${sub.stream.streamId === speakingPublisherId ? "speaking" : ""} ${getUserGender(sub)}`}
                   className={`stream-container col-md-6 col-xs-6 sub ${getUserGender(sub)}`}
                   // onClick={() => handleMainVideoStream(sub)}
