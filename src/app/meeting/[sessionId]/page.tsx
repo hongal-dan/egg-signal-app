@@ -90,13 +90,15 @@ const Meeting = () => {
     );
   };
 
-  const captureCanvas = () => {
+  const captureCanvas = async () => {
     console.log("캡쳐 시작");
-    const canvas = document.querySelector("canvas");
+    const canvas = captureRef.current?.querySelector("canvas") as HTMLCanvasElement;
+
     if (!canvas) {
-      console.error("Canvas element not found");
+      console.error("캔버스 업슴!!!");
       return;
     }
+
     const stream = canvas?.captureStream(15); // 30 FPS로 캡처
     if (!stream) {
       console.error("Stream not found");
@@ -208,7 +210,7 @@ const Meeting = () => {
         gender: userInfo?.gender as string,
       })
       .then(async () => {
-        const arStream = captureCanvas();
+        const arStream = await captureCanvas();
         const publisher = await OV.initPublisherAsync(undefined, {
           audioSource: undefined,
           // videoSource: undefined, // todo : 테스트용이라 다시 arStream으로 변경
@@ -904,7 +906,7 @@ const Meeting = () => {
   }, [publisher]);
 
   const getUserID = (person: StreamManager): string => {
-    const idMatch = person.stream.connection.data.match(
+    const idMatch = person?.stream.connection.data.match(
       /"clientData":"([a-zA-Z0-9-]+)"/,
     );
     const id = idMatch ? idMatch[1] : "";
@@ -912,7 +914,7 @@ const Meeting = () => {
   };
 
   const getUserGender = (person: StreamManager): string => {
-    const genderMatch = person.stream.connection.data.match(
+    const genderMatch = person?.stream.connection.data.match(
       /"gender":"(MALE|FEMALE)"/,
     );
     const gender = genderMatch ? genderMatch[1] : "";

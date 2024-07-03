@@ -128,7 +128,8 @@ function UserVideoComponent2() {
 
     const { renderer, scene, camera } = mindarThree;
     // 기본 배경색으로 변경
-    renderer.setClearColor(0xfae4c9, 1);
+    // renderer.setClearColor(0xfae4c9, 1);
+    renderer.setClearColor(0x000000, 0);
     const light = new THREE.HemisphereLight(0xffffff, 0xbbbbff, 2.5);
     scene.add(light);
 
@@ -142,8 +143,20 @@ function UserVideoComponent2() {
         /// 앵커에 아바타 추가
         anchor.group.add(avatar!.gltf.scene);
       }
-
+    
       await mindarThree.start();
+    
+      const video = document.querySelector('video');
+      if (!video) {
+        console.error('비디오 없음!!!');
+        return;
+      }
+
+      const videoTexture = new THREE.VideoTexture(video);
+      videoTexture.wrapS = THREE.RepeatWrapping;
+      videoTexture.repeat.x = -1; // 텍스처 좌우 반전
+
+      scene.background = videoTexture;
 
       // 받은 정보로 프레임마다 아바타 모양 렌더링
       renderer.setAnimationLoop(() => {
@@ -157,10 +170,7 @@ function UserVideoComponent2() {
     };
 
     setup();
-    // const canvas = document.querySelector("canvas");
-    // if (canvas) {
-    //   canvas.style.backgroundColor = "#fae4c9";
-    // }
+
     return () => {
       renderer.setAnimationLoop(null);
 
