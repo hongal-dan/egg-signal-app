@@ -90,7 +90,7 @@ const Meeting = () => {
     );
   };
 
-  const captureCanvas = async () => {
+  const captureCanvas = () => {
     console.log("캡쳐 시작");
     const canvas = captureRef.current?.querySelector("canvas") as HTMLCanvasElement;
 
@@ -210,7 +210,7 @@ const Meeting = () => {
         gender: userInfo?.gender as string,
       })
       .then(async () => {
-        const arStream = await captureCanvas();
+        const arStream = captureCanvas();
         const publisher = await OV.initPublisherAsync(undefined, {
           audioSource: undefined,
           // videoSource: undefined, // todo : 테스트용이라 다시 arStream으로 변경
