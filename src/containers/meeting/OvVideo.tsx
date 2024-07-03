@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import React from "react";
 import { StreamManager } from "openvidu-browser";
@@ -26,17 +26,20 @@ const OpenViduVideoComponent = (props: Props) => {
 
   const handleChoose = () => {
     const myName = document.querySelector(".pub")?.querySelector(".nickname");
+    console.log(myName?.textContent);
     const currentNickname = containerRef.current
       ?.closest(".streamcomponent")
       ?.querySelector(".nickname");
     console.log(currentNickname?.textContent);
-    const currStreamContainer = containerRef.current?.closest(".stream-container");
+    // const currStreamContainer = containerRef.current?.closest(".stream-container");
     if (isChosen) {
-      currStreamContainer!.classList.remove("chosen-stream");
+      containerRef.current!.classList.remove("chosen-stream");
+      videoRef.current!.classList.remove("opacity");
       setIsChosen(false);
       return;
     }
-    currStreamContainer!.classList.add("chosen-stream");
+    containerRef.current!.classList.add("chosen-stream");
+    videoRef.current!.classList.add("opacity");
     socket.emit("choose", {
       sender: myName?.textContent,
       receiver: currentNickname?.textContent,

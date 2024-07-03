@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { RequestCookie } from "next/dist/compiled/@edge-runtime/cookies";
 import MainContent from "@/containers/main/MainContent";
 import { getUserInfo } from "@/services/users";
+import ServerError from "@/containers/error/ServerError";
 
 const Main = async () => {
   const cookieStore = cookies();
@@ -47,7 +48,7 @@ const Main = async () => {
       {token && currentUser ? (
         <MainContent userInfo={currentUser} />
       ) : (
-        <div>Redirecting...</div>
+        <ServerError />
       )}
     </div>
   );

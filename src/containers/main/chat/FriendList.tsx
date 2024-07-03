@@ -1,29 +1,34 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import Friend from "./Friend";
 import Chat from "./Chat";
-import { userState } from "@/app/store/userInfo";
-import { commonSocketState } from "@/app/store/commonSocket";
+import { commonSocketState, onlineListState } from "@/app/store/commonSocket";
 import { newMessageSenderState } from "@/app/store/chat";
-import { useRecoilValue } from "recoil";
-
-interface FriendListProps {
-  onClose: () => void;
-}
+import { useRecoilState, useRecoilValue } from "recoil";
 
 interface Friend {
   friend: string;
   chatRoomId: string;
 }
 
-const FriendList: React.FC<FriendListProps> = ({ onClose }) => {
-  const currentUser = useRecoilValue(userState);
+interface FriendListPros {
+  friendsList: Friend[];
+}
+
+const FriendList: React.FC<FriendListPros> = ({ friendsList }) => {
   const commonSocket = useRecoilValue(commonSocketState);
-  const newMessageSenders = useRecoilValue(newMessageSenderState);
+  const onlineList = useRecoilValue(onlineListState);
+  const [newMessageSenders, setNewMessageSenders] = useRecoilState(
+    newMessageSenderState,
+  );
   const [selectedFriend, setSelectedFriend] = useState<Friend | null>(null);
   const [isChatVisible, setIsChatVisible] = useState<boolean>(false);
 
   const toggleChat = (friend: Friend) => {
+    if (!isChatVisible) {
+      setNewMessageSenders(prev => prev.filter(p => p !== friend.chatRoomId));
+    }
+
     setSelectedFriend(friend);
     setIsChatVisible(prev => {
       if (prev === true) {
@@ -46,24 +51,25 @@ const FriendList: React.FC<FriendListProps> = ({ onClose }) => {
     setIsChatVisible(false);
   };
 
-  useEffect(() => {
-    console.log(newMessageSenders);
-  });
+  const checkFriendOnline = (friendNickName: string) => {
+    return onlineList.includes(friendNickName);
+  };
 
   return (
-    <div className="w-72 h-[700px] overflow-auto">
-      <div className="text-end">
-        <button onClick={onClose} className="font-bold">
-          ✕
-        </button>
-      </div>
-      {currentUser?.friends.map((friend, index) => (
+    <div
+      className={`w-72 h-[700px] overflow-auto ${friendsList && friendsList.length > 0 ? "scrollbar-custom" : "scrollbar-hide"}`}
+    >
+      {friendsList.map((friend, index) => (
         <div key={index} className="relative">
-          {newMessageSenders &&
+          {newMessageSenders.length !== 0 &&
             newMessageSenders.find(el => el === friend.chatRoomId) && (
               <div className="absolute left-0 top-0 w-3 h-3 rounded-full bg-red-600" />
             )}
-          <Friend friend={friend} onChat={() => toggleChat(friend)} />
+          <Friend
+            friend={friend}
+            onChat={() => toggleChat(friend)}
+            isOnline={checkFriendOnline(friend.friend)}
+          />
         </div>
       ))}
       {isChatVisible && selectedFriend && (

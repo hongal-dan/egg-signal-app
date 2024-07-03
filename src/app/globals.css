@@ -13,11 +13,14 @@ body {
 }
 
 .presentation-mode {
-  @apply grid-cols-5 grid-rows-3;
+  @apply grid-cols-10 grid-rows-4 !important;
+  @apply mx-[20vw] !important;
   grid-template-areas:
-    "a a a a a"
-    "a a a a a"
-    "b c d e f";
+    ". a a a a a a a a ."
+    ". a a a a a a a a ."
+    ". a a a a a a a a ."
+    ". a a a a a a a a ."
+    "b b c c d d e e f f";
 }
 
 @layer utilities {

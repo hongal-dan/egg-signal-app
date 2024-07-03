@@ -20,7 +20,11 @@ const validationSchema = Yup.object().shape({
   userName: Yup.string()
     .min(2, "닉네임은 최소 2자여야 합니다")
     .max(10, "닉네임은 10자를 넘을 수 없습니다.")
-    .required("닉네임은 필수 항목입니다"),
+    .required("닉네임은 필수 항목입니다")
+    .notOneOf(
+      ["MALE", "FEMALE", "male", "female"],
+      "사용할 수 없는 닉네임입니다.",
+    ),
   password: Yup.string()
     .matches(
       /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{4,10}$/,
@@ -45,6 +49,8 @@ export default function Signup() {
     confirmPassword: "",
   };
 
+  const errorStyle = "text-red-500 text-sm font-medium mt-1 ml-2";
+
   const handleSignUp = async (values: FormValues) => {
     const request = {
       id: values.id,
@@ -53,7 +59,7 @@ export default function Signup() {
       gender: values.gender,
     };
     try {
-      const response = await createUser(request) as Response;
+      const response = (await createUser(request)) as Response;
       console.log(response);
       if (response.status) {
         router.push("/login");
@@ -87,7 +93,11 @@ export default function Signup() {
                   name="id"
                   className="border border-gray-300 text-gray-900 rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
                 />
-                <ErrorMessage className="error" name="id" />
+                <ErrorMessage
+                  className={`error ${errorStyle}`}
+                  component="p"
+                  name="id"
+                />
               </div>
               <div>
                 <label>Username</label>
@@ -95,7 +105,11 @@ export default function Signup() {
                   name="userName"
                   className="border border-gray-300 text-gray-900 rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
                 />
-                <ErrorMessage className="error" name="userName" />
+                <ErrorMessage
+                  className={`error ${errorStyle}`}
+                  component="p"
+                  name="userName"
+                />
               </div>
               <div>
                 <label>Gender</label>
@@ -111,7 +125,11 @@ export default function Signup() {
                   type="password"
                   className="border border-gray-300 text-gray-900 rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
                 />
-                <ErrorMessage className="error" name="password" />
+                <ErrorMessage
+                  className={`error ${errorStyle}`}
+                  component="p"
+                  name="password"
+                />
               </div>
               <div>
                 <label>Password Confirm</label>
@@ -120,7 +138,11 @@ export default function Signup() {
                   type="password"
                   className="border border-gray-300 text-gray-900 rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
                 />
-                <ErrorMessage className="error" name="confirmPassword" />
+                <ErrorMessage
+                  className={`error ${errorStyle}`}
+                  component="p"
+                  name="confirmPassword"
+                />
               </div>
 
               <div className="w-full flex justify-center">

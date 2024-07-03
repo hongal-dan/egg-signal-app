@@ -25,7 +25,7 @@ const createUser = async (request: CreateUser) => {
 
 const loginUser = async (request: LoginUser) => {
   try {
-    const response = await axios.post(`/api/auth/signIn`, request, {
+    const response = await axios.post("/api/auth/signIn", request, {
       withCredentials: true,
     });
     console.log("response = ", response);
@@ -37,7 +37,7 @@ const loginUser = async (request: LoginUser) => {
 
 const logoutUser = async () => {
   try {
-    const response = await axios.get(`/api/auth/signOut`);
+    const response = await axios.get("/api/auth/signOut");
     console.log(response);
   } catch (error) {
     return error;

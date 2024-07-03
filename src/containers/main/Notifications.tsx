@@ -1,29 +1,45 @@
-import Image from "next/image";
-import React from "react";
+"use client";
+import React, { useEffect } from "react";
+import { userState } from "@/app/store/userInfo";
+import { commonSocketState, notiListState } from "@/app/store/commonSocket";
+import { useRecoilState, useRecoilValue } from "recoil";
 
-interface NotificationsProps {
-  onClose: () => void;
+interface Notification {
+  _id: string;
+  from: string;
 }
 
-const Notification: React.FC = () => {
+interface NotificationProps {
+  noti: Notification;
+}
+
+const Notification: React.FC<NotificationProps> = ({ noti }) => {
+  const currentUser = useRecoilValue(userState);
+  const commonSocket = useRecoilValue(commonSocketState);
+  const [notiList, setNotiList] = useRecoilState(notiListState);
+
+  const acceptRequest = () => {
+    if (commonSocket && currentUser) {
+      console.log("친구 수락: ", noti._id);
+      commonSocket.emit("reqAcceptFriend", {
+        userNickname: currentUser.nickname,
+        friendNickname: noti.from,
+        notificationId: noti._id,
+      });
+      setNotiList(notiList.filter(n => n._id !== noti._id));
+    }
+  };
+
   return (
-    // 테스트용 데이터
     <div className="flex gap-[10px] border border-slate-500 bg-white rounded-2xl p-5">
-      <Image
-        src="/img/profile_sample.png"
-        alt="profile"
-        width={70}
-        height={70}
-        className="rounded-xl"
-      />
-      <div className="w-full">
-        <p className="text-center">이름</p>
-        <div className="w-[100%] flex justify-center gap-2">
-          <button className="bg-green-500 text-white rounded-lg text-m px-3">
+      <div className="w-full flex justify-between">
+        <div className="text-center">{noti.from}</div>
+        <div className="flex justify-center gap-2">
+          <button
+            className="bg-green-500 text-white rounded-lg text-m px-3"
+            onClick={acceptRequest}
+          >
             수락
-          </button>
-          <button className="bg-red-500 text-white rounded-lg  text-m px-3">
-            거절
           </button>
         </div>
       </div>
@@ -31,12 +47,19 @@ const Notification: React.FC = () => {
   );
 };
 
-const Notifications: React.FC<NotificationsProps> = () => {
+const Notifications: React.FC = () => {
+  const notiList = useRecoilValue(notiListState);
+  useEffect(() => console.log(notiList));
+
   return (
     <div>
       <p>친구 요청</p>
       <div>
-        <Notification />
+        {notiList.map((noti, i) => (
+          <div key={i}>
+            <Notification noti={noti} />
+          </div>
+        ))}
       </div>
     </div>
   );

@@ -7,10 +7,16 @@ import io from "socket.io-client";
 import { useRouter } from "next/navigation";
 import { useRecoilState } from "recoil";
 import { meetingSocketState } from "@/app/store/socket";
-import { commonSocketState } from "@/app/store/commonSocket";
+import {
+  commonSocketState,
+  notiListState,
+  onlineListState,
+} from "@/app/store/commonSocket";
 import { userState } from "@/app/store/userInfo";
 import { chatRoomState, newMessageSenderState } from "@/app/store/chat";
 import { logoutUser } from "@/services/auth";
+import { Socket } from "socket.io-client";
+import { testState } from "@/app/store/userInfo"; // FIXME 테스트용 랜덤 닉네임 저장, 배포 전에 삭제해야함
 
 interface Friend {
   friend: string;
@@ -29,9 +35,15 @@ interface MainContentProps {
   };
 }
 
+interface Notification {
+  _id: string;
+  from: string;
+}
+
 const MainContent = ({ userInfo }: MainContentProps) => {
+  const [, setTestName] = useRecoilState(testState); // FIXME 테스트용 랜덤 닉네임 저장, 배포 전에 삭제해야함
+
   const router = useRouter();
-  // const [avatarOn, setAvatarOn] = useState<boolean>(true);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isFriendListVisible, setIsFriendListVisible] =
     useState<boolean>(false);
@@ -41,14 +53,23 @@ const MainContent = ({ userInfo }: MainContentProps) => {
 
   const [socket, setSocket] = useRecoilState(meetingSocketState);
   const [commonSocket, setCommonSocket] = useRecoilState(commonSocketState);
-  const [, setCurrentUser] = useRecoilState(userState);
-  setCurrentUser(userInfo);
+  const [currentUser, setCurrentUser] = useRecoilState(userState);
   const enterBtnRef = useRef<HTMLParagraphElement>(null);
   const [isEnterLoading, setIsEnterLoading] = useState<boolean>(false);
   const [newMessageSenders, setNewMessageSenders] = useRecoilState(
     newMessageSenderState,
   );
   const [openedChatRoomId, setOpenedChatRoomId] = useRecoilState(chatRoomState);
+  const [, setOnlineList] = useRecoilState(onlineListState);
+  const [notiList, setNotiList] = useRecoilState(notiListState);
+
+  const checkOnlineFriends = () => {
+    const onlineList = localStorage.getItem("onlineFriends");
+    if (!onlineList || onlineList.length === 0) {
+      return;
+    }
+    setOnlineList(JSON.parse(onlineList));
+  };
 
   // 내가 접속하지 않은 동안 온 메시지가 있으면 알람 표시
   const checkNewMessage = () => {
@@ -64,57 +85,152 @@ const MainContent = ({ userInfo }: MainContentProps) => {
   };
 
   useEffect(() => {
-    if (!socket) {
-      const newSocket = io(`${url}/meeting`, {
-        transports: ["websocket"],
+    setCurrentUser(userInfo);
+    checkNewMessage();
+
+    const newCommonSocket = io(`${url}/common`, {
+      transports: ["websocket"],
+      withCredentials: true,
+    });
+    setCommonSocket(newCommonSocket);
+
+    newCommonSocket.on("connect", () => {
+      newCommonSocket.emit("serverCertificate");
+      newCommonSocket.emit("friendStat");
+      console.log("common connected");
+    });
+
+    newCommonSocket.on("newMessageNotification", (res: string) => {
+      console.log(res, "이가 나한테 메시지 보냄");
+      setNewMessageSenders(prev => [...prev, res]);
+    });
+
+    newCommonSocket.on("friendOnline", (res: string) => {
+      console.log("온라인 유저: ", res);
+      const onlineList = localStorage.getItem("onlineFriends");
+      if (!onlineList || onlineList.length === 0) {
+        localStorage.setItem("onlineFriends", JSON.stringify([res]));
+      } else {
+        const prevList = JSON.parse(onlineList);
+        prevList.push(res);
+        const newList = Array.from(new Set(prevList)) as string[];
+        console.log(newList);
+        localStorage.setItem("onlineFriends", JSON.stringify(newList));
+        setOnlineList(newList);
+      }
+    });
+
+    newCommonSocket.on("friendOffline", (res: string) => {
+      console.log(res, "접속 종료");
+      const onlineList = localStorage.getItem("onlineFriends");
+      if (onlineList) {
+        const prevList = JSON.parse(onlineList);
+        const newList = prevList.filter((el: string) => el !== res);
+        console.log(newList);
+        localStorage.setItem("onlineFriends", JSON.stringify(newList));
+        setOnlineList(newList);
+      }
+    });
+
+    newCommonSocket.emit("reqGetNotifications");
+
+    newCommonSocket.on("resGetNotifications", (res: Notification[]) => {
+      console.log("내 알람?", res);
+      const newNotiList = res.map((r: Notification) => {
+        return {
+          _id: r._id,
+          from: r.from,
+        };
       });
-      setSocket(newSocket);
-    }
-    if (!commonSocket) {
-      const newCommonSocket = io(`${url}/common`, {
+      setNotiList(newNotiList);
+    });
+
+    newCommonSocket.on("newFriendRequest", res => {
+      console.log("새로운 친구 요청", res);
+      const newNoti = { _id: res._id, from: res.userNickname }; // 나한테 요청 보낸 친구
+      setNotiList(prev => [...prev, newNoti]);
+    });
+
+    newCommonSocket.on("resAcceptFriend", res => {
+      console.log("내가 상대방 요청 수락!! ", res);
+      const updateCurrentUser = {
+        id: res.id,
+        nickname: res.nickname,
+        gender: res.gender,
+        newNotification: res.newNotification,
+        notifications: res.notifications,
+        friends: res.friends,
+      };
+      console.log(updateCurrentUser);
+      setCurrentUser(updateCurrentUser);
+      // window.location.reload();
+    });
+
+    newCommonSocket.on("friendRequestAccepted", res => {
+      console.log("상대방이 내 요청 수락!! ", res);
+      setCurrentUser(prevState => ({
+        ...prevState,
+        friends: [...prevState.friends, ...res.friends],
+      }));
+    });
+
+    // 내가 접속하기 전부터 접속한 친구 확인용
+    newCommonSocket.on("friendStat", res => {
+      const onlineList = localStorage.getItem("onlineFriends");
+      if (!onlineList || onlineList.length === 0) {
+        const newList: string[] = [];
+        res.forEach((el: any) => {
+          const key = Object.keys(el)[0];
+          if (el[key]) {
+            newList.push(key);
+          }
+        });
+        console.log("friend state new List!!", newList);
+        setOnlineList(newList);
+        localStorage.setItem("onlineFriends", JSON.stringify(newList));
+      } else {
+        const prevList = JSON.parse(onlineList);
+        res.forEach((el: any) => {
+          const key = Object.keys(el)[0];
+          if (el[key]) {
+            prevList.push(key);
+          }
+        });
+        const newList = Array.from(new Set(prevList)) as string[];
+        console.log("update online list: ", newList);
+        localStorage.setItem("onlineFriends", JSON.stringify(newList));
+        setOnlineList(newList);
+      }
+    });
+  }, []);
+
+  const connectSocket = async () => {
+    return new Promise(resolve => {
+      const newSocket = io(`${url}/meeting`, {
         transports: ["websocket"],
         withCredentials: true,
       });
-      setCommonSocket(newCommonSocket);
-    } else {
-      commonSocket.on("connect", () => {
-        commonSocket.emit("serverCertificate");
-        console.log("common connected");
+      newSocket.on("connect", () => {
+        setSocket(newSocket);
+        resolve(newSocket);
       });
-      checkNewMessage();
-      commonSocket.on("newMessageNotification", res => {
-        console.log(res);
-        if (newMessageSenders === null) {
-          setNewMessageSenders([res]);
-        } else {
-          setNewMessageSenders([...res]);
-        }
-      });
-    }
-  }, [socket, setSocket, commonSocket, setCommonSocket]);
-
-  // const toggleCamera = () => {
-  //   const canvas = document.querySelector("canvas");
-  //   console.log(canvas);
-  //   if (canvas && avatarOn) {
-  //     canvas.style.display = "none";
-  //     setAvatarOn(false);
-  //     return;
-  //   }
-  //   if (canvas) {
-  //     canvas.style.display = "block";
-  //     setAvatarOn(true);
-  //   }
-  // };
+    });
+  };
 
   const randomNum = Math.floor(Math.random() * 1000).toString(); // 테스트용 익명 닉네임 부여
-  const handleLoadingOn: React.MouseEventHandler<HTMLButtonElement> = () => {
-    socket?.emit("ready", {
+  const handleLoadingOn: React.MouseEventHandler<
+    HTMLButtonElement
+  > = async () => {
+    const meetingSocket = (await connectSocket()) as Socket | null;
+    setTestName(`${userInfo.nickname}-${randomNum}`); // FIXME 테스트용 랜덤 닉네임 저장, 배포 전에 삭제해야함
+    console.log("socket: ", meetingSocket);
+    meetingSocket?.emit("ready", {
       participantName: `${userInfo.nickname}-${randomNum}`,
+      gender: userInfo.gender,
     });
     if (startButton.current) startButton.current.disabled = true;
     setIsLoading(true);
-    socket?.on("startCall", async ovInfo => {
+    meetingSocket?.on("startCall", async ovInfo => {
       console.log(ovInfo);
       sessionStorage.setItem("ovInfo", JSON.stringify(ovInfo)); // 세션 스토리지에 저장
       setIsLoading(false);
@@ -135,6 +251,38 @@ const MainContent = ({ userInfo }: MainContentProps) => {
   };
 
   const toggleFriendList = () => {
+    if (!isFriendListVisible) {
+      // if (commonSocket) {
+      //   // 내가 접속하기 전부터 접속한 친구 확인용
+      //   commonSocket.on("friendStat", res => {
+      //     console.log("friend state: ", res);
+      //     const onlineList = localStorage.getItem("onlineFriends");
+      //     if (!onlineList || onlineList.length === 0) {
+      //       const newList: string[] = [];
+      //       res.forEach((el: any) => {
+      //         const key = Object.keys(el)[0];
+      //         if (el[key]) {
+      //           newList.push(key);
+      //         }
+      //       });
+      //       console.log("friend state new List!!", newList);
+      //       localStorage.setItem("onlineFriends", JSON.stringify(newList));
+      //     } else {
+      //       const prevList = JSON.parse(onlineList);
+      //       res.forEach((el: any) => {
+      //         const key = Object.keys(el)[0];
+      //         if (el[key]) {
+      //           prevList.push(key);
+      //         }
+      //       });
+      //       const newList = Array.from(new Set(prevList)) as string[];
+      //       console.log("update online list: ", newList);
+      //       localStorage.setItem("onlineFriends", JSON.stringify(newList));
+      //       setOnlineList(newList);
+      //     }
+      //   });
+      // }
+    }
     setIsFriendListVisible(prev => !prev);
   };
 
@@ -162,8 +310,9 @@ const MainContent = ({ userInfo }: MainContentProps) => {
   const handleLogout = async () => {
     try {
       await logoutUser();
+      localStorage.removeItem("onlineFriends");
       commonSocket?.disconnect();
-      router.push("/login");
+      window.location.reload();
     } catch (error) {
       console.error("Log out Error: ", error);
     }
@@ -171,6 +320,7 @@ const MainContent = ({ userInfo }: MainContentProps) => {
 
   useEffect(() => {
     startWebCam();
+    checkOnlineFriends();
   }, []);
 
   useEffect(() => {
@@ -189,9 +339,6 @@ const MainContent = ({ userInfo }: MainContentProps) => {
     }
   }, [isFriendListVisible]);
 
-  // return avatar == null ? (
-  //   <AvatarCollection />
-  // ) :
   return (
     <div>
       <button
@@ -206,10 +353,13 @@ const MainContent = ({ userInfo }: MainContentProps) => {
             <button>🚨</button>
           </div>
           <div className="w-10 h-10 relative flex items-center justify-center text-xl bg-white rounded-2xl shadow">
+            {notiList.length !== 0 && (
+              <div className="absolute left-[-5px] top-[-5px] w-4 h-4 rounded-full bg-red-600" />
+            )}
             <button onClick={toggleNotiList}>🔔</button>
             {isNotiVisible && (
               <div className="w-[340px] h-[500px] absolute top-0 left-[50px] bg-zinc-200 shadow-md rounded-lg p-4 z-10">
-                <Notifications onClose={() => setIsNotiVisible(false)} />
+                <Notifications />
               </div>
             )}
           </div>
@@ -264,14 +414,14 @@ const MainContent = ({ userInfo }: MainContentProps) => {
             className="relative w-48 h-10 flex items-center justify-center bg-amber-100 rounded-2xl shadow"
             onClick={toggleFriendList}
           >
-            {newMessageSenders && (
+            {newMessageSenders?.length !== 0 && newMessageSenders && (
               <div className="absolute left-[-5px] top-[-5px] w-5 h-5 rounded-full bg-red-600" />
             )}
             <p className="text-xl font-bold">친구</p>
           </button>
           {isFriendListVisible && (
             <div className="absolute bottom-[50px] right-1 bg-white shadow-md rounded-lg p-4 z-10">
-              <FriendList onClose={() => setIsFriendListVisible(false)} />
+              <FriendList friendsList={currentUser.friends} />
             </div>
           )}
         </div>
