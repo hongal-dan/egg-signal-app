@@ -54,7 +54,7 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
       setCurrentStage("drawing");
     });
 
-    socket.on("drawingSubmit", (drawings: Record<string, ArrayBuffer>) => {
+    socket.on("drawingSubmit", (drawings: Record<string, string>) => {
       const updatedDrawings: Record<string, string> = {};
       Object.entries(drawings).forEach(([userName, drawingBuffer]) => {
         const blob = new Blob([drawingBuffer], { type: "image/webp" });
