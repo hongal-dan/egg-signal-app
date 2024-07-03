@@ -167,42 +167,23 @@ const Meeting = () => {
   };
 
   // 내가 매칭 된 경우, 매칭 안 된 참여자들 소리 안 듣기
-  const muteLoserAudio = (partnerName: string) => {
+  const muteLoserAudio = (partnerName: string, flag: boolean) => {
     const partnerStreamId = getKeyById(partnerName);
     subscribers.forEach(sub => {
       if (sub.stream.streamId !== partnerStreamId) {
-        (sub as Subscriber).subscribeToAudio(false);
-      }
-    });
-  };
-
-  const unMuteLoserAudio = (partnerName: string) => {
-    const partnerStreamId = getKeyById(partnerName);
-    subscribers.forEach(sub => {
-      if (sub.stream.streamId !== partnerStreamId) {
-        (sub as Subscriber).subscribeToAudio(true);
+        (sub as Subscriber).subscribeToAudio(flag);
       }
     });
   };
 
   // 내가 매칭 안 된 경우, 매칭 된 참여자들 소리 안 듣기
-  const muteLoverAudio = (loser: string[]) => {
+  const muteLoverAudio = (loser: string[], flag: boolean) => {
     loser.forEach(loserName => {
       const loserStreamId = getKeyById(loserName);
       const loserStream = subscribers.filter(
         sub => sub.stream.streamId !== loserStreamId,
       )[0];
-      (loserStream as Subscriber).subscribeToAudio(false);
-    });
-  };
-
-  const unMuteLoverAudio = (loser: string[]) => {
-    loser.forEach(loserName => {
-      const loserStreamId = getKeyById(loserName);
-      const loserStream = subscribers.filter(
-        sub => sub.stream.streamId !== loserStreamId,
-      )[0];
-      (loserStream as Subscriber).subscribeToAudio(true);
+      (loserStream as Subscriber).subscribeToAudio(flag);
     });
   };
 
@@ -746,7 +727,7 @@ const Meeting = () => {
             document.getElementsByClassName("sub"),
           );
           if (lover != "0") {
-            muteLoserAudio(lover); // 나머지 오디오 차단
+            muteLoserAudio(lover, false); // 나머지 오디오 차단
             console.log("이거도 없니?", keywordRef.current);
             if (keywordRef.current) {
               console.log("즐거운 시간 보내라고 p 태그 변경");
@@ -772,7 +753,7 @@ const Meeting = () => {
                 console.log("즐거운시간 삭제");
               }
               undoOneToOneMode(loverElement);
-              unMuteLoserAudio(lover); // 나머지 오디오 재개
+              muteLoserAudio(lover, true); // 나머지 오디오 재개
               subElements.forEach(subElement => {
                 if (subElement === loverElement) {
                   return;
@@ -785,7 +766,7 @@ const Meeting = () => {
           else {
             // const pubElement = document.getElementsByClassName("pub")[0] as HTMLDivElement;
             // pubElement.classList.toggle("black-white");
-            muteLoverAudio(loser); // 매칭된 사람들 오디오 차단
+            muteLoverAudio(loser, false); // 매칭된 사람들 오디오 차단
             if (keywordRef.current) {
               keywordRef.current.innerText =
                 "당신은 선택받지 못했습니다. 1분 간 오디오가 차단됩니다.";
@@ -809,7 +790,7 @@ const Meeting = () => {
                 console.log("미선택자 p태그 초기화", keywordRef.current);
               }
               // unMuteAudio();
-              unMuteLoverAudio(loser); // 오디오 재개
+              muteLoverAudio(loser, true); // 오디오 재개
             }, 60000); // 1분 후 음소거 해제
           }
         }, 13000); // 결과 도착 후 13초뒤에 1:1 대화 진행
