@@ -173,6 +173,35 @@ const MainContent = ({ userInfo }: MainContentProps) => {
         friends: [...prevState.friends, ...res.friends],
       }));
     });
+
+    // 내가 접속하기 전부터 접속한 친구 확인용
+    newCommonSocket.on("friendStat", res => {
+      console.log("friend state: ", res);
+      const onlineList = localStorage.getItem("onlineFriends");
+      if (!onlineList || onlineList.length === 0) {
+        const newList: string[] = [];
+        res.forEach((el: any) => {
+          const key = Object.keys(el)[0];
+          if (el[key]) {
+            newList.push(key);
+          }
+        });
+        console.log("friend state new List!!", newList);
+        localStorage.setItem("onlineFriends", JSON.stringify(newList));
+      } else {
+        const prevList = JSON.parse(onlineList);
+        res.forEach((el: any) => {
+          const key = Object.keys(el)[0];
+          if (el[key]) {
+            prevList.push(key);
+          }
+        });
+        const newList = Array.from(new Set(prevList)) as string[];
+        console.log("update online list: ", newList);
+        localStorage.setItem("onlineFriends", JSON.stringify(newList));
+        setOnlineList(newList);
+      }
+    });
   }, []);
 
   const connectSocket = async () => {
@@ -222,36 +251,36 @@ const MainContent = ({ userInfo }: MainContentProps) => {
 
   const toggleFriendList = () => {
     if (!isFriendListVisible) {
-      if (commonSocket) {
-        // 내가 접속하기 전부터 접속한 친구 확인용
-        commonSocket.on("friendStat", res => {
-          console.log("friend state: ", res);
-          const onlineList = localStorage.getItem("onlineFriends");
-          if (!onlineList || onlineList.length === 0) {
-            const newList: string[] = [];
-            res.forEach((el: any) => {
-              const key = Object.keys(el)[0];
-              if (el[key]) {
-                newList.push(key);
-              }
-            });
-            console.log("friend state new List!!", newList);
-            localStorage.setItem("onlineFriends", JSON.stringify(newList));
-          } else {
-            const prevList = JSON.parse(onlineList);
-            res.forEach((el: any) => {
-              const key = Object.keys(el)[0];
-              if (el[key]) {
-                prevList.push(key);
-              }
-            });
-            const newList = Array.from(new Set(prevList)) as string[];
-            console.log("update online list: ", newList);
-            localStorage.setItem("onlineFriends", JSON.stringify(newList));
-            setOnlineList(newList);
-          }
-        });
-      }
+      // if (commonSocket) {
+      //   // 내가 접속하기 전부터 접속한 친구 확인용
+      //   commonSocket.on("friendStat", res => {
+      //     console.log("friend state: ", res);
+      //     const onlineList = localStorage.getItem("onlineFriends");
+      //     if (!onlineList || onlineList.length === 0) {
+      //       const newList: string[] = [];
+      //       res.forEach((el: any) => {
+      //         const key = Object.keys(el)[0];
+      //         if (el[key]) {
+      //           newList.push(key);
+      //         }
+      //       });
+      //       console.log("friend state new List!!", newList);
+      //       localStorage.setItem("onlineFriends", JSON.stringify(newList));
+      //     } else {
+      //       const prevList = JSON.parse(onlineList);
+      //       res.forEach((el: any) => {
+      //         const key = Object.keys(el)[0];
+      //         if (el[key]) {
+      //           prevList.push(key);
+      //         }
+      //       });
+      //       const newList = Array.from(new Set(prevList)) as string[];
+      //       console.log("update online list: ", newList);
+      //       localStorage.setItem("onlineFriends", JSON.stringify(newList));
+      //       setOnlineList(newList);
+      //     }
+      //   });
+      // }
     }
     setIsFriendListVisible(prev => !prev);
   };
