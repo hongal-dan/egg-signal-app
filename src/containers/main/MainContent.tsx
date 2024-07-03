@@ -218,8 +218,10 @@ const MainContent = ({ userInfo }: MainContentProps) => {
   };
 
   const randomNum = Math.floor(Math.random() * 1000).toString(); // 테스트용 익명 닉네임 부여
-  const handleLoadingOn: React.MouseEventHandler<HTMLButtonElement> = async () => {
-    const meetingSocket = await connectSocket() as Socket | null;
+  const handleLoadingOn: React.MouseEventHandler<
+    HTMLButtonElement
+  > = async () => {
+    const meetingSocket = (await connectSocket()) as Socket | null;
     setTestName(`${userInfo.nickname}-${randomNum}`); // FIXME 테스트용 랜덤 닉네임 저장, 배포 전에 삭제해야함
     console.log("socket: ", meetingSocket);
     meetingSocket?.emit("ready", {
@@ -310,7 +312,7 @@ const MainContent = ({ userInfo }: MainContentProps) => {
       await logoutUser();
       localStorage.removeItem("onlineFriends");
       commonSocket?.disconnect();
-      router.push("/login");
+      window.location.reload();
     } catch (error) {
       console.error("Log out Error: ", error);
     }
