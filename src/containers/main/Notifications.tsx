@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useEffect } from "react";
 import { userState } from "@/app/store/userInfo";
 import { commonSocketState, notiListState } from "@/app/store/commonSocket";
 import { useRecoilState, useRecoilValue } from "recoil";
@@ -7,23 +7,26 @@ import { useRecoilState, useRecoilValue } from "recoil";
 interface Notification {
   _id: string;
   from: string;
-  createdAt: string;
-  updatedAt: string;
-  __v: number;
 }
 
-const Notification: React.FC<Notification> = noti => {
-  const [currentUser] = useRecoilState(userState);
+interface NotificationProps {
+  noti: Notification;
+}
+
+const Notification: React.FC<NotificationProps> = ({ noti }) => {
+  const currentUser = useRecoilValue(userState);
   const commonSocket = useRecoilValue(commonSocketState);
+  const [notiList, setNotiList] = useRecoilState(notiListState);
 
   const acceptRequest = () => {
     if (commonSocket && currentUser) {
-      console.log("친구 수락");
+      console.log("친구 수락: ", noti._id);
       commonSocket.emit("reqAcceptFriend", {
-        _id: noti._id,
         userNickname: currentUser.nickname,
         friendNickname: noti.from,
+        notificationId: noti._id,
       });
+      setNotiList(notiList.filter(n => n._id !== noti._id));
     }
   };
 
@@ -46,13 +49,16 @@ const Notification: React.FC<Notification> = noti => {
 
 const Notifications: React.FC = () => {
   const notiList = useRecoilValue(notiListState);
+  useEffect(() => console.log(notiList));
 
   return (
     <div>
       <p>친구 요청</p>
       <div>
-        {notiList.map(noti => (
-          <Notification key={noti} noti={noti} />
+        {notiList.map((noti, i) => (
+          <div key={i}>
+            <Notification noti={noti} />
+          </div>
         ))}
       </div>
     </div>

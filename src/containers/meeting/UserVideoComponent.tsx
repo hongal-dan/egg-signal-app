@@ -1,5 +1,5 @@
 "use client";
-import React, { useRef, useEffect } from "react";
+import React, { useRef } from "react";
 import OpenViduVideoComponent from "./OvVideo";
 import { StreamManager } from "openvidu-browser";
 
@@ -20,11 +20,13 @@ export default function UserVideoComponent(props: {
   nickname = JSON.parse(jsonString).clientData;
   // console.log(rawData)
 
-
   return (
     <div>
       {props.streamManager !== undefined ? (
-        <div className={`streamcomponent ${props.className}`} ref={streamComponentRef}>
+        <div
+          className={`streamcomponent ${props.className}`}
+          ref={streamComponentRef}
+        >
           <div className="arrow-container hidden" id="arrow">
             <div className="arrow-body">
               <div className="arrow-head"></div>

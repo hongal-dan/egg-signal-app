@@ -1,0 +1,29 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      golang: latest
+
+  pre_build:
+    commands:
+      - echo ${ECR_LOGIN_URL}
+      - echo ${ECR_REPOSITORY_URI}
+
+      - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin ${ECR_LOGIN_URL}
+
+      # 태그 이름에 Git 커밋 해시를 이용
+      - IMAGE_TAG=$(echo ${CODEBUILD_RESOLVED_SOURCE_VERSION} | cut -c 1-7)
+  build:
+    commands:
+      - docker image build -t ${ECR_REPOSITORY_URI}:${IMAGE_TAG} .
+  post_build:
+    commands:
+      # https://docs.aws.amazon.com/ko_kr/codepipeline/latest/userguide/file-reference.html#pipelines-create-image-definitions
+      - docker image push ${ECR_REPOSITORY_URI}:${IMAGE_TAG}
+      - printf '[{"name":"next-container","imageUri":"%s"}]' $ECR_REPOSITORY_URI:$IMAGE_TAG > imagedefinitions.json
+
+artifacts:
+  files:
+    - imagedefinitions.json
+

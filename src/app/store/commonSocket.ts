@@ -17,9 +17,6 @@ export const onlineListState = atom<string[]>({
 interface Notification {
   _id: string;
   from: string;
-  createdAt: string;
-  updatedAt: string;
-  __v: number;
 }
 
 export const notiListState = atom<Notification[]>({
