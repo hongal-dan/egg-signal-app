@@ -27,6 +27,9 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
     winners: string[];
     losers: string[];
   } | null>(null);
+  const [capturedPhoto, setCapturedPhoto] = useState<Record<string, string>>(
+    {},
+  );
   const [hasVoted, setHasVoted] = useState(false);
   const [currentStage, setCurrentStage] = useState("drawing");
 
@@ -65,11 +68,19 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
       setCurrentStage("voting");
     });
 
-    socket.on("voteResults", results => {
-      const { winner } = results;
-      setVoteResults(winner);
-      setCurrentStage("winnerChoice");
-    });
+    socket.on(
+      "voteResults",
+      (results: { winner: string; photos: Record<string, string> }) => {
+        const { winner, photos } = results;
+        const updatedPhotos: Record<string, string> = {};
+        Object.entries(photos).forEach(([userName, photo]) => {
+          updatedPhotos[userName] = photo;
+        });
+        setVoteResults(winner);
+        setCapturedPhoto(updatedPhotos);
+        setCurrentStage("winnerChoice");
+      },
+    );
 
     socket.on("finalResults", results => {
       setFinalResults(results);
