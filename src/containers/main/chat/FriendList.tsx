@@ -15,18 +15,20 @@ interface FriendListPros {
   friendsList: Friend[];
 }
 
-interface FriendState {
-  [key: string]: boolean;
-}
-
 const FriendList: React.FC<FriendListPros> = ({ friendsList }) => {
   const commonSocket = useRecoilValue(commonSocketState);
-  const newMessageSenders = useRecoilValue(newMessageSenderState);
-  const [onlineList, setOnlineList] = useRecoilState(onlineListState);
+  const onlineList = useRecoilValue(onlineListState);
+  const [newMessageSenders, setNewMessageSenders] = useRecoilState(
+    newMessageSenderState,
+  );
   const [selectedFriend, setSelectedFriend] = useState<Friend | null>(null);
   const [isChatVisible, setIsChatVisible] = useState<boolean>(false);
 
   const toggleChat = (friend: Friend) => {
+    if (!isChatVisible) {
+      setNewMessageSenders(prev => prev.filter(p => p !== friend.chatRoomId));
+    }
+
     setSelectedFriend(friend);
     setIsChatVisible(prev => {
       if (prev === true) {
@@ -59,7 +61,7 @@ const FriendList: React.FC<FriendListPros> = ({ friendsList }) => {
     >
       {friendsList.map((friend, index) => (
         <div key={index} className="relative">
-          {newMessageSenders &&
+          {newMessageSenders.length !== 0 &&
             newMessageSenders.find(el => el === friend.chatRoomId) && (
               <div className="absolute left-0 top-0 w-3 h-3 rounded-full bg-red-600" />
             )}

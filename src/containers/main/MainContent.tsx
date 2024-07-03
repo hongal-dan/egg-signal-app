@@ -83,6 +83,8 @@ const MainContent = ({ userInfo }: MainContentProps) => {
 
   useEffect(() => {
     setCurrentUser(userInfo);
+    checkNewMessage();
+
     const newCommonSocket = io(`${url}/common`, {
       transports: ["websocket"],
       withCredentials: true,
@@ -95,14 +97,9 @@ const MainContent = ({ userInfo }: MainContentProps) => {
       console.log("common connected");
     });
 
-    checkNewMessage();
-    newCommonSocket.on("newMessageNotification", res => {
-      console.log(res);
-      if (newMessageSenders === null) {
-        setNewMessageSenders([res]);
-      } else {
-        setNewMessageSenders([...res]);
-      }
+    newCommonSocket.on("newMessageNotification", (res: string) => {
+      console.log(res, "이가 나한테 메시지 보냄");
+      setNewMessageSenders(prev => [...prev, res]);
     });
 
     newCommonSocket.on("friendOnline", (res: string) => {
