@@ -37,12 +37,10 @@ interface MainContentProps {
 interface Notification {
   _id: string;
   from: string;
-  createdAt: string;
-  updatedAt: string;
-  __v: number;
 }
 
 const MainContent = ({ userInfo }: MainContentProps) => {
+  console.log("친구 목록 부모 메인");
   const router = useRouter();
   // const [avatarOn, setAvatarOn] = useState<boolean>(true);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -62,7 +60,7 @@ const MainContent = ({ userInfo }: MainContentProps) => {
   );
   const [openedChatRoomId, setOpenedChatRoomId] = useRecoilState(chatRoomState);
   const [, setOnlineList] = useRecoilState(onlineListState);
-  const [notiList, setNotiList] = useRecoilState(notiListState);
+  const [, setNotiList] = useRecoilState(notiListState);
 
   const checkOnlineFriends = () => {
     const onlineList = localStorage.getItem("onlineFriends");
@@ -87,10 +85,6 @@ const MainContent = ({ userInfo }: MainContentProps) => {
 
   useEffect(() => {
     setCurrentUser(userInfo);
-  }, []);
-
-  useEffect(() => {
-    console.log("MainContent: ", currentUser);
     const newCommonSocket = io(`${url}/common`, {
       transports: ["websocket"],
       withCredentials: true,
@@ -140,16 +134,22 @@ const MainContent = ({ userInfo }: MainContentProps) => {
 
     newCommonSocket.emit("reqGetNotifications");
 
-    newCommonSocket.on("resGetNotifications", (res: Notification) => {
+    newCommonSocket.on("resGetNotifications", (res: Notification[]) => {
       console.log("내 알람?", res);
+      const newNotiList = res.map((r: Notification) => {
+        return {
+          _id: r._id,
+          from: r.from,
+        };
+      });
       // const newNotiList = res
       // console.log(newNotiList);
-      setNotiList([...notiList, res]);
+      setNotiList(newNotiList);
     });
 
     newCommonSocket.on("newFriendRequest", res => {
       console.log("새로운 친구 요청", res);
-      const newNoti = res.userNickname; // 나한테 요청 보낸 친구
+      const newNoti = { _id: res._id, from: res.userNickname }; // 나한테 요청 보낸 친구
       setNotiList(prev => [...prev, newNoti]);
     });
 
@@ -165,7 +165,7 @@ const MainContent = ({ userInfo }: MainContentProps) => {
       };
       console.log(updateCurrentUser);
       setCurrentUser(updateCurrentUser);
-      window.location.reload();
+      // window.location.reload();
     });
 
     newCommonSocket.on("friendRequestAccepted", res => {
@@ -178,7 +178,7 @@ const MainContent = ({ userInfo }: MainContentProps) => {
   }, []);
 
   const connectSocket = async () => {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       const newSocket = io(`${url}/meeting`, {
         transports: ["websocket"],
       });
@@ -190,8 +190,10 @@ const MainContent = ({ userInfo }: MainContentProps) => {
   };
 
   const randomNum = Math.floor(Math.random() * 1000).toString(); // 테스트용 익명 닉네임 부여
-  const handleLoadingOn: React.MouseEventHandler<HTMLButtonElement> = async () => {
-    const meetingSocket = await connectSocket() as Socket | null;
+  const handleLoadingOn: React.MouseEventHandler<
+    HTMLButtonElement
+  > = async () => {
+    const meetingSocket = (await connectSocket()) as Socket | null;
     console.log("socket: ", meetingSocket);
     meetingSocket?.emit("ready", {
       participantName: `${userInfo.nickname}-${randomNum}`,
@@ -292,7 +294,7 @@ const MainContent = ({ userInfo }: MainContentProps) => {
             <button>🚨</button>
           </div>
           <div className="w-10 h-10 relative flex items-center justify-center text-xl bg-white rounded-2xl shadow">
-            {notiList.length !== 0 && (
+            {currentUser.notifications.length !== 0 && (
               <div className="absolute left-[-5px] top-[-5px] w-4 h-4 rounded-full bg-red-600" />
             )}
             <button onClick={toggleNotiList}>🔔</button>
