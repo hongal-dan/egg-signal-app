@@ -8,7 +8,6 @@ import { meetingSocketState } from "@/app/store/socket";
 import "@/styles/canvas.css";
 
 import { testState } from "@/app/store/userInfo"; //FIXME 테스트용 랜덤 닉네임 저장, 배포 전에 삭제해야함
-import test from "node:test";
 
 type CanvasModalProps = {
   onClose: () => void;
