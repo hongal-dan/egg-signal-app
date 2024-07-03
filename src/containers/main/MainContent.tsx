@@ -38,16 +38,12 @@ interface MainContentProps {
 interface Notification {
   _id: string;
   from: string;
-  createdAt: string;
-  updatedAt: string;
-  __v: number;
 }
 
 const MainContent = ({ userInfo }: MainContentProps) => {
   const [, setTestName] = useRecoilState(testState); // FIXME 테스트용 랜덤 닉네임 저장, 배포 전에 삭제해야함
 
   const router = useRouter();
-  // const [avatarOn, setAvatarOn] = useState<boolean>(true);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isFriendListVisible, setIsFriendListVisible] =
     useState<boolean>(false);
@@ -90,10 +86,8 @@ const MainContent = ({ userInfo }: MainContentProps) => {
 
   useEffect(() => {
     setCurrentUser(userInfo);
-  }, []);
+    checkNewMessage();
 
-  useEffect(() => {
-    console.log("MainContent: ", currentUser);
     const newCommonSocket = io(`${url}/common`, {
       transports: ["websocket"],
       withCredentials: true,
@@ -102,17 +96,13 @@ const MainContent = ({ userInfo }: MainContentProps) => {
 
     newCommonSocket.on("connect", () => {
       newCommonSocket.emit("serverCertificate");
+      newCommonSocket.emit("friendStat");
       console.log("common connected");
     });
 
-    checkNewMessage();
-    newCommonSocket.on("newMessageNotification", res => {
-      console.log(res);
-      if (newMessageSenders === null) {
-        setNewMessageSenders([res]);
-      } else {
-        setNewMessageSenders([...res]);
-      }
+    newCommonSocket.on("newMessageNotification", (res: string) => {
+      console.log(res, "이가 나한테 메시지 보냄");
+      setNewMessageSenders(prev => [...prev, res]);
     });
 
     newCommonSocket.on("friendOnline", (res: string) => {
@@ -124,6 +114,7 @@ const MainContent = ({ userInfo }: MainContentProps) => {
         const prevList = JSON.parse(onlineList);
         prevList.push(res);
         const newList = Array.from(new Set(prevList)) as string[];
+        console.log(newList);
         localStorage.setItem("onlineFriends", JSON.stringify(newList));
         setOnlineList(newList);
       }
@@ -143,16 +134,20 @@ const MainContent = ({ userInfo }: MainContentProps) => {
 
     newCommonSocket.emit("reqGetNotifications");
 
-    newCommonSocket.on("resGetNotifications", (res: Notification) => {
+    newCommonSocket.on("resGetNotifications", (res: Notification[]) => {
       console.log("내 알람?", res);
-      // const newNotiList = res
-      // console.log(newNotiList);
-      setNotiList([...notiList, res]);
+      const newNotiList = res.map((r: Notification) => {
+        return {
+          _id: r._id,
+          from: r.from,
+        };
+      });
+      setNotiList(newNotiList);
     });
 
     newCommonSocket.on("newFriendRequest", res => {
       console.log("새로운 친구 요청", res);
-      const newNoti = res.userNickname; // 나한테 요청 보낸 친구
+      const newNoti = { _id: res._id, from: res.userNickname }; // 나한테 요청 보낸 친구
       setNotiList(prev => [...prev, newNoti]);
     });
 
@@ -168,7 +163,7 @@ const MainContent = ({ userInfo }: MainContentProps) => {
       };
       console.log(updateCurrentUser);
       setCurrentUser(updateCurrentUser);
-      window.location.reload();
+      // window.location.reload();
     });
 
     newCommonSocket.on("friendRequestAccepted", res => {
@@ -178,12 +173,42 @@ const MainContent = ({ userInfo }: MainContentProps) => {
         friends: [...prevState.friends, ...res.friends],
       }));
     });
+
+    // 내가 접속하기 전부터 접속한 친구 확인용
+    newCommonSocket.on("friendStat", res => {
+      const onlineList = localStorage.getItem("onlineFriends");
+      if (!onlineList || onlineList.length === 0) {
+        const newList: string[] = [];
+        res.forEach((el: any) => {
+          const key = Object.keys(el)[0];
+          if (el[key]) {
+            newList.push(key);
+          }
+        });
+        console.log("friend state new List!!", newList);
+        setOnlineList(newList);
+        localStorage.setItem("onlineFriends", JSON.stringify(newList));
+      } else {
+        const prevList = JSON.parse(onlineList);
+        res.forEach((el: any) => {
+          const key = Object.keys(el)[0];
+          if (el[key]) {
+            prevList.push(key);
+          }
+        });
+        const newList = Array.from(new Set(prevList)) as string[];
+        console.log("update online list: ", newList);
+        localStorage.setItem("onlineFriends", JSON.stringify(newList));
+        setOnlineList(newList);
+      }
+    });
   }, []);
 
   const connectSocket = async () => {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       const newSocket = io(`${url}/meeting`, {
         transports: ["websocket"],
+        withCredentials: true,
       });
       newSocket.on("connect", () => {
         setSocket(newSocket);
@@ -193,8 +218,10 @@ const MainContent = ({ userInfo }: MainContentProps) => {
   };
 
   const randomNum = Math.floor(Math.random() * 1000).toString(); // 테스트용 익명 닉네임 부여
-  const handleLoadingOn: React.MouseEventHandler<HTMLButtonElement> = async () => {
-    const meetingSocket = await connectSocket() as Socket | null;
+  const handleLoadingOn: React.MouseEventHandler<
+    HTMLButtonElement
+  > = async () => {
+    const meetingSocket = (await connectSocket()) as Socket | null;
     setTestName(`${userInfo.nickname}-${randomNum}`); // FIXME 테스트용 랜덤 닉네임 저장, 배포 전에 삭제해야함
     console.log("socket: ", meetingSocket);
     meetingSocket?.emit("ready", {
@@ -224,6 +251,38 @@ const MainContent = ({ userInfo }: MainContentProps) => {
   };
 
   const toggleFriendList = () => {
+    if (!isFriendListVisible) {
+      // if (commonSocket) {
+      //   // 내가 접속하기 전부터 접속한 친구 확인용
+      //   commonSocket.on("friendStat", res => {
+      //     console.log("friend state: ", res);
+      //     const onlineList = localStorage.getItem("onlineFriends");
+      //     if (!onlineList || onlineList.length === 0) {
+      //       const newList: string[] = [];
+      //       res.forEach((el: any) => {
+      //         const key = Object.keys(el)[0];
+      //         if (el[key]) {
+      //           newList.push(key);
+      //         }
+      //       });
+      //       console.log("friend state new List!!", newList);
+      //       localStorage.setItem("onlineFriends", JSON.stringify(newList));
+      //     } else {
+      //       const prevList = JSON.parse(onlineList);
+      //       res.forEach((el: any) => {
+      //         const key = Object.keys(el)[0];
+      //         if (el[key]) {
+      //           prevList.push(key);
+      //         }
+      //       });
+      //       const newList = Array.from(new Set(prevList)) as string[];
+      //       console.log("update online list: ", newList);
+      //       localStorage.setItem("onlineFriends", JSON.stringify(newList));
+      //       setOnlineList(newList);
+      //     }
+      //   });
+      // }
+    }
     setIsFriendListVisible(prev => !prev);
   };
 
@@ -251,8 +310,9 @@ const MainContent = ({ userInfo }: MainContentProps) => {
   const handleLogout = async () => {
     try {
       await logoutUser();
+      localStorage.removeItem("onlineFriends");
       commonSocket?.disconnect();
-      router.push("/login");
+      window.location.reload();
     } catch (error) {
       console.error("Log out Error: ", error);
     }
@@ -279,9 +339,6 @@ const MainContent = ({ userInfo }: MainContentProps) => {
     }
   }, [isFriendListVisible]);
 
-  // return avatar == null ? (
-  //   <AvatarCollection />
-  // ) :
   return (
     <div>
       <button
