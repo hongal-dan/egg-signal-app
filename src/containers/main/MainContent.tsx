@@ -40,9 +40,7 @@ interface Notification {
 }
 
 const MainContent = ({ userInfo }: MainContentProps) => {
-  console.log("친구 목록 부모 메인");
   const router = useRouter();
-  // const [avatarOn, setAvatarOn] = useState<boolean>(true);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isFriendListVisible, setIsFriendListVisible] =
     useState<boolean>(false);
@@ -60,7 +58,7 @@ const MainContent = ({ userInfo }: MainContentProps) => {
   );
   const [openedChatRoomId, setOpenedChatRoomId] = useRecoilState(chatRoomState);
   const [, setOnlineList] = useRecoilState(onlineListState);
-  const [, setNotiList] = useRecoilState(notiListState);
+  const [notiList, setNotiList] = useRecoilState(notiListState);
 
   const checkOnlineFriends = () => {
     const onlineList = localStorage.getItem("onlineFriends");
@@ -93,6 +91,7 @@ const MainContent = ({ userInfo }: MainContentProps) => {
 
     newCommonSocket.on("connect", () => {
       newCommonSocket.emit("serverCertificate");
+      newCommonSocket.emit("friendStat");
       console.log("common connected");
     });
 
@@ -115,6 +114,7 @@ const MainContent = ({ userInfo }: MainContentProps) => {
         const prevList = JSON.parse(onlineList);
         prevList.push(res);
         const newList = Array.from(new Set(prevList)) as string[];
+        console.log(newList);
         localStorage.setItem("onlineFriends", JSON.stringify(newList));
         setOnlineList(newList);
       }
@@ -142,8 +142,6 @@ const MainContent = ({ userInfo }: MainContentProps) => {
           from: r.from,
         };
       });
-      // const newNotiList = res
-      // console.log(newNotiList);
       setNotiList(newNotiList);
     });
 
@@ -181,6 +179,7 @@ const MainContent = ({ userInfo }: MainContentProps) => {
     return new Promise(resolve => {
       const newSocket = io(`${url}/meeting`, {
         transports: ["websocket"],
+        withCredentials: true,
       });
       newSocket.on("connect", () => {
         setSocket(newSocket);
@@ -222,6 +221,38 @@ const MainContent = ({ userInfo }: MainContentProps) => {
   };
 
   const toggleFriendList = () => {
+    if (!isFriendListVisible) {
+      if (commonSocket) {
+        // 내가 접속하기 전부터 접속한 친구 확인용
+        commonSocket.on("friendStat", res => {
+          console.log("friend state: ", res);
+          const onlineList = localStorage.getItem("onlineFriends");
+          if (!onlineList || onlineList.length === 0) {
+            const newList: string[] = [];
+            res.forEach((el: any) => {
+              const key = Object.keys(el)[0];
+              if (el[key]) {
+                newList.push(key);
+              }
+            });
+            console.log("friend state new List!!", newList);
+            localStorage.setItem("onlineFriends", JSON.stringify(newList));
+          } else {
+            const prevList = JSON.parse(onlineList);
+            res.forEach((el: any) => {
+              const key = Object.keys(el)[0];
+              if (el[key]) {
+                prevList.push(key);
+              }
+            });
+            const newList = Array.from(new Set(prevList)) as string[];
+            console.log("update online list: ", newList);
+            localStorage.setItem("onlineFriends", JSON.stringify(newList));
+            setOnlineList(newList);
+          }
+        });
+      }
+    }
     setIsFriendListVisible(prev => !prev);
   };
 
@@ -249,6 +280,7 @@ const MainContent = ({ userInfo }: MainContentProps) => {
   const handleLogout = async () => {
     try {
       await logoutUser();
+      localStorage.removeItem("onlineFriends");
       commonSocket?.disconnect();
       router.push("/login");
     } catch (error) {
@@ -277,9 +309,6 @@ const MainContent = ({ userInfo }: MainContentProps) => {
     }
   }, [isFriendListVisible]);
 
-  // return avatar == null ? (
-  //   <AvatarCollection />
-  // ) :
   return (
     <div>
       <button
@@ -294,7 +323,7 @@ const MainContent = ({ userInfo }: MainContentProps) => {
             <button>🚨</button>
           </div>
           <div className="w-10 h-10 relative flex items-center justify-center text-xl bg-white rounded-2xl shadow">
-            {currentUser.notifications.length !== 0 && (
+            {notiList.length !== 0 && (
               <div className="absolute left-[-5px] top-[-5px] w-4 h-4 rounded-full bg-red-600" />
             )}
             <button onClick={toggleNotiList}>🔔</button>

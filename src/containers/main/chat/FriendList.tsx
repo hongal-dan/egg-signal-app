@@ -15,6 +15,10 @@ interface FriendListPros {
   friendsList: Friend[];
 }
 
+interface FriendState {
+  [key: string]: boolean;
+}
+
 const FriendList: React.FC<FriendListPros> = ({ friendsList }) => {
   const commonSocket = useRecoilValue(commonSocketState);
   const newMessageSenders = useRecoilValue(newMessageSenderState);
@@ -51,15 +55,30 @@ const FriendList: React.FC<FriendListPros> = ({ friendsList }) => {
 
   useEffect(() => {
     if (commonSocket) {
-      commonSocket.emit("friendStat");
+      // 내가 접속하기 전부터 접속한 친구 확인용
       commonSocket.on("friendStat", res => {
+        console.log("friend state: ", res);
         const onlineList = localStorage.getItem("onlineFriends");
         if (!onlineList || onlineList.length === 0) {
-          localStorage.setItem("onlineFriends", JSON.stringify([res]));
+          const newList: string[] = [];
+          res.forEach((el: FriendState) => {
+            const key = Object.keys(el)[0];
+            if (el[key]) {
+              newList.push(key);
+            }
+          });
+          console.log("friend state new List!!", newList);
+          localStorage.setItem("onlineFriends", JSON.stringify(newList));
         } else {
           const prevList = JSON.parse(onlineList);
-          prevList.push(res);
+          res.forEach((el: FriendState) => {
+            const key = Object.keys(el)[0];
+            if (el[key]) {
+              prevList.push(key);
+            }
+          });
           const newList = Array.from(new Set(prevList)) as string[];
+          console.log("update online list: ", newList);
           localStorage.setItem("onlineFriends", JSON.stringify(newList));
           setOnlineList(newList);
         }
@@ -71,11 +90,6 @@ const FriendList: React.FC<FriendListPros> = ({ friendsList }) => {
     <div
       className={`w-72 h-[700px] overflow-auto ${friendsList && friendsList.length > 0 ? "scrollbar-custom" : "scrollbar-hide"}`}
     >
-      {/* <div className="text-end">
-        <button onClick={onClose} className="font-bold">
-          ✕
-        </button>
-      </div> */}
       {friendsList.map((friend, index) => (
         <div key={index} className="relative">
           {newMessageSenders &&
