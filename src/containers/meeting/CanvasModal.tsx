@@ -118,6 +118,24 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
     context.fillRect(0, 0, canvas.width, canvas.height);
   };
 
+  const captureVideoFrame = () => {
+    const publisherContainer = document.getElementById(testName);
+    const video = publisherContainer?.querySelector("video");
+    const canvas = document.createElement("canvas");
+
+    if (video) {
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const context = canvas.getContext("2d");
+      if (context) {
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const dataUrl = canvas.toDataURL("image/webp");
+        return dataUrl;
+      }
+    }
+    return "";
+  };
+
   const handleForwardDrawing = async () => {
     const canvas = canvasRef.current!;
     const blob = await new Promise<Blob | null>(resolve =>
