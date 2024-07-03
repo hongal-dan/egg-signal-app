@@ -7,6 +7,9 @@ import { userState } from "@/app/store/userInfo";
 import { meetingSocketState } from "@/app/store/socket";
 import "@/styles/canvas.css";
 
+import { testState } from "@/app/store/userInfo"; //FIXME 테스트용 랜덤 닉네임 저장, 배포 전에 삭제해야함
+import test from "node:test";
+
 type CanvasModalProps = {
   onClose: () => void;
 };
@@ -29,6 +32,8 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
 
   const socket = useRecoilValue(meetingSocketState)!;
   const userInfo = useRecoilValue(userState);
+
+  const testName = useRecoilValue(testState); //FIXME 테스트용 랜덤 닉네임 저장, 배포 전에 삭제해야함
 
   useEffect(() => {
     const canvas = canvasRef.current!;
@@ -118,11 +123,13 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
     const blob = await new Promise<Blob | null>(resolve =>
       canvas.toBlob(resolve, "image/webp"),
     );
+    console.log(testName); //FIXME 테스트용 랜덤 닉네임 저장, 배포 전에 삭제해야함
     if (blob) {
       const resizedBlob = await resizeAndCompressImage(blob, canvas.width);
       const arrayBuffer = await resizedBlob.arrayBuffer();
       socket.emit("forwardDrawing", {
-        userName: userInfo?.nickname,
+        // userName: userInfo?.nickname,
+        userName: testName, // FIXME 테스트용 랜덤 닉네임 저장, 배포 전에 삭제해야함
         drawing: arrayBuffer,
       });
     }
@@ -149,7 +156,8 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
 
     if (selectedUser) {
       socket.emit("submitVote", {
-        userName: userInfo?.nickname,
+        // userName: userInfo?.nickname,
+        userName: testName, // FIXME 테스트용 랜덤 닉네임 저장, 배포 전에 삭제해야함
         votedUser: selectedUser,
       });
       setSelectedUser(null);
@@ -198,7 +206,7 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
         className={`canvas-grid-item ${selectedUser === user ? "selected" : ""}`}
         onClick={() => setSelectedUser(user)}
       >
-        <img src={drawings[user]} />
+        <img src={drawings[user]} /> // FIXME 비디오 띄워주세요
       </div>
     ));
   };
@@ -223,7 +231,7 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
                   key={col}
                   onClick={() => setColor(col)}
                   style={{ backgroundColor: col, margin: "0 5px" }}
-                ></button>
+                >{col}</button>
               ))}
             </div>
             <div>
@@ -257,7 +265,8 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
           <>
             <h2>투표 결과</h2>
             <div>1등은 {voteResults}입니다~</div>
-            {userInfo?.nickname === voteResults && (
+            {/* {userInfo?.nickname === voteResults && ( */}
+            {testName === voteResults && ( // FIXME 테스트용 랜덤 닉네임 저장, 배포 전에 삭제해야함
               <div>
                 <h3>같이 있고 싶은 사람을 골라보세요</h3>
                 <div className="canvas-grid-container">
