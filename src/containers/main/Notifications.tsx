@@ -2,7 +2,7 @@
 import React, { useEffect } from "react";
 import { userState } from "@/app/store/userInfo";
 import { commonSocketState, notiListState } from "@/app/store/commonSocket";
-import { useRecoilValue } from "recoil";
+import { useRecoilState, useRecoilValue } from "recoil";
 
 interface Notification {
   _id: string;
@@ -16,15 +16,17 @@ interface NotificationProps {
 const Notification: React.FC<NotificationProps> = ({ noti }) => {
   const currentUser = useRecoilValue(userState);
   const commonSocket = useRecoilValue(commonSocketState);
+  const [notiList, setNotiList] = useRecoilState(notiListState);
 
   const acceptRequest = () => {
     if (commonSocket && currentUser) {
-      console.log("친구 수락");
+      console.log("친구 수락: ", noti._id);
       commonSocket.emit("reqAcceptFriend", {
-        _id: noti._id,
         userNickname: currentUser.nickname,
         friendNickname: noti.from,
+        notificationId: noti._id,
       });
+      setNotiList(notiList.filter(n => n._id !== noti._id));
     }
   };
 
