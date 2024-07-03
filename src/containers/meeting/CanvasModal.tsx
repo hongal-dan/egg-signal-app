@@ -153,6 +153,8 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
       canvas.toBlob(resolve, "image/webp"),
     );
     console.log(testName); //FIXME 테스트용 랜덤 닉네임 저장, 배포 전에 삭제해야함
+    const btnElement = document.getElementById("그림 제출버튼")!;
+    btnElement.innerText = "다시 제출";
 
     const capturedPhoto = captureVideoFrame();
     if (blob) {
@@ -220,10 +222,12 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
     return Object.entries(drawings).map(([user, drawing], index) => (
       <div
         key={index}
-        className={`canvas-grid-item ${selectedUser === user ? "selected" : ""}`}
+        className={`${
+          selectedUser === user ? "border-4 border-yellow-50" : "border"
+        }`}
         onClick={() => setSelectedUser(user)}
       >
-        <img src={drawing} />
+        <img src={drawing} className="w-full h-full object-cover" />
       </div>
     ));
   };
@@ -235,76 +239,125 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
     return otherUsers.map((user, index) => (
       <div
         key={index}
-        className={`canvas-grid-item ${selectedUser === user ? "selected" : ""}`}
+        className={`${
+          selectedUser === user ? "border-4 border-yellow-50" : "border"
+        }`}
         onClick={() => setSelectedUser(user)}
       >
-        <img src={capturedPhoto[user]} />
+        <img src={capturedPhoto[user]} className="w-full h-full object-cover" />
       </div>
     ));
   };
 
   return (
-    <div className="canvas-modal">
-      <div className="canvas-modal-content">
-        <span className="canvas-close" onClick={onClose}>
+    <div className="fixed z-1000 left-0 top-0 w-full h-full overflow-hidden bg-[rgba(0,0,0,0.05)]">
+      <div className="bg-white p-5 border border-gray-300 w-4/5 max-w-xl absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 shadow-lg">
+        <span
+          className="text-gray-400 float-right text-2xl font-bold cursor-pointer"
+          onClick={onClose}
+        >
           &times;
         </span>
+
         {currentStage === "drawing" && (
-          <div className="flex flex-col justify-center items-center">
-            <canvas
-              ref={canvasRef}
-              onMouseDown={startDrawing}
-              onMouseUp={finishDrawing}
-              onMouseMove={draw}
-            />
-            <div>
-              {["red", "orange", "green", "blue", "black", "white"].map(col => (
-                <button
-                  key={col}
-                  onClick={() => setColor(col)}
-                  style={{ backgroundColor: col, margin: "0 5px" }}
-                >{col}</button>
-              ))}
+          <div className="flex flex-col items-center">
+            <div className="flex items-start justify-between w-full">
+              <canvas
+                ref={canvasRef}
+                onMouseDown={startDrawing}
+                onMouseUp={finishDrawing}
+                onMouseMove={draw}
+                className="border border-black mr-5 mt-2 bg-[#ffefcef1]"
+              />
+              <div className="flex flex-col flex-grow">
+                <div className="flex flex-wrap mb-4" style={{ width: "80px" }}>
+                  {["red", "orange", "green", "blue", "black"].map(col => (
+                    <button
+                      key={col}
+                      onClick={() => setColor(col)}
+                      className="m-1 w-7 h-7"
+                      style={{ backgroundColor: col }}
+                    ></button>
+                  ))}
+                  <button
+                    key="white"
+                    onClick={() => setColor("white")}
+                    className="m-1 w-7 h-7 bg-white"
+                    style={
+                      {
+                        // FIXME backgroundImage: 'url("/eraser-icon.png")' /**추후 이미지 수정 */,
+                      }
+                    }
+                  ></button>
+                </div>
+                <div>브러쉬 굵기</div>
+                <div className="flex flex-wrap mb-4" style={{ width: "100px" }}>
+                  {[5, 8, 12].map(size => (
+                    <button
+                      key={size}
+                      onClick={() => setBrushSize(size)}
+                      className="m-1 w-15 h-7"
+                      style={
+                        {
+                          // FIXME backgroundImage: `url(/brush-${size}px.png)` /**추후 이미지 수정 */,
+                        }
+                      }
+                    >
+                      {size}
+                    </button>
+                  ))}
+                </div>
+                <div className="flex flex-wrap">
+                  <button onClick={clearCanvas}>전부 지우기</button>
+
+                  <button
+                    id="그림 제출버튼"
+                    onClick={handleForwardDrawing}
+                    className="bg-yellow-400 text-yellow-100 px-4 py-2 rounded
+                  mr-2"
+                  >
+                    그림 제출
+                  </button>
+                </div>
+              </div>
             </div>
-            <div>
-              <label>굵기</label>
-              {[5, 8, 12].map(size => (
-                <button
-                  key={size}
-                  onClick={() => setBrushSize(size)}
-                  style={{ margin: "0 5px" }}
-                >
-                  {size}px
-                </button>
-              ))}
-            </div>
-            <div>
-              <button onClick={clearCanvas}>전부 지우기</button>
-            </div>
-            <button onClick={handleForwardDrawing}>그림 제출</button>
           </div>
         )}
 
         {currentStage === "voting" && (
           <>
-            <h2>그림을 골라보세요</h2>
-            <div className="canvas-grid-container">{renderDrawings()}</div>
-            <button onClick={handleVoteSubmit}>투표 출발</button>
+            <h2 className="text-xl font-bold mb-4">그림을 골라보세요</h2>
+            <div className="grid grid-cols-3 grid-rows-2 gap-2 mb-5">
+              {renderDrawings()}
+            </div>
+            <button
+              onClick={handleVoteSubmit}
+              className="bg-yellow-100 text-yellow-500 px-4 py-2 rounded"
+            >
+              투표 출발
+            </button>
           </>
         )}
 
         {currentStage === "winnerChoice" && voteResults && (
           <>
-            <h2>투표 결과</h2>
-            <div>1등은 {voteResults}입니다~</div>
+            <h2 className="text-xl font-bold mb-4">투표 결과</h2>
+            <div className="mb-4">1등은 {voteResults}입니다~</div>
             {/* {userInfo?.nickname === voteResults && ( */}
             {testName === voteResults && ( // FIXME 테스트용 랜덤 닉네임 저장, 배포 전에 삭제해야함
               <div>
-                <h3>같이 있고 싶은 사람을 골라보세요</h3>
-                <div className="canvas-grid-container">
+                <h3 className="text-lg font-semibold mb-2">
+                  같이 있고 싶은 사람을 골라보세요
+                </h3>
+                <div className="grid grid-cols-3 grid-rows-2 gap-2 mb-5">
                   {renderWinnerChoiceOptions()}
                 </div>
-                <button onClick={handleWinnerPrizeSubmit}>이사람이요</button>
+                <button
+                  onClick={handleWinnerPrizeSubmit}
+                  className="bg-yellow-100 text-yellow-500 px-4 py-2 rounded"
+                >
+                  이사람이요
+                </button>
               </div>
             )}
           </>
@@ -312,7 +365,7 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
 
         {currentStage === "final" && finalResults && (
           <>
-            <h2>최종 결과</h2>
+            <h2 className="text-xl font-bold mb-4">최종 결과</h2>
             <div>좋은시간보내세요 {finalResults.winners.join(", ")}</div>
             <div>나머지: {finalResults.losers.join(", ")}</div>
           </>
