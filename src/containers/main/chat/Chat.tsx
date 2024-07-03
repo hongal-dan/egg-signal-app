@@ -71,7 +71,7 @@ const Chat: React.FC<Props> = ({ friend, onClose }) => {
         el => el !== friend.chatRoomId,
       );
       if (updateSenders.length === 0) {
-        setNewMessageSenders(null);
+        setNewMessageSenders([]);
       } else {
         setNewMessageSenders(updateSenders);
       }
