@@ -142,6 +142,8 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
       canvas.toBlob(resolve, "image/webp"),
     );
     console.log(testName); //FIXME 테스트용 랜덤 닉네임 저장, 배포 전에 삭제해야함
+
+    const capturedImage = captureVideoFrame();
     if (blob) {
       const resizedBlob = await resizeAndCompressImage(blob, canvas.width);
       const arrayBuffer = await resizedBlob.arrayBuffer();
@@ -149,6 +151,7 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
         // userName: userInfo?.nickname,
         userName: testName, // FIXME 테스트용 랜덤 닉네임 저장, 배포 전에 삭제해야함
         drawing: arrayBuffer,
+        photo: capturedImage,
       });
     }
   };
