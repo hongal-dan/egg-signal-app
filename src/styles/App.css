@@ -108,22 +108,20 @@ video {
 .arrow-container {
   position: absolute;
   transform-origin: left center;
-  z-index: 2;
+  z-index: -1;
 }
 .arrow-body {
-  background-color: #fa3689;
-  height: 10px;
+  height: 5px;
   transform-origin: left center;
   position: relative;
 }
 .arrow-head {
   width: 0;
   height: 0;
-  border-left: 20px solid transparent;
-  border-right: 20px solid transparent;
-  border-bottom: 20px solid #fa3689;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
   position: absolute;
-  top: -5px;
+  top: -8px;
   right: -15px;
   transform: rotate(90deg);
 }
@@ -177,11 +175,7 @@ video {
 }
 
 .streamcomponent .nickname {
-  /* position: absolute; */
   @apply px-[5px] absolute bg-transparent text-[#777777] rounded-[4px] font-bold;
-  /* color: #ffffff; */
-  /* font-weight: bold;
-  border-bottom-right-radius: 4px; */
 }
 p {
   margin: 0;

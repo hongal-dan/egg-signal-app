@@ -24,6 +24,9 @@
   border: 2px solid transparent;
 }
 
+.canvas-grid-item .selected {
+  border-color: #ffc90e;
+}
 .canvas-grid-item img.selected {
   border-color: #ffc90e;
 }

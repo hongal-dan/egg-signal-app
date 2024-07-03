@@ -16,6 +16,7 @@ import { userState } from "@/app/store/userInfo";
 import { chatRoomState, newMessageSenderState } from "@/app/store/chat";
 import { logoutUser } from "@/services/auth";
 import { Socket } from "socket.io-client";
+import { testState } from "@/app/store/userInfo"; // FIXME 테스트용 랜덤 닉네임 저장, 배포 전에 삭제해야함
 
 interface Friend {
   friend: string;
@@ -40,6 +41,8 @@ interface Notification {
 }
 
 const MainContent = ({ userInfo }: MainContentProps) => {
+  const [, setTestName] = useRecoilState(testState); // FIXME 테스트용 랜덤 닉네임 저장, 배포 전에 삭제해야함
+
   const router = useRouter();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isFriendListVisible, setIsFriendListVisible] =
@@ -215,10 +218,9 @@ const MainContent = ({ userInfo }: MainContentProps) => {
   };
 
   const randomNum = Math.floor(Math.random() * 1000).toString(); // 테스트용 익명 닉네임 부여
-  const handleLoadingOn: React.MouseEventHandler<
-    HTMLButtonElement
-  > = async () => {
-    const meetingSocket = (await connectSocket()) as Socket | null;
+  const handleLoadingOn: React.MouseEventHandler<HTMLButtonElement> = async () => {
+    const meetingSocket = await connectSocket() as Socket | null;
+    setTestName(`${userInfo.nickname}-${randomNum}`); // FIXME 테스트용 랜덤 닉네임 저장, 배포 전에 삭제해야함
     console.log("socket: ", meetingSocket);
     meetingSocket?.emit("ready", {
       participantName: `${userInfo.nickname}-${randomNum}`,

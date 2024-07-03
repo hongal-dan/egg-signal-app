@@ -28,3 +28,9 @@ export const userState = atom<userInfo>({
     friends: [],
   },
 });
+
+//FIXME 테스트용 랜덤 닉네임 저장, 배포 전에 삭제해야함
+export const testState = atom<string>({
+  key: "testState",
+  default: "",
+});

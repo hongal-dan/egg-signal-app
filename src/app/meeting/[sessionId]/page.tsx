@@ -337,8 +337,48 @@ const Meeting = () => {
     router.push("/main");
   };
 
+  // 화살표 출발 도착 좌표 계산
+  const findPosition = (fromElement: HTMLDivElement, toElement: HTMLDivElement): Array<number> => {
+    const rect1 = fromElement.getBoundingClientRect();
+    const rect2 = toElement.getBoundingClientRect();
+    let acc = 0;
+    if(fromElement.classList.contains("MALE")) {
+      acc = 10;
+    }
+    else {
+      acc = -10;
+    }
+
+    if(fromElement.classList.contains("a") || fromElement.classList.contains("b") || fromElement.classList.contains("c")) {
+      const startX1 = rect1.right;
+      const startY1 = rect1.top + rect1.height / 2;      
+      const endX2 = rect2.left;
+      const endY2 = rect2.top + rect2.height / 2;
+      return [startX1, startY1+acc, endX2, endY2-acc];
+    }
+    else {
+      const startX1 = rect1.left;
+      const startY1 = rect1.top + rect1.height / 2;
+      const endX2 = rect2.right;
+      const endY2 = rect2.top + rect2.height / 2;
+      return [startX1, startY1+acc, endX2, endY2-acc];
+    }
+  };
+
+  // 성별에 따라 화살표 색 변경
+  const setArrowColor = (fromElement: HTMLDivElement, arrow:Array<HTMLDivElement>) => {
+    const [Head, Body] = arrow;
+    if(fromElement.classList.contains("MALE")) {
+      Head.style.borderBottom = "20px solid #33C4D7";
+      Body.style.backgroundColor = "#33C4D7";
+      return;
+    }
+    Head.style.borderBottom = "20px solid #fa3689";
+    Body.style.backgroundColor = "#fa3689";
+  }
+
+
   const showArrow = (datas: Array<chooseResult>) => {
-    const acc = [-2, -1, 0, 1, 2, 3];
     datas.forEach(({ sender, receiver }, idx) => {
       const fromUser = document.getElementById(sender) as HTMLDivElement;
       const toUser = document.getElementById(receiver) as HTMLDivElement;
@@ -348,33 +388,21 @@ const Meeting = () => {
       const arrowBody = arrowContainer?.querySelector(
         ".arrow-body",
       ) as HTMLDivElement;
-      // console.log(sender, receiver);
-      // console.log(fromUser, toUser, arrowContainer, arrowBody);
+      const arrowHead = arrowBody?.querySelector(".arrow-head") as HTMLDivElement;
+
 
       const rect1 = fromUser.getBoundingClientRect();
-      const rect2 = toUser.getBoundingClientRect();
-      // console.log(rect1, rect2);
-      const centerX1 = rect1.left + rect1.width / 2 + acc[idx] * 10;
-      const centerY1 = rect1.top + rect1.height / 2 + acc[idx] * 10;
-      const centerX2 = rect2.left + rect2.width / 2 + acc[idx] * 10;
-      const centerY2 = rect2.top + rect2.height / 2 + acc[idx] * 10;
-      // const halfWidth = Math.abs(rect1.right - rect1.left) * (3 / 4);
+      const [startX1, startY1, endX2, endY2] = findPosition(fromUser, toUser);
 
-      const deltaX = centerX2 - centerX1;
-      const deltaY = centerY2 - centerY1;
+
+      const deltaX = endX2 - startX1;
+      const deltaY = endY2 - startY1;
       const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-      // const arrowWidth = distance - halfWidth;
-
-      if (idx > 2) {
-        arrowBody.style.backgroundColor = "#33C4D7";
-        const arrowHead = arrowBody.querySelector(
-          ".arrow-head",
-        ) as HTMLDivElement;
-        arrowHead.style.borderBottom = "20px solid #33C4D7";
-      }
-      arrowBody.style.width = distance + "px";
-      arrowContainer.style.top = centerY1 - rect1.top + "px";
-      arrowContainer.style.left = centerX1 - rect1.left + "px";
+      setArrowColor(fromUser, [arrowHead, arrowBody]);
+      arrowContainer.style.paddingTop = "20px";
+      arrowBody.style.width = distance - 20 + "px";
+      arrowContainer.style.top = startY1 - rect1.top + "px";
+      arrowContainer.style.left = startX1 - rect1.left + "px";
       arrowContainer.style.transform = `rotate(${
         (Math.atan2(deltaY, deltaX) * 180) / Math.PI
       }deg)`;
@@ -414,17 +442,9 @@ const Meeting = () => {
     videoContainerRef.current?.classList.add("love-stick");
     showArrow(datas);
     return;
-    // }
-    // videoContainer.classList.remove("love-stick");
-    // hideArrow();
-    // setIsLoveMode(false);
   };
 
   const undoLoveStickMode = () => {
-    // if (keywordRef.current) {
-    //   keywordRef.current.innerText = '';
-    //   console.log("에그시그널 결과라고 p태그 변경한거 삭제함");
-    // }
     console.log("사랑의 작대기 모드 해제");
     const videoArray = Array.from(subRef.current);
     videoArray.unshift(pubRef.current);
@@ -687,7 +707,6 @@ const Meeting = () => {
         changeLoveStickMode(response.message as Array<chooseResult>);
         setTimeout(() => {
           console.log("원 위치로 변경");
-          // undoLoveStickMode(response.messageas as Array<chooseResult>);
           undoLoveStickMode();
           if (keywordRef.current) {
             console.log("잠시 후 1:1대화가 시작된다는 멘트 ");
