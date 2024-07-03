@@ -3,12 +3,11 @@
 import React, { useRef, useEffect, useState } from "react";
 import imageCompression from "browser-image-compression";
 import { useRecoilValue } from "recoil";
-import { userState } from "@/app/store/userInfo";
+// import { userState } from "@/app/store/userInfo";
 import { meetingSocketState } from "@/app/store/socket";
 import "@/styles/canvas.css";
 
 import { testState } from "@/app/store/userInfo"; //FIXME 테스트용 랜덤 닉네임 저장, 배포 전에 삭제해야함
-import test from "node:test";
 
 type CanvasModalProps = {
   onClose: () => void;
@@ -31,7 +30,7 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
   const [currentStage, setCurrentStage] = useState("drawing");
 
   const socket = useRecoilValue(meetingSocketState)!;
-  const userInfo = useRecoilValue(userState);
+  // const userInfo = useRecoilValue(userState);
 
   const testName = useRecoilValue(testState); //FIXME 테스트용 랜덤 닉네임 저장, 배포 전에 삭제해야함
 
@@ -206,7 +205,7 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
         className={`canvas-grid-item ${selectedUser === user ? "selected" : ""}`}
         onClick={() => setSelectedUser(user)}
       >
-        <img src={drawings[user]} /> // FIXME 비디오 띄워주세요
+        <img src={drawings[user]} /> {/* // FIXME 비디오 띄워주세요 */}
       </div>
     ));
   };
@@ -231,7 +230,9 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
                   key={col}
                   onClick={() => setColor(col)}
                   style={{ backgroundColor: col, margin: "0 5px" }}
-                >{col}</button>
+                >
+                  {col}
+                </button>
               ))}
             </div>
             <div>

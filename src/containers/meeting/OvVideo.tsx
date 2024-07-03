@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import React from "react";
 import { StreamManager } from "openvidu-browser";
@@ -31,7 +31,7 @@ const OpenViduVideoComponent = (props: Props) => {
       ?.closest(".streamcomponent")
       ?.querySelector(".nickname");
     console.log(currentNickname?.textContent);
-    const currStreamContainer = containerRef.current?.closest(".stream-container");
+    // const currStreamContainer = containerRef.current?.closest(".stream-container");
     if (isChosen) {
       containerRef.current!.classList.remove("chosen-stream");
       videoRef.current!.classList.remove("opacity");

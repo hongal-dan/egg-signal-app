@@ -369,7 +369,7 @@ const Meeting = () => {
   };
 
   const showArrow = (datas: Array<chooseResult>) => {
-    datas.forEach(({ sender, receiver }, idx) => {
+    datas.forEach(({ sender, receiver }) => {
       const fromUser = document.getElementById(sender) as HTMLDivElement;
       const toUser = document.getElementById(receiver) as HTMLDivElement;
       const arrowContainer = fromUser?.querySelector(

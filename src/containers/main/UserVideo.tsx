@@ -76,14 +76,14 @@ class Avatar {
 
   disposeMaterial(material: THREE.Material): void {
     const materialsWithMaps = [
-      'map',
-      'lightMap',
-      'bumpMap',
-      'normalMap',
-      'envMap'
+      "map",
+      "lightMap",
+      "bumpMap",
+      "normalMap",
+      "envMap",
     ] as const;
 
-    materialsWithMaps.forEach((mapName) => {
+    materialsWithMaps.forEach(mapName => {
       const materialWithMap = material as THREE.MeshStandardMaterial;
       if (materialWithMap[mapName]) {
         (materialWithMap[mapName] as THREE.Texture).dispose();
@@ -131,11 +131,10 @@ function UserVideoComponent2() {
     renderer.setClearColor(0xfae4c9, 1);
     const light = new THREE.HemisphereLight(0xffffff, 0xbbbbff, 2.5);
     scene.add(light);
-    
+
     // 화면 상의 특정 위치를 기준으로 얼굴을 식별하고 추적 여기서 1은 그냥 식별자임
     const anchor = mindarThree.addAnchor(1);
 
-    
     const setup = async () => {
       await avatar!.init();
       if (avatar!.gltf && avatar!.gltf.scene) {
