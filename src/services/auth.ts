@@ -35,6 +35,20 @@ const loginUser = async (request: LoginUser) => {
   }
 };
 
+const loginUserHeader = async (request: LoginUser) => {
+  try {
+    const response = await axios.post(`${authUrl}/signIn`, request);
+    console.log("response = ", response);
+    console.log(response.headers['authorization']);
+    localStorage.setItem("token", JSON.stringify(response.headers['authorization']));
+
+    return response;
+  } catch (error: any) {
+    console.error(error);
+    return error;
+  }
+};
+
 const logoutUser = async () => {
   try {
     const response = await axios.get("/api/auth/signOut");
@@ -44,4 +58,4 @@ const logoutUser = async () => {
   }
 };
 
-export { createUser, loginUser, logoutUser };
+export { createUser, loginUser, logoutUser, loginUserHeader };

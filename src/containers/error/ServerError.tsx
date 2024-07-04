@@ -1,13 +1,8 @@
 "use client";
-
-import React from "react";
 import Image from "next/image";
-// import { useRouter } from "next/navigation";
-
-// type Props = {}
 
 const ServerError = () => {
-  // const router = useRouter();
+
   return (
     <div className="flex flex-col justify-center items-center w-[100vw] h-[100vh]">
       <h1 className="text-[3rem] relative top-5">서버 연결 실패</h1>
