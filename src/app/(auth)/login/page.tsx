@@ -24,6 +24,11 @@ export default function Login() {
 
   const errorStyle = "text-red-500 text-sm font-medium mt-1 ml-2";
 
+  const handleKakaoLogin = () => {
+    // Kakao 로그인 로직을 여기에 추가하세요
+    console.log("Kakao 로그인");
+  };
+
   const handleLogIn = async (values: FormValues) => {
     try {
       const response = await loginUser(values) as Response;
@@ -77,6 +82,20 @@ export default function Login() {
                   className="w-64 text-white bg-amber-400 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center"
                 >
                   Log in
+                </button>
+              </div>
+
+              <div className="w-full flex justify-center">
+                <button
+                  type="button"
+                  onClick={handleKakaoLogin}
+                  // className="mt-4"
+                >
+                  <img
+                    src="img/kakao.png"
+                    alt="Kakao Login"
+                    style={{ width: "60px", height: "30px" }}
+                  />
                 </button>
               </div>
             </Form>
