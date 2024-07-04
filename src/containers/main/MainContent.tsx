@@ -136,7 +136,8 @@ const MainContent = () => {
 
     const newCommonSocket = io(`${url}/common`, {
       transports: ["websocket"],
-      withCredentials: true,
+      auth: {token: JSON.parse(localStorage.getItem("token")!)},
+      // withCredentials: true,
     });
     setCommonSocket(newCommonSocket);
 
@@ -263,7 +264,8 @@ const MainContent = () => {
     return new Promise(resolve => {
       const newSocket = io(`${url}/meeting`, {
         transports: ["websocket"],
-        withCredentials: true,
+        // withCredentials: true,
+        auth: {token: JSON.parse(localStorage.getItem("token")!)},
       });
       newSocket.on("connect", () => {
         setSocket(newSocket);
