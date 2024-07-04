@@ -2,7 +2,7 @@
 import { useRouter } from "next/navigation";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
-import { loginUser, loginUserHeader } from "@/services/auth";
+import { loginUserHeader } from "@/services/auth";
 
 interface FormValues {
   id: string;
