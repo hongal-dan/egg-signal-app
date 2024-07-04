@@ -2,7 +2,7 @@
 import { useRouter } from "next/navigation";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
-import { loginUser } from "@/services/auth";
+import { loginUserHeader } from "@/services/auth";
 
 interface FormValues {
   id: string;
@@ -26,7 +26,7 @@ export default function Login() {
 
   const handleLogIn = async (values: FormValues) => {
     try {
-      const response = await loginUser(values) as Response;
+      const response = await loginUserHeader(values) as Response;
       console.log(response);
       if (response.status == 200) {
         router.replace("/main");

@@ -1,14 +1,15 @@
 import axios from "axios";
-import { RequestCookie } from "next/dist/compiled/@edge-runtime/cookies";
+// import { RequestCookie } from "next/dist/compiled/@edge-runtime/cookies";
 
 const userUrl = process.env.NEXT_PUBLIC_API_SERVER + "/users";
 
-const getUserInfo = async (token: RequestCookie) => {
+const getUserInfo = async (token: string) => {
   try {
+    console.log("서버에게 token = ", token);
     const response = await axios.get(userUrl, {
-      withCredentials: true,
+      // withCredentials: true,
       headers: {
-        Cookie: `${token.name}=${token.value}`,
+        Authorization: `${token}`,
       },
     });
     return response;

@@ -92,11 +92,13 @@ const Meeting = () => {
 
   const captureCanvas = () => {
     console.log("캡쳐 시작");
-    const canvas = document.querySelector("canvas");
+    const canvas = captureRef.current?.querySelector("canvas") as HTMLCanvasElement;
+
     if (!canvas) {
-      console.error("Canvas element not found");
+      console.error("캔버스 업슴!!!");
       return;
     }
+
     const stream = canvas?.captureStream(15); // 30 FPS로 캡처
     if (!stream) {
       console.error("Stream not found");
@@ -444,8 +446,11 @@ const Meeting = () => {
     videoContainerRef.current?.classList.remove("love-stick");
     hideArrow();
   };
-  // time 초 동안 발표 모드 (presenter: 발표자, time: 발표 시간(초))
-  const changePresentationMode = (presenter: HTMLDivElement, time: number) => {
+  // time 초 동안 발표 모드 (presenter: 발표자, time: 발표 시간(초), mention: 발표 주제)
+  const changePresentationMode = (presenter: HTMLDivElement, time: number, mention: string = "") => {
+    if (keywordRef.current) {
+      keywordRef.current.innerText = mention;
+    }
     const videoSet = new Set<HTMLDivElement | null>();
     videoSet.add(presenter); // 발표자 추가
     videoSet.add(pubRef.current); // 다음으로 퍼블리셔 추가
@@ -465,6 +470,9 @@ const Meeting = () => {
         video?.classList.remove(String.fromCharCode(97 + idx));
       });
       videoContainerRef.current?.classList.remove("presentation-mode");
+      if (keywordRef.current) {
+        keywordRef.current.innerText = "";
+      }
     }, time * 1000);
   };
 
@@ -484,9 +492,10 @@ const Meeting = () => {
   };
 
   const openKeyword = (random: number) => {
-    if (keywordRef.current) {
-      keywordRef.current.innerText = keywords[random];
-    }
+    // if (keywordRef.current) {
+    //   keywordRef.current.innerText = keywords[random];
+    // }
+    return keywords[random];
   };
 
   const undoChooseMode = () => {
@@ -619,28 +628,17 @@ const Meeting = () => {
           for (let i = 0; i < streamElements.length; i++) {
             streamElements[i].classList.remove("highlighted");
           }
-          openKeyword(keywordIdx);
-          // todo1: random user nickname(pickUser) 으로 video 찾아서 발표자 화면 출력하기
-          // const presenterElement = Array.prototype.filter.call(
-          //   streamElements,
-          //   function (element) {
-          //     const nestedDiv = element.querySelector(
-          //       `div > div[id=${pickUser}]`,
-          //     );
-          //     console.log("선택한 발표자 태그는 이거==============", nestedDiv);
-          //     return nestedDiv !== null;
-          //   },
-          // )[0];
-          // console.log("선택한 발표자 태그는 이거==============", presenterElement[0]);
-          if (pubRef.current?.classList.contains(pickUser)) {
-            changePresentationMode(pubRef.current, 10);
+          const randomKeyword = openKeyword(keywordIdx);
+
+          if (pubRef.current?.id === pickUser) {
+            changePresentationMode(pubRef.current, 30, randomKeyword);
           } else {
             const presenterElement = subRef.current?.filter(
               sub => sub?.id === pickUser,
             )[0];
             console.log(presenterElement);
             if (presenterElement) {
-              changePresentationMode(presenterElement, 10);
+              changePresentationMode(presenterElement, 30, randomKeyword);
             }
           }
         }, animationDuration);
@@ -825,24 +823,23 @@ const Meeting = () => {
         console.log(response);
 
         setTimeout(() => {
-          if (keywordRef.current) {
-            keywordRef.current.innerText = "20초간 간단한 자기소개 해주세요";
-          }
           const participantsArray: Array<string> = response;
           console.log("Introduce 도착", participantsArray);
           let idx = 0;
           const participantElement = document.getElementById(
             participantsArray[idx],
           ) as HTMLDivElement;
-          changePresentationMode(participantElement, 20);
+          changePresentationMode(participantElement, 10, "20초간 자기소개 해주세요"); // FIXME 테스트용 10초 나중에 원래대로 돌리기
           const timeInterval = setInterval(() => {
             idx += 1;
             const participantElement = document.getElementById(
               participantsArray[idx],
             ) as HTMLDivElement;
-            changePresentationMode(participantElement, 20);
-            if (idx == 5) clearInterval(timeInterval);
-          }, 21000);
+            changePresentationMode(participantElement, 10, "20초간 자기소개 해주세요"); // FIXME 테스트용 10초 나중에 원래대로 돌리기
+            if (idx == 5) {
+              clearInterval(timeInterval);
+            }
+          }, 10100); // FIXME 테스트용 10초 나중에 원래대로 돌리기
         }, 5000);
       } catch (e: any) {
         console.error(e);
@@ -909,7 +906,7 @@ const Meeting = () => {
   }, [publisher]);
 
   const getUserID = (person: StreamManager): string => {
-    const idMatch = person.stream.connection.data.match(
+    const idMatch = person?.stream.connection.data.match(
       /"clientData":"([a-zA-Z0-9-]+)"/,
     );
     const id = idMatch ? idMatch[1] : "";
@@ -917,7 +914,7 @@ const Meeting = () => {
   };
 
   const getUserGender = (person: StreamManager): string => {
-    const genderMatch = person.stream.connection.data.match(
+    const genderMatch = person?.stream.connection.data.match(
       /"gender":"(MALE|FEMALE)"/,
     );
     const gender = genderMatch ? genderMatch[1] : "";
