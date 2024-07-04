@@ -62,21 +62,6 @@ const Chat: React.FC<Props> = ({ friend, onClose }) => {
       });
     }
 
-    // 알람 켜져있었으면 알람 끄기
-    if (
-      newMessageSenders &&
-      newMessageSenders.find(el => el === friend.chatRoomId)
-    ) {
-      const updateSenders = newMessageSenders.filter(
-        el => el !== friend.chatRoomId,
-      );
-      if (updateSenders.length === 0) {
-        setNewMessageSenders([]);
-      } else {
-        setNewMessageSenders(updateSenders);
-      }
-    }
-
     return () => {
       commonSocket?.emit("closeChat", { chatRoomdId: chatRoomId });
     };

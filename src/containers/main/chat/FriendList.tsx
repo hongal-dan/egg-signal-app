@@ -26,7 +26,11 @@ const FriendList: React.FC<FriendListPros> = ({ friendsList }) => {
 
   const toggleChat = (friend: Friend) => {
     if (!isChatVisible) {
-      setNewMessageSenders(prev => prev.filter(p => p !== friend.chatRoomId));
+      const updateSenders = newMessageSenders.filter(
+        p => p !== friend.chatRoomId,
+      );
+      sessionStorage.setItem("messageSenders", JSON.stringify(updateSenders));
+      setNewMessageSenders(updateSenders);
     }
 
     setSelectedFriend(friend);
