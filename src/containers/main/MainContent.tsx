@@ -328,7 +328,7 @@ const MainContent = ({ userInfo }: MainContentProps) => {
           </div>
           <div className="w-10 h-10 relative flex items-center justify-center text-xl bg-white rounded-2xl shadow">
             {notiList.length !== 0 && (
-              <div className="absolute left-[-5px] top-[-5px] w-4 h-4 rounded-full bg-red-600" />
+              <div className="absolute left-[-5px] top-[-5px] w-4 h-4 rounded-full bg-rose-500" />
             )}
             <button onClick={toggleNotiList}>🔔</button>
             {isNotiVisible && (
@@ -389,7 +389,7 @@ const MainContent = ({ userInfo }: MainContentProps) => {
             onClick={toggleFriendList}
           >
             {newMessageSenders?.length !== 0 && newMessageSenders && (
-              <div className="absolute left-[-5px] top-[-5px] w-5 h-5 rounded-full bg-red-600" />
+              <div className="absolute left-[-5px] top-[-5px] w-4 h-4 rounded-full bg-rose-500" />
             )}
             <p className="text-xl font-bold">친구</p>
           </button>

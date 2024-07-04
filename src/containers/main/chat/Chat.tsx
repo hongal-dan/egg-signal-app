@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { userState } from "@/app/store/userInfo";
 import { commonSocketState } from "@/app/store/commonSocket";
-import { chatRoomState, newMessageSenderState } from "@/app/store/chat";
+import { chatRoomState } from "@/app/store/chat";
 import { useRecoilValue, useRecoilState } from "recoil";
 import { FaCircleArrowUp } from "react-icons/fa6";
 
@@ -22,9 +22,6 @@ interface Chat {
 const Chat: React.FC<Props> = ({ friend, onClose }) => {
   const commonSocket = useRecoilValue(commonSocketState);
   const currentUser = useRecoilValue(userState);
-  const [newMessageSenders, setNewMessageSenders] = useRecoilState(
-    newMessageSenderState,
-  );
   const [chat, setChat] = useState<Chat[]>([]);
   const [message, setMessage] = useState("");
   const [chatRoomId, setChatRoomId] = useRecoilState(chatRoomState);
