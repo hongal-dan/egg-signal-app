@@ -73,14 +73,11 @@ const MainContent = ({ userInfo }: MainContentProps) => {
 
   // 내가 접속하지 않은 동안 온 메시지가 있으면 알람 표시
   const checkNewMessage = () => {
-    if (userInfo.friends) {
-      const senders: string[] = [];
-      userInfo.friends.map(f => {
-        if (f.newMessage) {
-          senders.push(f.chatRoomId);
-        }
-      });
-      setNewMessageSenders(senders);
+    const messageSenders = sessionStorage.getItem("messageSenders");
+    if (!messageSenders || messageSenders.length === 0) {
+      return;
+    } else {
+      setNewMessageSenders(JSON.parse(messageSenders));
     }
   };
 
@@ -102,6 +99,15 @@ const MainContent = ({ userInfo }: MainContentProps) => {
 
     newCommonSocket.on("newMessageNotification", (res: string) => {
       console.log(res, "이가 나한테 메시지 보냄");
+      const messageSenders = sessionStorage.getItem("messageSenders");
+      if (!messageSenders || messageSenders.length === 0) {
+        sessionStorage.setItem("messageSenders", JSON.stringify([res]));
+      } else {
+        const prevList = JSON.parse(messageSenders);
+        prevList.push(res);
+        const newList = Array.from(new Set(prevList)) as string[]; // 동일한 알람 제거
+        sessionStorage.setItem("messageSenders", JSON.stringify(newList));
+      }
       setNewMessageSenders(prev => [...prev, res]);
     });
 
