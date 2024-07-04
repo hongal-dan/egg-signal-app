@@ -15,7 +15,7 @@ import {
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useRecoilValue, useRecoilState } from "recoil";
-import { meetingSocketState } from "@/app/store/socket";
+import { isLastChooseState, meetingSocketState } from "@/app/store/socket";
 import { avatarState } from "@/app/store/avatar";
 import { keywords } from "../../../../public/data/keywords.js";
 import AvatarCollection from "@/containers/main/AvatarCollection";
@@ -65,6 +65,7 @@ const Meeting = () => {
   const userInfo = useRecoilValue(userState);
   const [isSucceed, setIsSucceed] = useState<boolean>(false); // 매칭 성공해서 1:1 대화 넘어가는 지 여부
   const [isMatched, setIsMatched] = useState<boolean>(false); // 매칭이 되었는지 여부
+  const [, setIsLastChoose] = useRecoilState(isLastChooseState);
 
   const router = useRouter();
 
@@ -818,6 +819,7 @@ const Meeting = () => {
       try {
         console.log("lastCupidTime 도착", response);
         setChooseMode();
+        setIsLastChoose(true);
       } catch (e: any) {
         console.error(e);
       }
