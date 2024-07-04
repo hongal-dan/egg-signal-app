@@ -5,6 +5,7 @@ const userUrl = process.env.NEXT_PUBLIC_API_SERVER + "/users";
 
 const getUserInfo = async (token: RequestCookie) => {
   try {
+    console.log("서버에게 token = ", token);
     const response = await axios.get(userUrl, {
       withCredentials: true,
       headers: {
