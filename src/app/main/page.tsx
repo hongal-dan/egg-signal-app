@@ -1,55 +1,54 @@
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
-import { RequestCookie } from "next/dist/compiled/@edge-runtime/cookies";
+"use client";
+
+// import { cookies } from "next/headers";
 import MainContent from "@/containers/main/MainContent";
-import { getUserInfo } from "@/services/users";
+// import { getUserInfo } from "@/services/users";
 import ServerError from "@/containers/error/ServerError";
+import { useEffect, useState } from "react";
+import axios from "axios";
+import { redirect } from "next/navigation";
 
-const Main = async () => {
-  const cookieStore = cookies();
-  const token = cookieStore.get("access_token");
-  const decodeJwt = (token: string) => {
-    const parts = token.split(".");
-    const payload = JSON.parse(decodeURIComponent(escape(atob(parts[1]))));
+const Main = () => {
+  const [isMounted, setIsMounted] = useState(false);
+  const [isError, setIsError] = useState(true);
+  console.log("몇번나올까요 ??????????????????? 정답은 2번", isError);
 
-    return payload;
-  };
-
-  const handleGetUserInfo = async (token: RequestCookie) => {
+  const checkServerHealth = async () => {
     try {
-      const response = await getUserInfo(token).then();
-      console.log(response.data);
-      const currentUser = {
-        id: response.data.id,
-        nickname: response.data.nickname,
-        gender: response.data.gender,
-        newNotification: response.data.newNotification,
-        notifications: response.data.notifications,
-        friends: response.data.friends,
-      };
-      return currentUser;
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_SERVER}`);
+      if (response.status === 200) {
+        setIsError(false);
+      }
     } catch (error) {
-      console.error("Error fetching data: ", error);
+      console.error("서버 연결 실패: ", error);
+      setIsError(true);
     }
   };
 
-  if (token === undefined) {
-    console.log("토큰 없음!");
-    redirect("/login");
-  }
-  const currentUser = await handleGetUserInfo(token);
-  console.log(currentUser);
+  useEffect(() => {
+    setIsMounted(true);
+    checkServerHealth();
+    const token = localStorage.getItem("token");
+    if (!token) {
+      console.log("토큰 없음!");
+      redirect("/login");
+    }
+    return () => {
+      setIsMounted(false);
+      setIsError(false);
+      console.log("언마운트 됩니다~~~~~~~~~~~~~~");
+    }
+  }, []);
 
-  const userInfo = decodeJwt(token.value);
-  console.log(userInfo);
-
-  return (
-    <div>
-      {token && currentUser ? (
-        <MainContent userInfo={currentUser} />
-      ) : (
-        <ServerError />
-      )}
+  return isMounted ? (
+    <div>{isError ? <ServerError /> : <MainContent />}</div>
+  ) : (
+    <div className="w-[100vw] h-[100vh] flex flex-col justify-center items-center gap-24">
+      <div className="flex flex-col items-center gap-4 text-3xl">
+        <p>로딩 중입니다.</p>
+        <p>잠시만 기다려주세요</p>
+      </div>
+      <span className="pan"></span>
     </div>
   );
 };

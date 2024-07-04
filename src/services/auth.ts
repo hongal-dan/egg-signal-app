@@ -23,14 +23,28 @@ const createUser = async (request: CreateUser) => {
   }
 };
 
-const loginUser = async (request: LoginUser) => {
+// const loginUser = async (request: LoginUser) => {
+//   try {
+//     const response = await axios.post("/api/auth/signIn", request, {
+//       withCredentials: true,
+//     });
+//     console.log("response = ", response);
+//     return response;
+//   } catch (error) {
+//     return error;
+//   }
+// };
+
+const loginUserHeader = async (request: LoginUser) => {
   try {
-    const response = await axios.post("/api/auth/signIn", request, {
-      withCredentials: true,
-    });
+    const response = await axios.post(`${authUrl}/signIn`, request);
     console.log("response = ", response);
+    console.log(response.headers['authorization']);
+    localStorage.setItem("token", JSON.stringify(response.headers['authorization']));
+
     return response;
-  } catch (error) {
+  } catch (error: any) {
+    console.error(error);
     return error;
   }
 };
@@ -44,4 +58,4 @@ const logoutUser = async () => {
   }
 };
 
-export { createUser, loginUser, logoutUser };
+export { createUser, logoutUser, loginUserHeader };
