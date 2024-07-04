@@ -48,6 +48,13 @@ const OpenViduVideoComponent = (props: Props) => {
     setIsChosen(true);
   };
 
+  const emitChoose = (eventName: string) => {
+    socket.emit(eventName, {
+      sender: myName?.textContent,
+      receiver: currentNickname?.textContent,
+    })
+  }
+
   return (
     <>
       <div className="cam-wrapper" ref={containerRef}>
