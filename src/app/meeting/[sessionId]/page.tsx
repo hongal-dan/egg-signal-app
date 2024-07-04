@@ -63,6 +63,8 @@ const Meeting = () => {
   const [socket, setSocket] = useRecoilState(meetingSocketState);
   const [isFull, setIsFull] = useState<boolean>(false);
   const userInfo = useRecoilValue(userState);
+  const [isSucceed, setIsSucceed] = useState<boolean>(false); // 매칭 성공해서 1:1 대화 넘어가는 지 여부
+  const [isMatched, setIsMatched] = useState<boolean>(false); // 매칭이 되었는지 여부
 
   const router = useRouter();
 
@@ -185,7 +187,7 @@ const Meeting = () => {
       const loserStream = subscribers.filter(
         sub => sub.stream.streamId !== loserStreamId,
       )[0];
-      (loserStream as Subscriber).subscribeToAudio(flag);
+      (loserStream as Subscriber)?.subscribeToAudio(flag);
     });
   };
 
@@ -289,7 +291,7 @@ const Meeting = () => {
           prevIds.filter(id => id !== streamId),
         );
       }
-      console.log("Publisher stopped speaking:", event.connection);
+      // console.log("Publisher stopped speaking:", event.connection);
     });
   };
 
@@ -309,17 +311,22 @@ const Meeting = () => {
     if (session) {
       session.disconnect();
     }
-    if (socket) {
-      socket.disconnect();
-      setSocket(null);
-    }
-
+    
     setSession(undefined);
     setSubscribers([]);
     setPublisher(undefined);
     setSortedSubscribers([]);
     setIsFull(false);
-    router.push("/main");
+    
+    if(!isSucceed) {
+      if (socket) {
+        socket.disconnect();
+        setSocket(null);
+      }
+      router.push("/main");
+      return;
+    }
+    router.push("/meeting/matching");
   };
 
   // 화살표 출발 도착 좌표 계산
@@ -798,9 +805,18 @@ const Meeting = () => {
     });
 
     // 선택시간 신호 받고 선택 모드로 변경
-    socket?.on("cupidTime", (response: number) => {
+    socket?.on("cupidTime", (response: string) => {
       try {
         console.log("cupidTime 도착", response);
+        setChooseMode();
+      } catch (e: any) {
+        console.error(e);
+      }
+    });
+
+    socket?.on("lastCupidTime", (response: any) => {
+      try {
+        console.log("lastCupidTime 도착", response);
         setChooseMode();
       } catch (e: any) {
         console.error(e);
