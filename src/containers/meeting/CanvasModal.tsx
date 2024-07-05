@@ -149,7 +149,12 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
       }, 5000);
     });
 
-    return () => {};
+    return () => {
+      socket.off("startDrawing");
+      socket.off("drawingSubmit");
+      socket.off("voteResults");
+      socket.off("finalResults");
+    };
   }, []);
 
   useEffect(() => {
