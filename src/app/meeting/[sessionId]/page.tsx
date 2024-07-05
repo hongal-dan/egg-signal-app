@@ -975,7 +975,7 @@ const Meeting = () => {
 
   useEffect(() => {
     console.log("subscribers", subscribers);
-    if (subscribers.length === 2) {
+    if (subscribers.length === 5) {
       if (getUserGender(publisher!) === "MALE") {
         sortSubscribers("MALE");
       } else {
