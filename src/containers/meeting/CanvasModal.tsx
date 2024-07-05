@@ -229,7 +229,7 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
         className={`${
           selectedUser === user ? "border-4 border-yellow-50" : "border"
         }`}
-        onClick={() => setSelectedUser(user)}
+        onClick={() => handleVoteSubmit(user)}
       >
         <img src={drawing} className="w-full h-full object-cover" />
       </div>
@@ -246,7 +246,7 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
         className={`${
           selectedUser === user ? "border-4 border-yellow-50" : "border"
         }`}
-        onClick={() => setSelectedUser(user)}
+        onClick={() => handleWinnerPrizeSubmit(user)}
       >
         <img src={capturedPhoto[user]} className="w-full h-full object-cover" />
       </div>
