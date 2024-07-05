@@ -157,9 +157,6 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
       canvas.toBlob(resolve, "image/webp"),
     );
     console.log(testName); //FIXME 테스트용 랜덤 닉네임 저장, 배포 전에 삭제해야함
-    const btnElement = document.getElementById("그림 제출버튼")!;
-    btnElement.innerText = "다시 제출";
-
     const capturedPhoto = captureVideoFrame();
     if (blob) {
       const resizedBlob = await resizeAndCompressImage(blob, canvas.width);
