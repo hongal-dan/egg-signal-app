@@ -41,6 +41,8 @@ const loginUserHeader = async (request: LoginUser) => {
     console.log("authUrl: ", authUrl)
     console.log(process.env.NEXT_PUBLIC_API_SERVER)
     console.log("response = ", response);
+    console.log(process.env.NEXT_PUBLIC_API_SERVER);
+    console.log(authUrl)
     console.log(response.headers['authorization']);
     localStorage.setItem("token", JSON.stringify(response.headers['authorization']));
 

@@ -58,7 +58,7 @@ const Meeting = () => {
 
   // const socket = useRecoilValue(meetingSocketState);
 
-  const avatar = useRecoilValue(avatarState);
+  const [avatar, setAvatar] = useRecoilState(avatarState);
   const [isOpenCam, setIsOpenCam] = useState<boolean>(false);
   const [socket, setSocket] = useRecoilState(meetingSocketState);
   const [isFull, setIsFull] = useState<boolean>(false);
@@ -983,6 +983,10 @@ const Meeting = () => {
     }
 
     meetingEvent();
+
+    return () => {
+      setAvatar(null);
+    };
   }, [avatar]);
 
   return !avatar ? (
