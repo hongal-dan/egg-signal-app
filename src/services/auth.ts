@@ -12,7 +12,7 @@ interface LoginUser {
   password: string;
 }
 
-const authUrl = process.env.NEXT_PUBLIC_API_SERVER + "auth";
+const authUrl = process.env.NEXT_PUBLIC_API_SERVER + "/auth";
 
 const createUser = async (request: CreateUser) => {
   try {
@@ -40,7 +40,7 @@ const loginUserHeader = async (request: LoginUser) => {
     console.log(authUrl);
     console.log(process.env.NEXT_PUBLIC_API_SERVER);
     // const response = await axios.post(`${authUrl}/signIn`, request);
-    const response = await axios.post(`https://egg-signal-server.syeong.link/signIn`, request);
+    const response = await axios.post(`${authUrl}/signIn`, request);
     console.log("response = ", response);
     console.log(response.headers['authorization']);
     localStorage.setItem("token", JSON.stringify(response.headers['authorization']));
