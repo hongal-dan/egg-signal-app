@@ -5,8 +5,6 @@ import imageCompression from "browser-image-compression";
 import { useRecoilValue } from "recoil";
 import { userState } from "@/app/store/userInfo";
 import { meetingSocketState } from "@/app/store/socket";
-import "@/styles/canvas.css";
-
 import { testState } from "@/app/store/userInfo"; //FIXME 테스트용 랜덤 닉네임 저장, 배포 전에 삭제해야함
 import { drawingKeywords } from "../../../public/data/drawingKeywords";
 import { setInterval } from "timers";
@@ -92,6 +90,7 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
         const url = URL.createObjectURL(blob);
         updatedDrawings[userName] = url;
       });
+
       setDrawings(updatedDrawings);
       setCurrentStage("voting");
       const users = Object.keys(drawings);
@@ -121,7 +120,6 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
         Object.entries(photos).forEach(([userName, photo]) => {
           updatedPhotos[userName] = photo;
         });
-
         setVoteResults(winner);
         setCapturedPhoto(updatedPhotos);
         setCurrentStage("winnerChoice");
@@ -251,7 +249,7 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
       socket.emit("submitVote", {
         // userName: userInfo?.nickname,
         userName: testName, // FIXME 테스트용 랜덤 닉네임 저장, 배포 전에 삭제해야함
-        votedUser: selectedUser,
+        votedUser: votedUser,
       });
     } else {
       alert("투표할 그림을 골라주세요.");
@@ -352,6 +350,7 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
                     }
                   ></button>
                 </div>
+
                 <div>브러쉬 굵기</div>
                 <div className="flex flex-wrap mb-4" style={{ width: "100px" }}>
                   {[5, 8, 12].map(size => (
@@ -369,6 +368,7 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
                     </button>
                   ))}
                 </div>
+
                 <div className="flex flex-wrap">
                   <button onClick={clearCanvas}>전부 지우기</button>
                 </div>
