@@ -9,6 +9,8 @@ import "@/styles/canvas.css";
 
 import { testState } from "@/app/store/userInfo"; //FIXME 테스트용 랜덤 닉네임 저장, 배포 전에 삭제해야함
 import { drawingKeywords } from "../../../public/data/drawingKeywords";
+import { setInterval } from "timers";
+
 type CanvasModalProps = {
   onClose: () => void;
 };
@@ -21,6 +23,7 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
   const [brushSize, setBrushSize] = useState(8);
   const [drawings, setDrawings] = useState<Record<string, string>>({});
   const [voteResults, setVoteResults] = useState<string | null>(null);
+  const [timeLeft, setTimeLeft] = useState(15);
   const [selectedUser, setSelectedUser] = useState<string | null>(null);
   const [finalResults, setFinalResults] = useState<{
     winners: string[];
@@ -58,6 +61,13 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
       if (drawingKeywordRef.current)
         drawingKeywordRef.current.innerText = drawingKeywords[drawingIndex];
 
+      setTimeLeft(15);
+      const timer = setInterval(() => {
+        setTimeLeft(t => {
+          if (t > 1) return t - 1;
+        });
+      }, 1000);
+    };
 
     startDrawing();
 
@@ -70,6 +80,13 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
       });
       setDrawings(updatedDrawings);
       setCurrentStage("voting");
+      const users = Object.keys(drawings);
+      setTimeLeft(15);
+      const timer = setInterval(() => {
+        setTimeLeft(t => {
+          if (t > 1) return t - 1;
+        });
+      }, 1000);
     });
 
     socket.on(
@@ -83,12 +100,22 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
         setVoteResults(winner);
         setCapturedPhoto(updatedPhotos);
         setCurrentStage("winnerChoice");
+
+        setTimeLeft(15);
+        const timer = setInterval(() => {
+          setTimeLeft(t => {
+            if (t > 1) return t - 1;
+          });
+        }, 1000);
       },
     );
 
     socket.on("finalResults", results => {
       setFinalResults(results);
       setCurrentStage("final");
+      setTimeout(() => {
+        onClose();
+      }, 5000);
     });
 
     return () => {};
@@ -319,6 +346,9 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
         {currentStage === "voting" && (
           <>
             <h2 className="text-xl font-bold mb-4">그림을 골라보세요</h2>
+            <div className="mb-4 text-xl">
+              <span>남은 시간: {timeLeft}초</span>
+            </div>
             <div className="grid grid-cols-3 grid-rows-2 gap-2 mb-5">
               {renderDrawings()}
             </div>
@@ -335,6 +365,7 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
                 <h3 className="text-lg font-semibold mb-2">
                   같이 있고 싶은 사람을 골라보세요
                 </h3>
+                <span>남은 시간: {timeLeft}초</span>
                 <div className="grid grid-cols-3 grid-rows-2 gap-2 mb-5">
                   {renderWinnerChoiceOptions()}
                 </div>
