@@ -313,15 +313,6 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
                 </div>
                 <div className="flex flex-wrap">
                   <button onClick={clearCanvas}>전부 지우기</button>
-
-                  <button
-                    id="그림 제출버튼"
-                    onClick={handleForwardDrawing}
-                    className="bg-yellow-400 text-yellow-100 px-4 py-2 rounded
-                  mr-2"
-                  >
-                    그림 제출
-                  </button>
                 </div>
               </div>
             </div>
@@ -334,12 +325,6 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
             <div className="grid grid-cols-3 grid-rows-2 gap-2 mb-5">
               {renderDrawings()}
             </div>
-            <button
-              onClick={handleVoteSubmit}
-              className="bg-yellow-100 text-yellow-500 px-4 py-2 rounded"
-            >
-              투표 출발
-            </button>
           </>
         )}
 
@@ -356,12 +341,6 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
                 <div className="grid grid-cols-3 grid-rows-2 gap-2 mb-5">
                   {renderWinnerChoiceOptions()}
                 </div>
-                <button
-                  onClick={handleWinnerPrizeSubmit}
-                  className="bg-yellow-100 text-yellow-500 px-4 py-2 rounded"
-                >
-                  이사람이요
-                </button>
               </div>
             )}
           </>
