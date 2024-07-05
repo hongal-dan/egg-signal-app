@@ -841,6 +841,24 @@ const Meeting = () => {
       }
     });
 
+    type lastCupidResult = {
+      lover: string;
+    }
+
+    socket?.on("matching", (response: lastCupidResult) => {
+      try {
+        console.log("matching도착", response);
+        const { lover } = response;
+        if(lover != "0") {
+          // 러버 저장하고 넘겨야해요. 모달로 띄워야되니까
+          console.log("제게는 사랑하는 짝이 있어요.", lover);
+          setIsMatched(true); // 이게 성공 모달
+        }
+      } catch(e: any) { 
+        console.error(e);
+      }
+    });
+
     /**사생대회 모달 */
     socket?.on("drawingContest", response => {
       console.log("drawingContest 도착", response);
