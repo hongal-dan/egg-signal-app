@@ -422,7 +422,11 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
           <>
             <h2 className="text-xl font-bold mb-4">최종 결과</h2>
             <div>좋은시간보내세요 {finalResults.winners.join(", ")}</div>
-            <div>나머지: {finalResults.losers.join(", ")}</div>
+            <div>
+              {finalResults.losers.length === Object.keys(drawings).length - 1
+                ? "안고를거면미팅왜했음"
+                : `나머지: ${finalResults.losers.join(", ")}`}
+            </div>
           </>
         )}
       </div>
