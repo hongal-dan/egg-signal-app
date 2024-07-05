@@ -933,7 +933,7 @@ const Meeting = () => {
 
   const getUserID = (person: StreamManager): string => {
     const idMatch = person?.stream.connection.data.match(
-      /"clientData":"([a-zA-Z0-9-]+)"/,
+      /"clientData":"([a-zA-Z0-9-\uAC00-\uD7A3]+)"/,
     );
     const id = idMatch ? idMatch[1] : "";
     return id;
