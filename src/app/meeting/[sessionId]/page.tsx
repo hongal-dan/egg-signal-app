@@ -92,7 +92,9 @@ const Meeting = () => {
 
   const captureCanvas = () => {
     console.log("캡쳐 시작");
-    const canvas = captureRef.current?.querySelector("canvas") as HTMLCanvasElement;
+    const canvas = captureRef.current?.querySelector(
+      "canvas",
+    ) as HTMLCanvasElement;
 
     if (!canvas) {
       console.error("캔버스 업슴!!!");
@@ -180,12 +182,23 @@ const Meeting = () => {
 
   // 내가 매칭 안 된 경우, 매칭 된 참여자들 소리 안 듣기
   const muteLoverAudio = (loser: string[], flag: boolean) => {
+    const findMatchingUsers = subscribers;
     loser.forEach(loserName => {
       const loserStreamId = getKeyById(loserName);
-      const loserStream = subscribers.filter(
-        sub => sub.stream.streamId !== loserStreamId,
-      )[0];
-      (loserStream as Subscriber).subscribeToAudio(flag);
+      const loserStream = subscribers.find(
+        sub => sub.stream.streamId === loserStreamId,
+      );
+
+      if (loserStream) {
+        const index = findMatchingUsers.indexOf(loserStream);
+        if (index > -1) {
+          findMatchingUsers.splice(index, 1); // 배열에서 사용자 제거
+        }
+      }
+    });
+
+    findMatchingUsers.forEach(sub => {
+      (sub as Subscriber).subscribeToAudio(flag);
     });
   };
 
@@ -447,7 +460,11 @@ const Meeting = () => {
     hideArrow();
   };
   // time 초 동안 발표 모드 (presenter: 발표자, time: 발표 시간(초), mention: 발표 주제)
-  const changePresentationMode = (presenter: HTMLDivElement, time: number, mention: string = "") => {
+  const changePresentationMode = (
+    presenter: HTMLDivElement,
+    time: number,
+    mention: string = "",
+  ) => {
     if (keywordRef.current) {
       keywordRef.current.innerText = mention;
     }
@@ -829,13 +846,21 @@ const Meeting = () => {
           const participantElement = document.getElementById(
             participantsArray[idx],
           ) as HTMLDivElement;
-          changePresentationMode(participantElement, 10, "20초간 자기소개 해주세요"); // FIXME 테스트용 10초 나중에 원래대로 돌리기
+          changePresentationMode(
+            participantElement,
+            10,
+            "20초간 자기소개 해주세요",
+          ); // FIXME 테스트용 10초 나중에 원래대로 돌리기
           const timeInterval = setInterval(() => {
             idx += 1;
             const participantElement = document.getElementById(
               participantsArray[idx],
             ) as HTMLDivElement;
-            changePresentationMode(participantElement, 10, "20초간 자기소개 해주세요"); // FIXME 테스트용 10초 나중에 원래대로 돌리기
+            changePresentationMode(
+              participantElement,
+              10,
+              "20초간 자기소개 해주세요",
+            ); // FIXME 테스트용 10초 나중에 원래대로 돌리기
             if (idx == 5) {
               clearInterval(timeInterval);
             }
