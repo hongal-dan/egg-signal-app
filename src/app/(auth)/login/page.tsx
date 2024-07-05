@@ -8,7 +8,8 @@ interface FormValues {
   id: string;
   password: string;
 }
-
+const NESTJS_SERVER_URL =
+  process.env.NEXT_PUBLIC_API_SERVER || "http://localhost:3000";
 const validationSchema = Yup.object().shape({
   id: Yup.string().required("아이디를 입력하세요."),
   password: Yup.string().required("비밀번호를 입력하세요."),
@@ -24,11 +25,6 @@ export default function Login() {
 
   const errorStyle = "text-red-500 text-sm font-medium mt-1 ml-2";
 
-  const handleKakaoLogin = () => {
-    // Kakao 로그인 로직을 여기에 추가하세요
-    console.log("Kakao 로그인");
-  };
-
   const handleLogIn = async (values: FormValues) => {
     try {
       const response = await loginUser(values) as Response;
@@ -39,6 +35,10 @@ export default function Login() {
     } catch (error) {
       console.error("Error fetching data: ", error);
     }
+  };
+
+  const handleKakaoLogin = () => {
+    window.location.href = `${NESTJS_SERVER_URL}/auth/kakao`;
   };
 
   return (
