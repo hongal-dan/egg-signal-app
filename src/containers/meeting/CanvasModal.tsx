@@ -8,8 +8,7 @@ import { meetingSocketState } from "@/app/store/socket";
 import "@/styles/canvas.css";
 
 import { testState } from "@/app/store/userInfo"; //FIXME 테스트용 랜덤 닉네임 저장, 배포 전에 삭제해야함
-import test from "node:test";
-
+import { drawingKeywords } from "../../../public/data/drawingKeywords";
 type CanvasModalProps = {
   onClose: () => void;
 };
@@ -32,7 +31,7 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
   );
   const [hasVoted, setHasVoted] = useState(false);
   const [currentStage, setCurrentStage] = useState("drawing");
-
+  const drawingKeywordRef = useRef<HTMLParagraphElement>(null);
   const socket = useRecoilValue(meetingSocketState)!;
   const userInfo = useRecoilValue(userState);
 
@@ -53,9 +52,14 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
     context.fillRect(0, 0, canvas.width, canvas.height);
     contextRef.current = context;
 
-    socket.on("startDrawing", () => {
-      setCurrentStage("drawing");
-    });
+    const startDrawing = () => {
+      const drawingIndex = Math.floor(Math.random() * drawingKeywords.length);
+      /**추후 서버에서 받을 예정 */
+      if (drawingKeywordRef.current)
+        drawingKeywordRef.current.innerText = drawingKeywords[drawingIndex];
+
+
+    startDrawing();
 
     socket.on("drawingSubmit", (drawings: Record<string, string>) => {
       const updatedDrawings: Record<string, string> = {};
@@ -261,6 +265,13 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
 
         {currentStage === "drawing" && (
           <div className="flex flex-col items-center">
+            <div className="mb-4 text-xl">
+              <p className="drawingKeyword" ref={drawingKeywordRef}></p>
+            </div>
+            <div className="mb-4 text-l">
+              <span>남은 시간: {timeLeft}초</span>
+            </div>
+
             <div className="flex items-start justify-between w-full">
               <canvas
                 ref={canvasRef}
