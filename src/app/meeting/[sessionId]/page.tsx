@@ -718,7 +718,7 @@ const Meeting = () => {
           undoLoveStickMode();
           if (keywordRef.current) {
             console.log("잠시 후 1:1대화가 시작된다는 멘트 ");
-            keywordRef.current.innerText = "잠시 후 1:1대화가 시작됩니다.";
+            keywordRef.current.innerText = "잠시 후 매칭된 사람과의 1:1 대화가 시작됩니다.";
           }
         }, 10000); // 10초 후 원 위치
       } catch (e: any) {
@@ -741,9 +741,6 @@ const Meeting = () => {
         // 매칭 된 사람의 경우
         setTimeout(() => {
           console.log("큐피드result로 계산 시작");
-          const subElements = Array.from(
-            document.getElementsByClassName("sub"),
-          );
           if (lover != "0") {
             console.log("이거도 없니?", keywordRef.current);
             if (keywordRef.current) {
@@ -753,13 +750,13 @@ const Meeting = () => {
             const loverElement = document
               .getElementById(lover)
               ?.closest(".stream-container") as HTMLDivElement;
-            // sub들 흑백으로 만들기
-            subElements.forEach(subElement => {
-              if (subElement === loverElement) {
-                return;
-              }
-              subElement.classList.toggle("black-white");
-              console.log("나머지 흑백 만들기");
+
+            loser.forEach(loser => {
+              const loserElement = document.getElementById(
+                loser,
+              ) as HTMLDivElement;
+              console.log("loser:", loser);
+              loserElement.classList.toggle("black-white");
             });
 
             muteLoserAudio(lover, false); // 나머지 오디오 차단
@@ -771,11 +768,12 @@ const Meeting = () => {
                 console.log("즐거운시간 삭제");
               }
               undoOneToOneMode(loverElement);
-              subElements.forEach(subElement => {
-                if (subElement === loverElement) {
-                  return;
-                }
-                subElement.classList.toggle("black-white");
+              loser.forEach(loser => {
+                const loserElement = document.getElementById(
+                  loser,
+                ) as HTMLDivElement;
+                console.log("loser:", loser);
+                loserElement.classList.toggle("black-white");
               });
               muteLoserAudio(lover, true); // 나머지 오디오 재개
             }, 60000); // 1분 후 원 위치
@@ -784,6 +782,13 @@ const Meeting = () => {
           else {
             // const pubElement = document.getElementsByClassName("pub")[0] as HTMLDivElement;
             // pubElement.classList.toggle("black-white");
+            if(loser.length === 6) {
+              if (keywordRef.current) {
+                keywordRef.current.innerText =
+                  "매칭 된 사람이 없습니다. 사이좋게 대화하세요";
+              }
+              return;
+            }
             if (keywordRef.current) {
               keywordRef.current.innerText =
                 "당신은 선택받지 못했습니다. 1분 간 오디오가 차단됩니다.";
