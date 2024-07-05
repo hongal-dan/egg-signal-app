@@ -46,10 +46,6 @@ const Meeting = () => {
     [],
   );
   const [isCanvasModalOpen, setIsCanvasModalOpen] = useState<boolean>(false);
-
-  // const [isLoveMode, setIsLoveMode] = useState<boolean>(false);
-  // const [isChooseMode, setIsChooseMode] = useState<boolean>(false);
-  // const [isOneToOneMode, setIsOneToOneMode] = useState<boolean>(false);
   const captureRef = useRef<HTMLDivElement>(null);
   const keywordRef = useRef<HTMLParagraphElement>(null);
   const pubRef = useRef<HTMLDivElement>(null);
