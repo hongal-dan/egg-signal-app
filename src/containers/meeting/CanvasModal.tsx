@@ -18,6 +18,8 @@ type CanvasModalProps = {
 const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const contextRef = useRef<CanvasRenderingContext2D | null>(null);
+  const [hasSubmitted, setHasSubmitted] = useState<boolean>(false);
+  const hasSubmittedRef = useRef<boolean>(hasSubmitted);
   const [isDrawing, setIsDrawing] = useState(false);
   const [color, setColor] = useState("black");
   const [brushSize, setBrushSize] = useState(8);
@@ -32,13 +34,15 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
   const [capturedPhoto, setCapturedPhoto] = useState<Record<string, string>>(
     {},
   );
-  const [hasVoted, setHasVoted] = useState(false);
   const [currentStage, setCurrentStage] = useState("drawing");
   const drawingKeywordRef = useRef<HTMLParagraphElement>(null);
   const socket = useRecoilValue(meetingSocketState)!;
   const userInfo = useRecoilValue(userState);
-
   const testName = useRecoilValue(testState); //FIXME 테스트용 랜덤 닉네임 저장, 배포 전에 삭제해야함
+
+  useEffect(() => {
+    hasSubmittedRef.current = hasSubmitted;
+  }, [hasSubmitted]);
 
   useEffect(() => {
     const canvas = canvasRef.current!;
@@ -65,6 +69,14 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
       const timer = setInterval(() => {
         setTimeLeft(t => {
           if (t > 1) return t - 1;
+          else {
+            if (!hasSubmittedRef.current) {
+              handleForwardDrawing();
+              setHasSubmitted(true);
+            }
+            clearInterval(timer);
+            return 0;
+          }
         });
       }, 1000);
     };
@@ -72,6 +84,8 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
     startDrawing();
 
     socket.on("drawingSubmit", (drawings: Record<string, string>) => {
+      setHasSubmitted(false);
+
       const updatedDrawings: Record<string, string> = {};
       Object.entries(drawings).forEach(([userName, drawingBuffer]) => {
         const blob = new Blob([drawingBuffer], { type: "image/webp" });
@@ -85,6 +99,15 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
       const timer = setInterval(() => {
         setTimeLeft(t => {
           if (t > 1) return t - 1;
+          else {
+            if (!hasSubmittedRef.current) {
+              console.log(users);
+              handleVoteSubmit(users[0]);
+              setHasSubmitted(true);
+            }
+            clearInterval(timer);
+            return 0;
+          }
         });
       }, 1000);
     });
@@ -92,11 +115,13 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
     socket.on(
       "voteResults",
       (results: { winner: string; photos: Record<string, string> }) => {
+        setHasSubmitted(false);
         const { winner, photos } = results;
         const updatedPhotos: Record<string, string> = {};
         Object.entries(photos).forEach(([userName, photo]) => {
           updatedPhotos[userName] = photo;
         });
+
         setVoteResults(winner);
         setCapturedPhoto(updatedPhotos);
         setCurrentStage("winnerChoice");
@@ -105,6 +130,14 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
         const timer = setInterval(() => {
           setTimeLeft(t => {
             if (t > 1) return t - 1;
+            else {
+              if (!hasSubmittedRef.current) {
+                handleWinnerPrizeSubmit("kep");
+                setHasSubmitted(true);
+              }
+              clearInterval(timer);
+              return 0;
+            }
           });
         }, 1000);
       },
@@ -185,6 +218,7 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
     );
     console.log(testName); //FIXME 테스트용 랜덤 닉네임 저장, 배포 전에 삭제해야함
     const capturedPhoto = captureVideoFrame();
+    setHasSubmitted(true);
     if (blob) {
       const resizedBlob = await resizeAndCompressImage(blob, canvas.width);
       const arrayBuffer = await resizedBlob.arrayBuffer();
@@ -210,40 +244,40 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
     });
   };
 
-  const handleVoteSubmit = () => {
-    if (hasVoted) {
-      alert("투표는 한번만이에요");
-      return;
-    }
-
-    if (selectedUser) {
+  const handleVoteSubmit = (votedUser: string) => {
+    setHasSubmitted(true);
+    setSelectedUser(votedUser);
+    if (votedUser) {
       socket.emit("submitVote", {
         // userName: userInfo?.nickname,
         userName: testName, // FIXME 테스트용 랜덤 닉네임 저장, 배포 전에 삭제해야함
         votedUser: selectedUser,
       });
-      setSelectedUser(null);
-      setHasVoted(true);
     } else {
       alert("투표할 그림을 골라주세요.");
     }
   };
 
-  const handleWinnerPrizeSubmit = () => {
-    if (selectedUser) {
-      const winners = [voteResults!, selectedUser];
-      const losers = Object.keys(drawings).filter(
-        user => !winners.includes(user),
-      );
-      socket.emit("winnerPrize", {
-        winners,
-        losers,
-      });
-      setFinalResults({ winners, losers });
+  const handleWinnerPrizeSubmit = (selectedUser: string | null) => {
+    setHasSubmitted(true);
+    setSelectedUser(selectedUser);
+    console.log(voteResults);
+    let winners!: string[], losers;
+
+    if (selectedUser !== "kep") winners = [voteResults!, selectedUser!];
+    else winners = [voteResults!];
+
+    losers = Object.keys(drawings).filter(user => winners.includes(user));
+
+    console.log(winners, losers, voteResults, "위너 루저 보트리젙ㄹ트");
+    socket.emit("winnerPrize", { winners, losers });
+
+    setFinalResults({ winners, losers });
+
+    // 일정 시간 후에 "final" 상태로 전환
+    setTimeout(() => {
       setCurrentStage("final");
-    } else {
-      alert("왜 아무도안골라");
-    }
+    }, 1000);
   };
 
   const renderDrawings = () => {
