@@ -391,9 +391,19 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
 
         {currentStage === "winnerChoice" && voteResults && (
           <>
-            <h2 className="text-xl font-bold mb-4">투표 결과</h2>
-            <div className="mb-4">1등은 {voteResults}입니다~</div>
-            {/* {userInfo?.nickname === voteResults && ( */}
+            {testName !== voteResults && (
+              <div>
+                <h2 className="text-xl font-bold mb-4">투표 결과</h2>
+                <div className="mb-4">1등은 {voteResults}입니다~</div>
+                {/* {userInfo?.nickname === voteResults && ( */}
+                <div>
+                  <img
+                    src={drawings[voteResults]}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              </div>
+            )}
             {testName === voteResults && ( // FIXME 테스트용 랜덤 닉네임 저장, 배포 전에 삭제해야함
               <div>
                 <h3 className="text-lg font-semibold mb-2">
