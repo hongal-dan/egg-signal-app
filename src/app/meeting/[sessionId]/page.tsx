@@ -21,12 +21,7 @@ import { keywords } from "../../../../public/data/keywords.js";
 import AvatarCollection from "@/containers/main/AvatarCollection";
 import { userState } from "@/app/store/userInfo";
 import CanvasModal from "@/containers/meeting/CanvasModal";
-
-// type Props = {
-//   sessionId: string;
-//   token: string;
-//   participantName: string;
-// };
+import { defaultSessionState } from "@/app/store/ovInfo";
 
 type chooseResult = {
   sender: string;
@@ -62,6 +57,8 @@ const Meeting = () => {
   const [isSucceed, setIsSucceed] = useState<boolean>(false); // 매칭 성공해서 1:1 대화 넘어가는 지 여부
   const [isMatched, setIsMatched] = useState<boolean>(false); // 매칭이 되었는지 여부
   const [, setIsLastChoose] = useRecoilState(isLastChooseState);
+
+  const {sessionId, token, participantName} = useRecoilValue(defaultSessionState);
 
   const router = useRouter();
 
@@ -199,13 +196,14 @@ const Meeting = () => {
 
     const newSession = OV.initSession();
     setSession(newSession);
-    const { sessionId, token, participantName } = JSON.parse(
-      sessionStorage.getItem("ovInfo")!,
-    );
+    // const { sessionId, token } = JSON.parse(
+    //   sessionStorage.getItem("ovInfo")!,
+    // );
     // Connect to the session
     newSession
       .connect(token, {
-        clientData: participantName,
+        // clientData: userInfo?.nickname as string,  // FIXME 배포시엔 저를 써주세요.
+        clientData: participantName, // FIXME 배포 시 랜덤닉네임 말고 유저 아이디로
         gender: userInfo?.gender as string,
       })
       .then(async () => {
