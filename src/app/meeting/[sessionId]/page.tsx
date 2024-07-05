@@ -821,6 +821,26 @@ const Meeting = () => {
       }
     });
 
+    socket?.on("lastChooseResult", (response) => {
+      try {
+        console.log("lastChooseResult 도착");
+        console.log("lastChooseResult = ", response);
+        undoChooseMode(); // 선택모드 해제
+        removeChooseSign(); // 선택된 사람 표시 제거
+        changeLoveStickMode(response as Array<chooseResult>);
+        setTimeout(() => {
+          console.log("원 위치로 변경");
+          undoLoveStickMode();
+          if (keywordRef.current) {
+            console.log("1분 후 세션이 종료됩니다");
+            keywordRef.current.innerText = "1분 후 세션이 종료됩니다";
+          }
+        }, 10000); // 10초 후 원 위치
+      } catch (e: any) {
+        console.error(e);
+      }
+    });
+
     /**사생대회 모달 */
     socket?.on("drawingContest", response => {
       console.log("drawingContest 도착", response);
