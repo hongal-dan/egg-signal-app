@@ -58,7 +58,7 @@ const Meeting = () => {
 
   // const socket = useRecoilValue(meetingSocketState);
 
-  const avatar = useRecoilValue(avatarState);
+  const [avatar, setAvatar] = useRecoilState(avatarState);
   const [isOpenCam, setIsOpenCam] = useState<boolean>(false);
   const [socket, setSocket] = useRecoilState(meetingSocketState);
   const [isFull, setIsFull] = useState<boolean>(false);
@@ -92,7 +92,9 @@ const Meeting = () => {
 
   const captureCanvas = () => {
     console.log("캡쳐 시작");
-    const canvas = captureRef.current?.querySelector("canvas") as HTMLCanvasElement;
+    const canvas = captureRef.current?.querySelector(
+      "canvas",
+    ) as HTMLCanvasElement;
 
     if (!canvas) {
       console.error("캔버스 업슴!!!");
@@ -170,23 +172,35 @@ const Meeting = () => {
 
   // 내가 매칭 된 경우, 매칭 안 된 참여자들 소리 안 듣기
   const muteLoserAudio = (partnerName: string, flag: boolean) => {
+    console.log(partnerName, " 빼고 소리 차단", flag ? "해제" : "설정");
     const partnerStreamId = getKeyById(partnerName);
     subscribers.forEach(sub => {
       if (sub.stream.streamId !== partnerStreamId) {
-        (sub as Subscriber).subscribeToAudio(flag);
+        if (sub instanceof Subscriber) {
+          sub.subscribeToAudio(flag);
+        }
+        // (sub as Subscriber).subscribeToAudio(flag);
       }
     });
   };
 
   // 내가 매칭 안 된 경우, 매칭 된 참여자들 소리 안 듣기
   const muteLoverAudio = (loser: string[], flag: boolean) => {
-    loser.forEach(loserName => {
-      const loserStreamId = getKeyById(loserName);
-      const loserStream = subscribers.filter(
-        sub => sub.stream.streamId !== loserStreamId,
-      )[0];
-      (loserStream as Subscriber).subscribeToAudio(flag);
-    });
+    console.log(loser, " 빼고 소리 차단", flag ? "해제" : "설정");
+    const loserStreamIds = loser
+      .map(loserName => getKeyById(loserName))
+      .filter(id => id !== null);
+
+    if (loserStreamIds.length > 0) {
+      subscribers.forEach(sub => {
+        if (!loserStreamIds.includes(sub.stream.streamId)) {
+          if (sub instanceof Subscriber) {
+            sub.subscribeToAudio(flag);
+          }
+          // (sub as Subscriber).subscribeToAudio(flag);
+        }
+      });
+    }
   };
 
   const joinSession = () => {
@@ -447,7 +461,11 @@ const Meeting = () => {
     hideArrow();
   };
   // time 초 동안 발표 모드 (presenter: 발표자, time: 발표 시간(초), mention: 발표 주제)
-  const changePresentationMode = (presenter: HTMLDivElement, time: number, mention: string = "") => {
+  const changePresentationMode = (
+    presenter: HTMLDivElement,
+    time: number,
+    mention: string = "",
+  ) => {
     if (keywordRef.current) {
       keywordRef.current.innerText = mention;
     }
@@ -725,7 +743,6 @@ const Meeting = () => {
             document.getElementsByClassName("sub"),
           );
           if (lover != "0") {
-            muteLoserAudio(lover, false); // 나머지 오디오 차단
             console.log("이거도 없니?", keywordRef.current);
             if (keywordRef.current) {
               console.log("즐거운 시간 보내라고 p 태그 변경");
@@ -743,6 +760,7 @@ const Meeting = () => {
               console.log("나머지 흑백 만들기");
             });
 
+            muteLoserAudio(lover, false); // 나머지 오디오 차단
             setOneToOneMode(loverElement);
             setTimeout(() => {
               // console.log("1:1 모드 해제")
@@ -751,20 +769,19 @@ const Meeting = () => {
                 console.log("즐거운시간 삭제");
               }
               undoOneToOneMode(loverElement);
-              muteLoserAudio(lover, true); // 나머지 오디오 재개
               subElements.forEach(subElement => {
                 if (subElement === loverElement) {
                   return;
                 }
                 subElement.classList.toggle("black-white");
               });
+              muteLoserAudio(lover, true); // 나머지 오디오 재개
             }, 60000); // 1분 후 원 위치
           }
           // 매칭 안된 사람들의 경우
           else {
             // const pubElement = document.getElementsByClassName("pub")[0] as HTMLDivElement;
             // pubElement.classList.toggle("black-white");
-            muteLoverAudio(loser, false); // 매칭된 사람들 오디오 차단
             if (keywordRef.current) {
               keywordRef.current.innerText =
                 "당신은 선택받지 못했습니다. 1분 간 오디오가 차단됩니다.";
@@ -781,6 +798,7 @@ const Meeting = () => {
                 loserElement.classList.toggle("black-white");
               }, 60000); // 1분 후 흑백 해제
             });
+            muteLoverAudio(loser, false); // 매칭된 사람들 오디오 차단
             // muteAudio();
             setTimeout(() => {
               if (keywordRef.current) {
@@ -829,13 +847,21 @@ const Meeting = () => {
           const participantElement = document.getElementById(
             participantsArray[idx],
           ) as HTMLDivElement;
-          changePresentationMode(participantElement, 10, "20초간 자기소개 해주세요"); // FIXME 테스트용 10초 나중에 원래대로 돌리기
+          changePresentationMode(
+            participantElement,
+            10,
+            "20초간 자기소개 해주세요",
+          ); // FIXME 테스트용 10초 나중에 원래대로 돌리기
           const timeInterval = setInterval(() => {
             idx += 1;
             const participantElement = document.getElementById(
               participantsArray[idx],
             ) as HTMLDivElement;
-            changePresentationMode(participantElement, 10, "20초간 자기소개 해주세요"); // FIXME 테스트용 10초 나중에 원래대로 돌리기
+            changePresentationMode(
+              participantElement,
+              10,
+              "20초간 자기소개 해주세요",
+            ); // FIXME 테스트용 10초 나중에 원래대로 돌리기
             if (idx == 5) {
               clearInterval(timeInterval);
             }
@@ -907,7 +933,7 @@ const Meeting = () => {
 
   const getUserID = (person: StreamManager): string => {
     const idMatch = person?.stream.connection.data.match(
-      /"clientData":"([a-zA-Z0-9-]+)"/,
+      /"clientData":"([a-zA-Z0-9-\uAC00-\uD7A3]+)"/,
     );
     const id = idMatch ? idMatch[1] : "";
     return id;
@@ -983,6 +1009,10 @@ const Meeting = () => {
     }
 
     meetingEvent();
+
+    return () => {
+      setAvatar(null);
+    };
   }, [avatar]);
 
   return !avatar ? (
