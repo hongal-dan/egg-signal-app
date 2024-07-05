@@ -17,30 +17,40 @@ import { chatRoomState, newMessageSenderState } from "@/app/store/chat";
 import { logoutUser } from "@/services/auth";
 import { Socket } from "socket.io-client";
 import { testState } from "@/app/store/userInfo"; // FIXME 테스트용 랜덤 닉네임 저장, 배포 전에 삭제해야함
+import { getUserInfo } from "@/services/users";
 
-interface Friend {
-  friend: string;
-  chatRoomId: string;
-  newMessage: boolean;
-}
+// interface Friend {
+//   friend: string;
+//   chatRoomId: string;
+//   newMessage: boolean;
+// }
 
-interface MainContentProps {
-  userInfo: {
-    id: string;
-    nickname: string;
-    gender: "MALE" | "FEMALE";
-    newNotification: boolean;
-    notifications: string[];
-    friends: Friend[];
-  };
-}
+// interface MainContentProps {
+//   userInfo: {
+//     id: string;
+//     nickname: string;
+//     gender: "MALE" | "FEMALE";
+//     newNotification: boolean;
+//     notifications: string[];
+//     friends: Friend[];
+//   };
+// }
+
+// interface UserInfo {
+//   id: string;
+//   nickname: string;
+//   gender: "MALE" | "FEMALE";
+//   newNotification: boolean;
+//   notifications: string[];
+//   friends: Friend[];
+// }
 
 interface Notification {
   _id: string;
   from: string;
 }
 
-const MainContent = ({ userInfo }: MainContentProps) => {
+const MainContent = () => {
   const [, setTestName] = useRecoilState(testState); // FIXME 테스트용 랜덤 닉네임 저장, 배포 전에 삭제해야함
 
   const router = useRouter();
@@ -71,6 +81,43 @@ const MainContent = ({ userInfo }: MainContentProps) => {
     setOnlineList(JSON.parse(onlineList));
   };
 
+
+  // const handleGetUserInfo = async (token: string) => {
+  //   try {
+  //     const response = await getUserInfo(token).then();
+  //     console.log(response.data);
+  //     const currentUser = {
+  //       id: response.data.id,
+  //       nickname: response.data.nickname,
+  //       gender: response.data.gender,
+  //       newNotification: response.data.newNotification,
+  //       notifications: response.data.notifications,
+  //       friends: response.data.friends,
+  //     };
+  //     return currentUser;
+  //   } catch (error) {
+  //     console.error("Error fetching data: ", error);
+  //   }
+  // };
+
+  // const currentUser = await handleGetUserInfo(JSON.parse(token));
+  // console.log(currentUser);
+
+  const updateUserInfo = async () => {
+    console.log("updateUserInfo");
+    const response = await getUserInfo(JSON.parse(localStorage.getItem("token")!));
+    const currentUser = {
+      id: response.data.id,
+      nickname: response.data.nickname,
+      gender: response.data.gender,
+      newNotification: response.data.newNotification,
+      notifications: response.data.notifications,
+      friends: response.data.friends,
+    };
+    setCurrentUser(currentUser);
+  }
+
+
   // 내가 접속하지 않은 동안 온 메시지가 있으면 알람 표시
   const checkNewMessage = () => {
     const messageSenders = sessionStorage.getItem("messageSenders");
@@ -82,12 +129,15 @@ const MainContent = ({ userInfo }: MainContentProps) => {
   };
 
   useEffect(() => {
-    setCurrentUser(userInfo);
+    // setCurrentUser(userInfo);
+    console.log("MainContent useEffect")
+    updateUserInfo();
     checkNewMessage();
 
     const newCommonSocket = io(`${url}/common`, {
       transports: ["websocket"],
-      withCredentials: true,
+      auth: {token: JSON.parse(localStorage.getItem("token")!)},
+      // withCredentials: true,
     });
     setCommonSocket(newCommonSocket);
 
@@ -214,7 +264,8 @@ const MainContent = ({ userInfo }: MainContentProps) => {
     return new Promise(resolve => {
       const newSocket = io(`${url}/meeting`, {
         transports: ["websocket"],
-        withCredentials: true,
+        // withCredentials: true,
+        auth: {token: JSON.parse(localStorage.getItem("token")!)},
       });
       newSocket.on("connect", () => {
         setSocket(newSocket);
@@ -228,11 +279,12 @@ const MainContent = ({ userInfo }: MainContentProps) => {
     HTMLButtonElement
   > = async () => {
     const meetingSocket = (await connectSocket()) as Socket | null;
-    setTestName(`${userInfo.nickname}-${randomNum}`); // FIXME 테스트용 랜덤 닉네임 저장, 배포 전에 삭제해야함
+    setTestName(`${currentUser.nickname}-${randomNum}`); // FIXME 테스트용 랜덤 닉네임 저장, 배포 전에 삭제해야함
     console.log("socket: ", meetingSocket);
+    console.log("currentUser: ", currentUser);
     meetingSocket?.emit("ready", {
-      participantName: `${userInfo.nickname}-${randomNum}`,
-      gender: userInfo.gender,
+      participantName: `${currentUser.nickname}-${randomNum}`,
+      gender: currentUser.gender,
     });
     if (startButton.current) startButton.current.disabled = true;
     setIsLoading(true);
@@ -250,7 +302,7 @@ const MainContent = ({ userInfo }: MainContentProps) => {
 
   const handleLoadingCancel = () => {
     socket?.emit("cancel", {
-      participantName: `${userInfo.nickname}-${randomNum}`,
+      participantName: `${currentUser.nickname}-${randomNum}`,
     }); // 테스트용 익명 닉네임 부여
     if (startButton.current) startButton.current.disabled = false;
     setIsLoading(false);
