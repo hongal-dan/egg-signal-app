@@ -27,15 +27,21 @@ const OpenViduVideoComponent = (props: Props) => {
     }
   }, [videoRef, props.streamManager]);
 
-  const myName = document.querySelector(".pub")?.querySelector(".nickname");
-  console.log(myName?.textContent);
-  const currentNickname = containerRef.current
-    ?.closest(".streamcomponent")
-    ?.querySelector(".nickname");
-
+  
   const handleChoose = () => {
+    const myName = document.querySelector(".pub")?.querySelector(".nickname");
+    console.log(myName?.textContent);
+    const currentNickname = containerRef.current
+      ?.closest(".streamcomponent")
+      ?.querySelector(".nickname");
     console.log(currentNickname?.textContent);
     // const currStreamContainer = containerRef.current?.closest(".stream-container");
+    const emitChoose = (eventName: string) => {
+      socket.emit(eventName, {
+        sender: myName?.textContent,
+        receiver: currentNickname?.textContent,
+      })
+    }
     if (isChosen) {
       containerRef.current!.classList.remove("chosen-stream");
       videoRef.current!.classList.remove("opacity");
@@ -54,12 +60,6 @@ const OpenViduVideoComponent = (props: Props) => {
     setIsChosen(true);
   };
 
-  const emitChoose = (eventName: string) => {
-    socket.emit(eventName, {
-      sender: myName?.textContent,
-      receiver: currentNickname?.textContent,
-    })
-  }
 
   return (
     <>
@@ -75,4 +75,4 @@ const OpenViduVideoComponent = (props: Props) => {
   );
 };
 
-export default OpenViduVideoComponent;
+export default React.memo(OpenViduVideoComponent);
