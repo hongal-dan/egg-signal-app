@@ -216,14 +216,13 @@ const Meeting = () => {
 
     const newSession = OV.initSession();
     setSession(newSession);
-    const randomNum = Math.floor(Math.random() * 1000).toString(); // 테스트용!!!
     const { sessionId, token, participantName } = JSON.parse(
       sessionStorage.getItem("ovInfo")!,
     );
     // Connect to the session
     newSession
       .connect(token, {
-        clientData: `${participantName}-${randomNum}`, // 테스트용!!!
+        clientData: participantName,
         gender: userInfo?.gender as string,
       })
       .then(async () => {
