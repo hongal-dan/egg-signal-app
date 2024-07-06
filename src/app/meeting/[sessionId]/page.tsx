@@ -938,7 +938,7 @@ const Meeting = () => {
           leaveSession();
         }, 5000);
       }
-    }, 30000); // 30초 동안 6명 안들어 오면 나가기
+    }, 60000); // 60초 동안 6명 안들어 오면 나가기
 
     timerId.current = setInterval(() => {
       setMin(Math.floor(time.current / 60));
