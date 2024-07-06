@@ -16,6 +16,17 @@ import { testState, userState } from "@/app/store/userInfo";
 import { useRouter } from "next/navigation";
 
 const Matching = () => {
+  const [session, setSession] = useState<Session | undefined>(undefined);
+  const [publisher, setPublisher] = useState<Publisher | undefined>(undefined);
+  const [subscriber, setSubscriber] = useState<StreamManager | undefined>(
+    undefined,
+  );
+  const [, setMainStreamManager] = useState<StreamManager>();
+  const [, setCurrentVideoDevice] = useState<Device | null>(null);
+  const ovInfo = useRecoilValue(winnerSessionState);
+  const userInfo = useRecoilValue(userState);
+  const testName = useRecoilValue(testState);
+  const router = useRouter();
   const leaveSession = () => {
     if (session) {
       session.disconnect();
@@ -24,6 +35,85 @@ const Matching = () => {
     setSubscriber(undefined);
     setPublisher(undefined);
     router.push("/main");
+  };
+
+  const joinSession = () => {
+    const OV = new OpenVidu();
+    console.log("새 세션 조인중", userInfo);
+    OV.setAdvancedConfiguration({
+      publisherSpeakingEventsOptions: {
+        interval: 100, // Frequency of the polling of audio streams in ms (default 100)
+        threshold: -50, // Threshold volume in dB (default -50)
+      },
+    });
+
+    const newSession = OV.initSession();
+    setSession(newSession);
+    // Connect to the session
+    newSession
+      .connect(ovInfo.token, {
+        // clientData: userInfo.nickname, // FIXME 이놈으로 바꿔야합니다. .. 테스트네임말고
+        clientData: testName,
+      })
+      .then(async () => {
+        const publisher = await OV.initPublisherAsync(undefined, {
+          audioSource: undefined,
+          videoSource: undefined,
+          publishAudio: true,
+          publishVideo: true,
+          resolution: "640x480",
+          frameRate: 30,
+          insertMode: "APPEND",
+          mirror: false,
+        });
+
+        console.log("Publisher created:", publisher, ovInfo.sessionId);
+        publisher.updatePublisherSpeakingEventsOptions({
+          interval: 100, // 발화자 이벤트 감지 주기 (밀리초)
+          threshold: -50, // 발화자 이벤트 발생 임계값 (데시벨)
+        });
+        newSession.publish(publisher);
+
+        const devices = await OV.getDevices();
+        const videoDevices = devices.filter(
+          device => device.kind === "videoinput",
+        );
+        const currentVideoDeviceId = publisher.stream
+          .getMediaStream()
+          .getVideoTracks()[0]
+          .getSettings().deviceId;
+        const currentVideoDevice = videoDevices.find(
+          device => device.deviceId === currentVideoDeviceId,
+        );
+
+        if (currentVideoDevice) {
+          setCurrentVideoDevice(currentVideoDevice);
+        }
+        setMainStreamManager(publisher);
+        setPublisher(publisher);
+      })
+      .catch(error => {
+        console.log(
+          "There was an error connecting to the session:",
+          error.code,
+          error.message,
+        );
+      });
+
+    newSession.on("streamCreated", event => {
+      const subscriber = newSession.subscribe(event.stream, undefined);
+      setSubscriber(subscriber);
+    });
+
+    newSession.on("streamDestroyed", event => {
+      setSubscriber(undefined);
+    });
+
+    newSession.on("exception", exception => {
+      console.warn(exception);
+    });
+
+
   };
 
   useEffect(() => {
