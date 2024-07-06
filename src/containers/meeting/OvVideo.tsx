@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useRef } from "react";
 import { StreamManager } from "openvidu-browser";
 import { useEffect, useState } from "react";
 import "../../styles/App.css";
@@ -11,11 +11,12 @@ type Props = {
 };
 
 const OpenViduVideoComponent = (props: Props) => {
-  const videoRef = React.useRef<HTMLVideoElement>(null);
-  const containerRef = React.useRef<HTMLDivElement>(null);
-  const btnRef = React.useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const btnRef = useRef<HTMLDivElement>(null);
   const [isChosen, setIsChosen] = useState<boolean>(false);
   const socket = props.socket;
+  const selected = useRef<boolean>(false);
 
   useEffect(() => {
     if (props.streamManager && videoRef.current) {
@@ -31,6 +32,21 @@ const OpenViduVideoComponent = (props: Props) => {
       ?.closest(".streamcomponent")
       ?.querySelector(".nickname");
     console.log(currentNickname?.textContent);
+
+    if (!selected.current) {
+      socket.emit("choose", {
+        sender: myName?.textContent,
+        receiver: currentNickname?.textContent,
+      });
+      selected.current = true;
+    } else {
+      // 모든 choose-btn div element 에 onclick 속성 없애기
+      const buttons = document.querySelectorAll(".choose-btn");
+      buttons.forEach(button => {
+        (button as HTMLElement).onclick = null;
+      });
+    }
+
     // const currStreamContainer = containerRef.current?.closest(".stream-container");
     if (isChosen) {
       containerRef.current!.classList.remove("chosen-stream");
@@ -40,10 +56,7 @@ const OpenViduVideoComponent = (props: Props) => {
     }
     containerRef.current!.classList.add("chosen-stream");
     videoRef.current!.classList.add("opacity");
-    socket.emit("choose", {
-      sender: myName?.textContent,
-      receiver: currentNickname?.textContent,
-    });
+
     console.log(myName?.textContent, currentNickname?.textContent);
     setIsChosen(true);
   };
