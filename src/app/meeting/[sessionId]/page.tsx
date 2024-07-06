@@ -61,6 +61,8 @@ const Meeting = () => {
   const {sessionId, token, participantName} = useRecoilValue(defaultSessionState);
 
   const router = useRouter();
+
+  const [capturedImage, setCapturedImage] = useState<string>("");
   const [isFinish, setIsFinish] = useState(false);
 
   
@@ -956,6 +958,22 @@ const Meeting = () => {
     });
   };
 
+  const captureVideoFrame = (lover: string) => {
+    const loverVideoContainer = document.getElementById(lover) as HTMLDivElement;
+    const loverVideoElement = loverVideoContainer.querySelector('video') as HTMLVideoElement;
+    const canvas = document.createElement("canvas");
+    if (loverVideoElement) {
+      canvas.width = loverVideoElement.videoWidth;
+      canvas.height = loverVideoElement.videoHeight;
+      const context = canvas.getContext("2d");
+      if (context) {
+        context.drawImage(loverVideoElement, 0, 0, canvas.width, canvas.height);
+        const dataUrl = canvas.toDataURL("image/png");
+        setCapturedImage(dataUrl);
+      }
+    }
+  };
+
   const [, setMin] = useState(5); // todo: 시작 시간 서버로부터 받기
   const [sec, setSec] = useState(0);
   const time = useRef(300);
@@ -1129,7 +1147,6 @@ const Meeting = () => {
                 >
                   <UserVideoComponent
                     streamManager={publisher}
-                    socket={socket}
                     className={
                       speakingPublisherIds.includes(publisher.stream.streamId)
                         ? "speaking"
@@ -1153,7 +1170,6 @@ const Meeting = () => {
                   <UserVideoComponent
                     key={sub.stream.streamId}
                     streamManager={sub}
-                    socket={socket}
                     className={
                       speakingPublisherIds.includes(sub.stream.streamId)
                         ? "speaking"
