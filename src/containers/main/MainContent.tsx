@@ -303,6 +303,7 @@ const MainContent = () => {
   const handleLoadingCancel = () => {
     socket?.emit("cancel", {
       participantName: `${currentUser.nickname}-${randomNum}`,
+      gender: currentUser.gender,
     }); // 테스트용 익명 닉네임 부여
     if (startButton.current) startButton.current.disabled = false;
     setIsLoading(false);
