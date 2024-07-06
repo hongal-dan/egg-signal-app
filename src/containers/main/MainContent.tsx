@@ -124,9 +124,8 @@ const MainContent = () => {
     const messageSenders = sessionStorage.getItem("messageSenders");
     if (!messageSenders || messageSenders.length === 0) {
       return;
-    } else {
-      setNewMessageSenders(JSON.parse(messageSenders));
     }
+    setNewMessageSenders(JSON.parse(messageSenders));
   };
 
   // 접속 안 한 동안 나한테 온 메시지가 있는지 확인
