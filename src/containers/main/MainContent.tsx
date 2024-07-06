@@ -279,9 +279,9 @@ const MainContent = () => {
     HTMLButtonElement
   > = async () => {
     const meetingSocket = (await connectSocket()) as Socket | null;
-    setTestName(`${currentUser.nickname}-${randomNum}`); // FIXME 테스트용 랜덤 닉네임 저장, 배포 전에 삭제해야함
     console.log("socket: ", meetingSocket);
     console.log("currentUser: ", currentUser);
+    console.log("testName", currentUser.nickname + "-" + randomNum)
     meetingSocket?.emit("ready", {
       participantName: `${currentUser.nickname}-${randomNum}`,
       gender: currentUser.gender,
@@ -290,6 +290,8 @@ const MainContent = () => {
     setIsLoading(true);
     meetingSocket?.on("startCall", async ovInfo => {
       console.log(ovInfo);
+      setTestName(ovInfo.participantName); // FIXME 테스트용 랜덤 닉네임 저장, 배포 전에 삭제해야함
+      console.log("서버에게서 받은 이름===========", ovInfo.participantName);
       sessionStorage.setItem("ovInfo", JSON.stringify(ovInfo)); // 세션 스토리지에 저장
       setIsLoading(false);
       setIsEnterLoading(true);
@@ -303,6 +305,7 @@ const MainContent = () => {
   const handleLoadingCancel = () => {
     socket?.emit("cancel", {
       participantName: `${currentUser.nickname}-${randomNum}`,
+      gender: currentUser.gender,
     }); // 테스트용 익명 닉네임 부여
     if (startButton.current) startButton.current.disabled = false;
     setIsLoading(false);
@@ -335,7 +338,8 @@ const MainContent = () => {
 
   const handleLogout = async () => {
     try {
-      await logoutUser();
+      // await logoutUser();
+      localStorage.removeItem("token");
       sessionStorage.removeItem("onlineFriends");
       commonSocket?.disconnect();
       window.location.reload();
