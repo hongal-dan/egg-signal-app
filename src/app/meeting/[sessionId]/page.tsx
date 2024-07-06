@@ -1022,6 +1022,12 @@ const Meeting = () => {
         sortSubscribers("FEMALE");
       }
       setIsFull(true);
+
+      const { sessionId, token, participantName } = JSON.parse(
+        sessionStorage.getItem("ovInfo")!,
+      );
+      console.log("startTimer", sessionId, token, participantName);
+      socket?.emit("startTimer", {sessionId: sessionId});
     }
     if (isFull && subscribers.length !== 5) {
       if (keywordRef.current) {
