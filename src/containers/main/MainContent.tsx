@@ -14,7 +14,7 @@ import {
 } from "@/app/store/commonSocket";
 import { userState } from "@/app/store/userInfo";
 import { chatRoomState, newMessageSenderState } from "@/app/store/chat";
-import { logoutUser } from "@/services/auth";
+// import { logoutUser } from "@/services/auth";
 import { Socket } from "socket.io-client";
 import { testState } from "@/app/store/userInfo"; // FIXME 테스트용 랜덤 닉네임 저장, 배포 전에 삭제해야함
 import { getUserInfo } from "@/services/users";
@@ -81,7 +81,6 @@ const MainContent = () => {
     setOnlineList(JSON.parse(onlineList));
   };
 
-
   // const handleGetUserInfo = async (token: string) => {
   //   try {
   //     const response = await getUserInfo(token).then();
@@ -105,7 +104,9 @@ const MainContent = () => {
 
   const updateUserInfo = async () => {
     console.log("updateUserInfo");
-    const response = await getUserInfo(JSON.parse(localStorage.getItem("token")!));
+    const response = await getUserInfo(
+      JSON.parse(localStorage.getItem("token")!),
+    );
     const currentUser = {
       id: response.data.id,
       nickname: response.data.nickname,
@@ -115,8 +116,7 @@ const MainContent = () => {
       friends: response.data.friends,
     };
     setCurrentUser(currentUser);
-  }
-
+  };
 
   // 내가 접속하지 않은 동안 온 메시지가 있으면 알람 표시
   const checkNewMessage = () => {
@@ -130,13 +130,13 @@ const MainContent = () => {
 
   useEffect(() => {
     // setCurrentUser(userInfo);
-    console.log("MainContent useEffect")
+    console.log("MainContent useEffect");
     updateUserInfo();
     checkNewMessage();
 
     const newCommonSocket = io(`${url}/common`, {
       transports: ["websocket"],
-      auth: {token: JSON.parse(localStorage.getItem("token")!)},
+      auth: { token: JSON.parse(localStorage.getItem("token")!) },
       // withCredentials: true,
     });
     setCommonSocket(newCommonSocket);
@@ -265,7 +265,7 @@ const MainContent = () => {
       const newSocket = io(`${url}/meeting`, {
         transports: ["websocket"],
         // withCredentials: true,
-        auth: {token: JSON.parse(localStorage.getItem("token")!)},
+        auth: { token: JSON.parse(localStorage.getItem("token")!) },
       });
       newSocket.on("connect", () => {
         setSocket(newSocket);
@@ -281,7 +281,7 @@ const MainContent = () => {
     const meetingSocket = (await connectSocket()) as Socket | null;
     console.log("socket: ", meetingSocket);
     console.log("currentUser: ", currentUser);
-    console.log("testName", currentUser.nickname + "-" + randomNum)
+    console.log("testName", currentUser.nickname + "-" + randomNum);
     meetingSocket?.emit("ready", {
       participantName: `${currentUser.nickname}-${randomNum}`,
       gender: currentUser.gender,
