@@ -61,7 +61,9 @@ const Meeting = () => {
   const {sessionId, token, participantName} = useRecoilValue(defaultSessionState);
 
   const router = useRouter();
+  const [isFinish, setIsFinish] = useState(false);
 
+  
   // 어떻게든 종료 하면 세션에서 나가게함.
   useEffect(() => {
     console.log("메인이 실행되었습니다.");
@@ -697,7 +699,11 @@ const Meeting = () => {
             if (keywordRef.current) {
               keywordRef.current.innerText = "";
             }
-            leaveSession();
+            setIsFinish(true);
+            if (session) {
+              session.disconnect();
+            }
+            // leaveSession();
           }
         }, 1000);
       } catch (e: any) {
@@ -1067,7 +1073,8 @@ const Meeting = () => {
 
   return !avatar ? (
     <AvatarCollection />
-  ) : (
+  ) : !isFinish ? 
+  (
     <>
       {!isFull ? (
         <div className="w-[100vw] h-[100vh] flex flex-col justify-center items-center gap-24">
@@ -1167,8 +1174,12 @@ const Meeting = () => {
           <UserVideoComponent2 />
         </div>
       ) : null}
+
     </>
-  );
+  ) :
+      (<>
+        {isFinish ? (<MatchingResult capturedImage={capturedImage} lover={lover} isMatched={isMatched} onClose={leaveSession}/>) : null}
+      </>);
 };
 
 export default Meeting;
