@@ -335,7 +335,8 @@ const MainContent = () => {
 
   const handleLogout = async () => {
     try {
-      await logoutUser();
+      // await logoutUser();
+      localStorage.removeItem("token");
       sessionStorage.removeItem("onlineFriends");
       commonSocket?.disconnect();
       window.location.reload();
