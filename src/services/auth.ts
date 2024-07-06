@@ -37,7 +37,7 @@ const createUser = async (request: CreateUser) => {
 
 const loginUserHeader = async (request: LoginUser) => {
   try {
-    console.log(authUrl)
+    console.log(authUrl);
     console.log(process.env.NEXT_PUBLIC_API_SERVER);
     // const response = await axios.post(`${authUrl}/signIn`, request);
     const response = await axios.post(`${authUrl}/signIn`, request);
