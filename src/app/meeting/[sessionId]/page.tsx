@@ -541,10 +541,18 @@ const Meeting = () => {
       keywordRef.current.innerText = "대화해보고 싶은 사람을 선택해주세요";
     }
     console.log("선택 모드로 변경");
-    const chooseBtns = document.getElementsByClassName("choose-btn");
-    const btnArray = Array.from(chooseBtns);
-    btnArray.forEach(btn => {
-      btn.classList.remove("hidden");
+    // 이성만 선택 버튼 활성화
+    const subScribersContainers =
+      publisher && getUserGender(publisher) == "MALE"
+        ? document.querySelectorAll("FEMALE")
+        : document.querySelectorAll("MALE");
+
+    subScribersContainers.forEach(subContainer => {
+      const chooseBtns = subContainer.getElementsByClassName("choose-btn");
+      const btnArray = Array.from(chooseBtns);
+      btnArray.forEach(btn => {
+        btn.classList.remove("hidden");
+      });
     });
   };
 
