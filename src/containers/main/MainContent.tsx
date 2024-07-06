@@ -463,11 +463,10 @@ const MainContent = () => {
             className="relative w-48 h-10 flex items-center justify-center bg-amber-100 rounded-2xl shadow"
             onClick={toggleFriendList}
           >
-            {messageAlarm &&
-              newMessageSenders &&
-              newMessageSenders.length !== 0 && (
-                <div className="absolute left-[-5px] top-[-5px] w-4 h-4 rounded-full bg-rose-500" />
-              )}
+            {(messageAlarm ||
+              (newMessageSenders && newMessageSenders.length !== 0)) && (
+              <div className="absolute left-[-5px] top-[-5px] w-4 h-4 rounded-full bg-rose-500" />
+            )}
             <p className="text-xl font-bold">친구</p>
           </button>
           {isFriendListVisible && (
