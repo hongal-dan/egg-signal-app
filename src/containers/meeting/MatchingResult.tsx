@@ -22,7 +22,16 @@ const MatchingResult: React.FC<MatchingResultProps> = ({ capturedImage, lover, i
 
   const testName = useRecoilValue(testState);
 
-
+  const moveToPrivateRoom = () => {
+    console.log("개인룸으로 가고싶어요", myInfo);
+    socket?.emit("moveToPrivateRoom", {
+      sessionName: sessionInfo.sessionId, 
+      // myName: myInfo.nickname, 
+      myName: testName, // FIXME 배포시엔 위에거로 바꿔야함
+      partnerName: lover,
+    });
+    setIsLoading(true);
+  }
 
   useEffect(() => {
     const timeOut = setTimeout(()=> {
