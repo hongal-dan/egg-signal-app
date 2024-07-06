@@ -875,13 +875,23 @@ const Meeting = () => {
         const { lover } = response;
         if(lover != "0") {
           // 러버 저장하고 넘겨야해요. 모달로 띄워야되니까
-          console.log("제게는 사랑하는 짝이 있어요.", lover);
+          console.log("제게는 사랑하는 짝이 있어요. 그게 누구냐면..", lover);
+          setLover(lover);
+          captureVideoFrame(lover);
           setIsMatched(true); // 이게 성공 모달
         }
       } catch(e: any) { 
         console.error(e);
       }
     });
+
+    socket?.on("choice", response => {
+      console.log("choice 도착!~~~~~~~~~~~~~~", response);
+      const { sessionName, token } = response;
+      setSessionInfo({ sessionId: sessionName, token: token });
+      leaveSession(true);
+    });
+
 
     /**사생대회 모달 */
     socket?.on("drawingContest", response => {
