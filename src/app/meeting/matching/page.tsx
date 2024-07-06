@@ -27,6 +27,10 @@ const Matching = () => {
   const userInfo = useRecoilValue(userState);
   const testName = useRecoilValue(testState);
   const router = useRouter();
+  const [speakingPublisherIds, setSpeakingPublisherIds] = useState<string[]>(
+    [],
+  );
+
   const leaveSession = () => {
     if (session) {
       session.disconnect();
@@ -113,7 +117,26 @@ const Matching = () => {
       console.warn(exception);
     });
 
+    // 세션에서 발화자 이벤트 리스너 추가
+    newSession.on("publisherStartSpeaking", (event: PublisherSpeakingEvent) => {
+      // console.log("Publisher started speaking:", event.connection);
+      const streamId = event.connection.stream?.streamId;
+      if (streamId !== undefined) {
+        setSpeakingPublisherIds(prevIds => [...prevIds, streamId]);
+      } else {
+        console.log("streamId undefined");
+      }
+    });
 
+    newSession.on("publisherStopSpeaking", (event: PublisherSpeakingEvent) => {
+      const streamId = event.connection.stream?.streamId;
+      if (streamId !== undefined) {
+        setSpeakingPublisherIds(prevIds =>
+          prevIds.filter(id => id !== streamId),
+        );
+      }
+      // console.log("Publisher stopped speaking:", event.connection);
+    });
   };
 
   useEffect(() => {
