@@ -55,6 +55,7 @@ const Meeting = () => {
   const pubRef = useRef<HTMLDivElement>(null);
   const subRef = useRef<Array<HTMLDivElement | null>>([]);
   const videoContainerRef = useRef<HTMLDivElement>(null);
+  const loadingRef = useRef<HTMLDivElement>(null);
 
   // const socket = useRecoilValue(meetingSocketState);
 
@@ -63,6 +64,7 @@ const Meeting = () => {
   const [socket, setSocket] = useRecoilState(meetingSocketState);
   const [isFull, setIsFull] = useState<boolean>(false);
   const userInfo = useRecoilValue(userState);
+  const isFullRef = useRef(isFull);
 
   const router = useRouter();
 
@@ -92,7 +94,9 @@ const Meeting = () => {
 
   const captureCanvas = () => {
     console.log("캡쳐 시작");
-    const canvas = captureRef.current?.querySelector("canvas") as HTMLCanvasElement;
+    const canvas = captureRef.current?.querySelector(
+      "canvas",
+    ) as HTMLCanvasElement;
 
     if (!canvas) {
       console.error("캔버스 업슴!!!");
@@ -170,23 +174,35 @@ const Meeting = () => {
 
   // 내가 매칭 된 경우, 매칭 안 된 참여자들 소리 안 듣기
   const muteLoserAudio = (partnerName: string, flag: boolean) => {
+    console.log(partnerName, " 빼고 소리 차단", flag ? "해제" : "설정");
     const partnerStreamId = getKeyById(partnerName);
     subscribers.forEach(sub => {
       if (sub.stream.streamId !== partnerStreamId) {
-        (sub as Subscriber).subscribeToAudio(flag);
+        if (sub instanceof Subscriber) {
+          sub.subscribeToAudio(flag);
+        }
+        // (sub as Subscriber).subscribeToAudio(flag);
       }
     });
   };
 
   // 내가 매칭 안 된 경우, 매칭 된 참여자들 소리 안 듣기
   const muteLoverAudio = (loser: string[], flag: boolean) => {
-    loser.forEach(loserName => {
-      const loserStreamId = getKeyById(loserName);
-      const loserStream = subscribers.filter(
-        sub => sub.stream.streamId !== loserStreamId,
-      )[0];
-      (loserStream as Subscriber).subscribeToAudio(flag);
-    });
+    console.log(loser, " 빼고 소리 차단", flag ? "해제" : "설정");
+    const loserStreamIds = loser
+      .map(loserName => getKeyById(loserName))
+      .filter(id => id !== null);
+
+    if (loserStreamIds.length > 0) {
+      subscribers.forEach(sub => {
+        if (!loserStreamIds.includes(sub.stream.streamId)) {
+          if (sub instanceof Subscriber) {
+            sub.subscribeToAudio(flag);
+          }
+          // (sub as Subscriber).subscribeToAudio(flag);
+        }
+      });
+    }
   };
 
   const joinSession = () => {
@@ -447,7 +463,11 @@ const Meeting = () => {
     hideArrow();
   };
   // time 초 동안 발표 모드 (presenter: 발표자, time: 발표 시간(초), mention: 발표 주제)
-  const changePresentationMode = (presenter: HTMLDivElement, time: number, mention: string = "") => {
+  const changePresentationMode = (
+    presenter: HTMLDivElement,
+    time: number,
+    mention: string = "",
+  ) => {
     if (keywordRef.current) {
       keywordRef.current.innerText = mention;
     }
@@ -698,7 +718,7 @@ const Meeting = () => {
           undoLoveStickMode();
           if (keywordRef.current) {
             console.log("잠시 후 1:1대화가 시작된다는 멘트 ");
-            keywordRef.current.innerText = "잠시 후 1:1대화가 시작됩니다.";
+            keywordRef.current.innerText = "잠시 후 매칭된 사람과의 1:1 대화가 시작됩니다.";
           }
         }, 10000); // 10초 후 원 위치
       } catch (e: any) {
@@ -721,11 +741,7 @@ const Meeting = () => {
         // 매칭 된 사람의 경우
         setTimeout(() => {
           console.log("큐피드result로 계산 시작");
-          const subElements = Array.from(
-            document.getElementsByClassName("sub"),
-          );
           if (lover != "0") {
-            muteLoserAudio(lover, false); // 나머지 오디오 차단
             console.log("이거도 없니?", keywordRef.current);
             if (keywordRef.current) {
               console.log("즐거운 시간 보내라고 p 태그 변경");
@@ -734,15 +750,16 @@ const Meeting = () => {
             const loverElement = document
               .getElementById(lover)
               ?.closest(".stream-container") as HTMLDivElement;
-            // sub들 흑백으로 만들기
-            subElements.forEach(subElement => {
-              if (subElement === loverElement) {
-                return;
-              }
-              subElement.classList.toggle("black-white");
-              console.log("나머지 흑백 만들기");
+
+            loser.forEach(loser => {
+              const loserElement = document.getElementById(
+                loser,
+              ) as HTMLDivElement;
+              console.log("loser:", loser);
+              loserElement.classList.toggle("black-white");
             });
 
+            muteLoserAudio(lover, false); // 나머지 오디오 차단
             setOneToOneMode(loverElement);
             setTimeout(() => {
               // console.log("1:1 모드 해제")
@@ -751,20 +768,27 @@ const Meeting = () => {
                 console.log("즐거운시간 삭제");
               }
               undoOneToOneMode(loverElement);
-              muteLoserAudio(lover, true); // 나머지 오디오 재개
-              subElements.forEach(subElement => {
-                if (subElement === loverElement) {
-                  return;
-                }
-                subElement.classList.toggle("black-white");
+              loser.forEach(loser => {
+                const loserElement = document.getElementById(
+                  loser,
+                ) as HTMLDivElement;
+                console.log("loser:", loser);
+                loserElement.classList.toggle("black-white");
               });
+              muteLoserAudio(lover, true); // 나머지 오디오 재개
             }, 60000); // 1분 후 원 위치
           }
           // 매칭 안된 사람들의 경우
           else {
             // const pubElement = document.getElementsByClassName("pub")[0] as HTMLDivElement;
             // pubElement.classList.toggle("black-white");
-            muteLoverAudio(loser, false); // 매칭된 사람들 오디오 차단
+            if(loser.length === 6) {
+              if (keywordRef.current) {
+                keywordRef.current.innerText =
+                  "매칭 된 사람이 없습니다. 사이좋게 대화하세요";
+              }
+              return;
+            }
             if (keywordRef.current) {
               keywordRef.current.innerText =
                 "당신은 선택받지 못했습니다. 1분 간 오디오가 차단됩니다.";
@@ -781,6 +805,7 @@ const Meeting = () => {
                 loserElement.classList.toggle("black-white");
               }, 60000); // 1분 후 흑백 해제
             });
+            muteLoverAudio(loser, false); // 매칭된 사람들 오디오 차단
             // muteAudio();
             setTimeout(() => {
               if (keywordRef.current) {
@@ -829,13 +854,21 @@ const Meeting = () => {
           const participantElement = document.getElementById(
             participantsArray[idx],
           ) as HTMLDivElement;
-          changePresentationMode(participantElement, 10, "20초간 자기소개 해주세요"); // FIXME 테스트용 10초 나중에 원래대로 돌리기
+          changePresentationMode(
+            participantElement,
+            10,
+            "20초간 자기소개 해주세요",
+          ); // FIXME 테스트용 10초 나중에 원래대로 돌리기
           const timeInterval = setInterval(() => {
             idx += 1;
             const participantElement = document.getElementById(
               participantsArray[idx],
             ) as HTMLDivElement;
-            changePresentationMode(participantElement, 10, "20초간 자기소개 해주세요"); // FIXME 테스트용 10초 나중에 원래대로 돌리기
+            changePresentationMode(
+              participantElement,
+              10,
+              "20초간 자기소개 해주세요",
+            ); // FIXME 테스트용 10초 나중에 원래대로 돌리기
             if (idx == 5) {
               clearInterval(timeInterval);
             }
@@ -882,13 +915,36 @@ const Meeting = () => {
   const [progressWidth, setProgressWidth] = useState("0%");
 
   useEffect(() => {
+    const timeOut = setTimeout(() => {
+      console.log("지금 방의 상태는..?", isFullRef.current);
+      if(!isFullRef.current) {
+        console.log("asdfasdfasdfasdfasdfasdf접속 해제!!!!!!!!!!!!!", loadingRef.current);
+        if (loadingRef.current) {
+          console.log("저 있어요!!!!!!!!!!!!!!!!!!!!!!!!");
+          loadingRef.current.innerHTML = "<p>누군가 연결을 해제하여 메인화면으로 이동합니다.</p>";
+        }
+        setTimeout(() => {
+          leaveSession();
+        }, 5000);
+      }
+    }, 30000);  // 30초 동안 6명 안들어 오면 나가기
+
+
     timerId.current = setInterval(() => {
       setMin(Math.floor(time.current / 60));
       setSec(time.current % 60);
       time.current -= 1;
     }, 1000);
-    return () => clearInterval(timerId.current!);
+    
+    return () => {
+      clearInterval(timerId.current!);
+      clearTimeout(timeOut);
+    }
   }, []);
+
+  useEffect(() => {
+    isFullRef.current = isFull;
+  }, [isFull])
 
   useEffect(() => {
     if (time.current <= 0) {
@@ -907,7 +963,7 @@ const Meeting = () => {
 
   const getUserID = (person: StreamManager): string => {
     const idMatch = person?.stream.connection.data.match(
-      /"clientData":"([a-zA-Z0-9-]+)"/,
+      /"clientData":"([a-zA-Z0-9-\uAC00-\uD7A3]+)"/,
     );
     const id = idMatch ? idMatch[1] : "";
     return id;
@@ -957,6 +1013,14 @@ const Meeting = () => {
       }
       setIsFull(true);
     }
+    if (isFull && subscribers.length !== 5) {
+      if(keywordRef.current) {
+        keywordRef.current.innerText = "누군가가 연결을 해제하여 10초 후 메인으로 이동합니다."
+      }
+      setTimeout(() => {
+        leaveSession();
+      }, 10000); // 누군가 탈주하면 10초 뒤에 세션 종료
+    }
   }, [subscribers]);
 
   useEffect(() => {
@@ -995,7 +1059,7 @@ const Meeting = () => {
     <>
       {!isFull ? (
         <div className="w-[100vw] h-[100vh] flex flex-col justify-center items-center gap-24">
-          <div className="flex flex-col items-center gap-4 text-3xl">
+          <div className="flex flex-col items-center gap-4 text-3xl" ref={loadingRef}>
             <p>다른 사람들의 접속을 기다리고 있습니다</p>
             <p>잠시만 기다려주세요</p>
           </div>
