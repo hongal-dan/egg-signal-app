@@ -16,7 +16,15 @@ import { testState, userState } from "@/app/store/userInfo";
 import { useRouter } from "next/navigation";
 
 const Matching = () => {
-
+  const leaveSession = () => {
+    if (session) {
+      session.disconnect();
+    }
+    setSession(undefined);
+    setSubscriber(undefined);
+    setPublisher(undefined);
+    router.push("/main");
+  };
 
   return (
     <div className="flex flex-col h-[100vh] justify-center items-center gap-20">
