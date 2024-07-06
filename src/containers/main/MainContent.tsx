@@ -232,33 +232,33 @@ const MainContent = () => {
     });
 
     // 내가 접속하기 전부터 접속한 친구 확인용
-    //   newCommonSocket.on("friendStat", res => {
-    //     const onlineList = sessionStorage.getItem("onlineFriends");
-    //     if (!onlineList || onlineList.length === 0) {
-    //       const newList: string[] = [];
-    //       res.forEach((el: any) => {
-    //         const key = Object.keys(el)[0];
-    //         if (el[key]) {
-    //           newList.push(key);
-    //         }
-    //       });
-    //       console.log("friend state new List!!", newList);
-    //       setOnlineList(newList);
-    //       sessionStorage.setItem("onlineFriends", JSON.stringify(newList));
-    //     } else {
-    //       const prevList = JSON.parse(onlineList);
-    //       res.forEach((el: any) => {
-    //         const key = Object.keys(el)[0];
-    //         if (el[key]) {
-    //           prevList.push(key);
-    //         }
-    //       });
-    //       const newList = Array.from(new Set(prevList)) as string[];
-    //       console.log("update online list: ", newList);
-    //       sessionStorage.setItem("onlineFriends", JSON.stringify(newList));
-    //       setOnlineList(newList);
-    //     }
-    //   });
+    newCommonSocket.on("friendStat", res => {
+      const onlineList = sessionStorage.getItem("onlineFriends");
+      if (!onlineList || onlineList.length === 0) {
+        const newList: string[] = [];
+        res.forEach((el: any) => {
+          const key = Object.keys(el)[0];
+          if (el[key]) {
+            newList.push(key);
+          }
+        });
+        console.log("friend state new List!!", newList);
+        setOnlineList(newList);
+        sessionStorage.setItem("onlineFriends", JSON.stringify(newList));
+      } else {
+        const prevList = JSON.parse(onlineList);
+        res.forEach((el: any) => {
+          const key = Object.keys(el)[0];
+          if (el[key]) {
+            prevList.push(key);
+          }
+        });
+        const newList = Array.from(new Set(prevList)) as string[];
+        console.log("update online list: ", newList);
+        sessionStorage.setItem("onlineFriends", JSON.stringify(newList));
+        setOnlineList(newList);
+      }
+    });
   }, []);
 
   const connectSocket = async () => {
