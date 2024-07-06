@@ -21,7 +21,8 @@ import { keywords } from "../../../../public/data/keywords.js";
 import AvatarCollection from "@/containers/main/AvatarCollection";
 import { userState } from "@/app/store/userInfo";
 import CanvasModal from "@/containers/meeting/CanvasModal";
-import { defaultSessionState } from "@/app/store/ovInfo";
+import { defaultSessionState, winnerSessionState } from "@/app/store/ovInfo";
+import MatchingResult from "@/containers/meeting/MatchingResult";
 
 type chooseResult = {
   sender: string;
@@ -54,11 +55,12 @@ const Meeting = () => {
   const [socket, setSocket] = useRecoilState(meetingSocketState);
   const [isFull, setIsFull] = useState<boolean>(false);
   const userInfo = useRecoilValue(userState);
-  const [isSucceed, setIsSucceed] = useState<boolean>(false); // 매칭 성공해서 1:1 대화 넘어가는 지 여부
   const [isMatched, setIsMatched] = useState<boolean>(false); // 매칭이 되었는지 여부
   const [, setIsLastChoose] = useRecoilState(isLastChooseState);
+  const [lover, setLover] = useState<string>("");
 
   const {sessionId, token, participantName} = useRecoilValue(defaultSessionState);
+  const [, setSessionInfo] = useRecoilState(winnerSessionState);
 
   const router = useRouter();
 
@@ -320,18 +322,17 @@ const Meeting = () => {
     });
   };
 
-  const leaveSession = () => {
+  const leaveSession = (isSucceedFlag = false) => {
     if (session) {
       session.disconnect();
     }
-    
     setSession(undefined);
     setSubscribers([]);
     setPublisher(undefined);
     setSortedSubscribers([]);
     setIsFull(false);
     
-    if(!isSucceed) {
+    if(!isSucceedFlag){
       if (socket) {
         socket.disconnect();
         setSocket(null);
@@ -339,7 +340,10 @@ const Meeting = () => {
       router.push("/main");
       return;
     }
-    router.push("/meeting/matching");
+    else{
+      router.push("/meeting/matching");
+      return;
+    }
   };
 
   // 화살표 출발 도착 좌표 계산
@@ -1120,7 +1124,7 @@ const Meeting = () => {
                 className="btn btn-large btn-danger"
                 type="button"
                 id="buttonLeaveSession"
-                onClick={leaveSession}
+                onClick={() => leaveSession()}
                 value="Leave session"
               />
               <div className="flex items-center">
