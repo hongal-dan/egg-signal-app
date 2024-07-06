@@ -52,11 +52,9 @@ const OpenViduVideoComponent = (props: Props) => {
     videoRef.current!.classList.add("opacity");
     if(!isLastChoose){
       emitChoose("choose");
-      console.log("====choose emit====")
     }
     else {
       emitChoose("lastChoose");
-      console.log("====lastChoose emit====")
     }
     console.log(myName?.textContent, currentNickname?.textContent);
     setIsChosen(true);
