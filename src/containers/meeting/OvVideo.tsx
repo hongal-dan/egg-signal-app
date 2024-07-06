@@ -4,12 +4,11 @@ import React from "react";
 import { StreamManager } from "openvidu-browser";
 import { useEffect, useState } from "react";
 import "../../styles/App.css";
-import { isLastChooseState } from "@/app/store/socket";
+import { isLastChooseState, meetingSocketState } from "@/app/store/socket";
 import { useRecoilValue } from "recoil";
 
 type Props = {
   streamManager: StreamManager;
-  socket: any;
 };
 
 const OpenViduVideoComponent = (props: Props) => {
@@ -17,7 +16,8 @@ const OpenViduVideoComponent = (props: Props) => {
   const containerRef = React.useRef<HTMLDivElement>(null);
   const btnRef = React.useRef<HTMLDivElement>(null);
   const [isChosen, setIsChosen] = useState<boolean>(false);
-  const socket = props.socket;
+  // const socket = props.socket;
+  const socket = useRecoilValue(meetingSocketState);
   const isLastChoose = useRecoilValue(isLastChooseState);
 
   useEffect(() => {
@@ -37,7 +37,7 @@ const OpenViduVideoComponent = (props: Props) => {
     console.log(currentNickname?.textContent);
     // const currStreamContainer = containerRef.current?.closest(".stream-container");
     const emitChoose = (eventName: string) => {
-      socket.emit(eventName, {
+      socket?.emit(eventName, {
         sender: myName?.textContent,
         receiver: currentNickname?.textContent,
       })
@@ -52,9 +52,11 @@ const OpenViduVideoComponent = (props: Props) => {
     videoRef.current!.classList.add("opacity");
     if(!isLastChoose){
       emitChoose("choose");
+      console.log("====choose emit====")
     }
     else {
       emitChoose("lastChoose");
+      console.log("====lastChoose emit====")
     }
     console.log(myName?.textContent, currentNickname?.textContent);
     setIsChosen(true);
