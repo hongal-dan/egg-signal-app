@@ -24,6 +24,15 @@ const FriendList: React.FC<FriendListPros> = ({ friendsList }) => {
   const [selectedFriend, setSelectedFriend] = useState<Friend | null>(null);
   const [isChatVisible, setIsChatVisible] = useState<boolean>(false);
 
+  const checkSenders = () => {
+    const senders = sessionStorage.getItem("messageSenders");
+    if (senders) {
+      setNewMessageSenders(JSON.parse(senders));
+    }
+  };
+
+  useEffect(() => checkSenders(), []);
+
   const toggleChat = (friend: Friend) => {
     if (!isChatVisible) {
       const updateSenders = newMessageSenders.filter(

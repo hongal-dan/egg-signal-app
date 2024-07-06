@@ -69,6 +69,7 @@ const MainContent = () => {
   const [newMessageSenders, setNewMessageSenders] = useRecoilState(
     newMessageSenderState,
   );
+  const [messageAlarm, setMessageAlarm] = useState(false);
   const [openedChatRoomId, setOpenedChatRoomId] = useRecoilState(chatRoomState);
   const [, setOnlineList] = useRecoilState(onlineListState);
   const [notiList, setNotiList] = useRecoilState(notiListState);
@@ -118,7 +119,7 @@ const MainContent = () => {
     setCurrentUser(currentUser);
   };
 
-  // 내가 접속하지 않은 동안 온 메시지가 있으면 알람 표시
+  // 새로고침 했을 때 메시지 알람 유지
   const checkNewMessage = () => {
     const messageSenders = sessionStorage.getItem("messageSenders");
     if (!messageSenders || messageSenders.length === 0) {
@@ -127,6 +128,24 @@ const MainContent = () => {
       setNewMessageSenders(JSON.parse(messageSenders));
     }
   };
+
+  // 접속 안 한 동안 나한테 온 메시지가 있는지 확인
+  const checkNewMessageAfterLogin = () => {
+    const newSenders: string[] = [];
+    currentUser.friends.map(friend => {
+      if (friend.newMessage) {
+        newSenders.push(friend.chatRoomId);
+      }
+    });
+    if (newSenders.length !== 0) {
+      sessionStorage.setItem("messageSenders", JSON.stringify(newSenders));
+      setMessageAlarm(true);
+    }
+  };
+
+  useEffect(() => {
+    checkNewMessageAfterLogin();
+  }, [currentUser]);
 
   useEffect(() => {
     // setCurrentUser(userInfo);
@@ -445,9 +464,11 @@ const MainContent = () => {
             className="relative w-48 h-10 flex items-center justify-center bg-amber-100 rounded-2xl shadow"
             onClick={toggleFriendList}
           >
-            {newMessageSenders?.length !== 0 && newMessageSenders && (
-              <div className="absolute left-[-5px] top-[-5px] w-4 h-4 rounded-full bg-rose-500" />
-            )}
+            {messageAlarm &&
+              newMessageSenders &&
+              newMessageSenders.length !== 0 && (
+                <div className="absolute left-[-5px] top-[-5px] w-4 h-4 rounded-full bg-rose-500" />
+              )}
             <p className="text-xl font-bold">친구</p>
           </button>
           {isFriendListVisible && (

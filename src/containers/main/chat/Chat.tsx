@@ -37,7 +37,10 @@ const Chat: React.FC<Props> = ({ friend, onClose }) => {
   useEffect(() => {
     console.log("joinChat emit: ", friend.chatRoomId);
     if (commonSocket) {
-      commonSocket.emit("joinchat", { newChatRoomId: friend.chatRoomId });
+      commonSocket.emit("joinchat", {
+        newChatRoomId: friend.chatRoomId,
+        friendName: friend.friend,
+      });
       setChatRoomId(friend.chatRoomId);
 
       // chat history를 한 번만 받아오도록 설정
