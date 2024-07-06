@@ -26,6 +26,17 @@ const Matching = () => {
     router.push("/main");
   };
 
+  useEffect(() => {
+    console.log("메인이 실행되었습니다.");
+    const handleBeforeUnload = () => leaveSession();
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    joinSession();
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      console.log("메인이 종료되었습니다.");
+    };
+  }, []);
+
   return (
     <div className="flex flex-col h-[100vh] justify-center items-center gap-20">
       <div className="col-md-6 flex w-[60vw] gap-20">
