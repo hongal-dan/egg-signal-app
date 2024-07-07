@@ -34,6 +34,18 @@ const Chat: React.FC<Props> = ({ friend, onClose }) => {
     }
   }, [chat]);
 
+  // chat history를 한 번만 받아오도록 설정
+  const handleChatHistory = (res: Chat[]) => {
+    console.log("chat history: ", res);
+    const chatHistory = res.map((msg: Chat) => ({
+      sender: msg.sender,
+      message: msg.message,
+    }));
+    setChat(chatHistory);
+    // chat history를 받았으면 이벤트 핸들러 등록 해제
+    commonSocket!.off("chatHistory", handleChatHistory);
+  };
+
   useEffect(() => {
     console.log("joinChat emit: ", friend.chatRoomId);
     if (commonSocket) {
@@ -42,18 +54,6 @@ const Chat: React.FC<Props> = ({ friend, onClose }) => {
         friendName: friend.friend,
       });
       setChatRoomId(friend.chatRoomId);
-
-      // chat history를 한 번만 받아오도록 설정
-      const handleChatHistory = (res: Chat[]) => {
-        console.log("chat history: ", res);
-        const chatHistory = res.map((msg: Chat) => ({
-          sender: msg.sender,
-          message: msg.message,
-        }));
-        setChat(chatHistory);
-        // chat history를 받았으면 이벤트 핸들러 등록 해제
-        commonSocket.off("chatHistory", handleChatHistory);
-      };
 
       commonSocket.on("chatHistory", handleChatHistory);
 
