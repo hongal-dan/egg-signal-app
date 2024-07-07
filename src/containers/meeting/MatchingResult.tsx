@@ -5,6 +5,7 @@ import { meetingSocketState } from "@/app/store/socket";
 import { useRecoilValue } from "recoil";
 import { userState, testState } from "@/app/store/userInfo";
 import { defaultSessionState } from "@/app/store/ovInfo";
+import { commonSocketState } from "@/app/store/commonSocket";
 
 type MatchingResultProps = {
   capturedImage: string;
@@ -14,7 +15,8 @@ type MatchingResultProps = {
 };
 
 const MatchingResult: React.FC<MatchingResultProps> = ({ capturedImage, lover, isMatched, onClose}) => {
-  const socket = useRecoilValue(meetingSocketState)!;
+  const meetingSocket = useRecoilValue(meetingSocketState)!;
+  const commonSocket = useRecoilValue(commonSocketState);
   const myInfo = useRecoilValue(userState);
   const sessionInfo = useRecoilValue(defaultSessionState);
   const [isLoading, setIsLoading] = useState(false);
@@ -24,7 +26,7 @@ const MatchingResult: React.FC<MatchingResultProps> = ({ capturedImage, lover, i
 
   const moveToPrivateRoom = () => {
     console.log("개인룸으로 가고싶어요", myInfo);
-    socket?.emit("moveToPrivateRoom", {
+    meetingSocket?.emit("moveToPrivateRoom", {
       sessionName: sessionInfo.sessionId, 
       // myName: myInfo.nickname, 
       myName: testName, // FIXME 배포시엔 위에거로 바꿔야함
@@ -32,6 +34,15 @@ const MatchingResult: React.FC<MatchingResultProps> = ({ capturedImage, lover, i
     });
     setIsLoading(true);
   }
+
+  const requestAddFriend = () => {
+    console.log("친구 추가하고싶어요");
+    commonSocket?.emit("reqRequestFriend", {
+      userNickname: myInfo.nickname,
+      // userNickname: testName, // FIXME 배포시엔 위에거로 바꿔야함
+      friendNickname: lover.split('-')[0],
+    })
+  };
 
   useEffect(() => {
     const timeOut = setTimeout(()=> {
@@ -89,7 +100,7 @@ const MatchingResult: React.FC<MatchingResultProps> = ({ capturedImage, lover, i
         </div>
         }
         <div className="flex justify-center gap-10 my-4">
-          <button className="p-4 px-6 border border-green-700 rounded-3xl text-green-700 font-bold hover:bg-green-700 hover:text-white">
+          <button onClick={requestAddFriend} className="p-4 px-6 border border-green-700 rounded-3xl text-green-700 font-bold hover:bg-green-700 hover:text-white">
             친구 추가
           </button>
           <button onClick={leaveSession} className="p-4 px-6 border border-red-500 rounded-3xl text-red-500 font-bold hover:bg-red-500 hover:text-white">
