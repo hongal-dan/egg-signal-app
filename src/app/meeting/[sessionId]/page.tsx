@@ -546,8 +546,10 @@ const Meeting = () => {
       publisher && getUserGender(publisher) == "MALE"
         ? document.querySelectorAll("FEMALE")
         : document.querySelectorAll("MALE");
+    console.log("이성 컨테이너: ", subScribersContainers);
 
     subScribersContainers.forEach(subContainer => {
+      console.log("누구니 ", subContainer);
       const chooseBtns = subContainer.getElementsByClassName("choose-btn");
       const btnArray = Array.from(chooseBtns);
       btnArray.forEach(btn => {
