@@ -46,14 +46,14 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
     const canvas = canvasRef.current!;
     canvas.width = 270;
     canvas.height = 240;
-    canvas.style.width = "360px";
-    canvas.style.height = "320px";
+    canvas.style.width = "432px";
+    canvas.style.height = "384px";
 
     const context = canvas.getContext("2d")!;
     context.lineCap = "round";
     context.strokeStyle = color;
     context.lineWidth = brushSize;
-    context.fillStyle = "#f0f0f0";
+    context.fillStyle = "#F7F7F7";
     context.fillRect(0, 0, canvas.width, canvas.height);
     contextRef.current = context;
 
@@ -172,19 +172,19 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
   const startDrawing = ({ nativeEvent }: React.MouseEvent) => {
     const { offsetX, offsetY } = nativeEvent;
     contextRef.current!.beginPath();
-    contextRef.current!.moveTo(offsetX * (270 / 360), offsetY * (240 / 320));
+    contextRef.current!.moveTo(offsetX * (270 / 432), offsetY * (240 / 384));
     setIsDrawing(true);
   };
 
   const finishDrawing = () => {
-    contextRef.current!.closePath();
+    contextRef.current?.closePath();
     setIsDrawing(false);
   };
 
   const draw = ({ nativeEvent }: React.MouseEvent) => {
     if (!isDrawing) return;
     const { offsetX, offsetY } = nativeEvent;
-    contextRef.current!.lineTo(offsetX * (270 / 360), offsetY * (240 / 320));
+    contextRef.current!.lineTo(offsetX * (270 / 432), offsetY * (240 / 384));
     contextRef.current!.stroke();
   };
 
@@ -217,7 +217,7 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
   const handleForwardDrawing = async () => {
     const canvas = canvasRef.current!;
     const blob = await new Promise<Blob | null>(resolve =>
-      canvas.toBlob(resolve, "image/webp"),
+      canvas?.toBlob(resolve, "image/webp"),
     );
     console.log(testName); //FIXME 테스트용 랜덤 닉네임 저장, 배포 전에 삭제해야함
     const capturedPhoto = captureVideoFrame();
