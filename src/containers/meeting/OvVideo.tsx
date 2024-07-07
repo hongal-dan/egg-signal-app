@@ -3,6 +3,8 @@
 import React, { useRef } from "react";
 import { StreamManager } from "openvidu-browser";
 import { useEffect, useState } from "react";
+import { isChosenState } from "@/app/store/socket";
+import { useRecoilState } from "recoil";
 import "../../styles/App.css";
 
 type Props = {
@@ -14,9 +16,9 @@ const OpenViduVideoComponent = (props: Props) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const btnRef = useRef<HTMLDivElement>(null);
-  const [isChosen, setIsChosen] = useState<boolean>(false);
+  const [isChosen, setIsChosen] = useRecoilState<boolean>(isChosenState);
   const socket = props.socket;
-  const selected = useRef<boolean>(false);
+  // const selected = useRef<boolean>(false);
 
   useEffect(() => {
     if (props.streamManager && videoRef.current) {
@@ -26,7 +28,7 @@ const OpenViduVideoComponent = (props: Props) => {
   }, [videoRef, props.streamManager]);
 
   const handleChoose = () => {
-    if (selected.current) {
+    if (isChosen) {
       alert("선택은 한 번만 할 수 있어요!");
       return;
     }
@@ -42,15 +44,15 @@ const OpenViduVideoComponent = (props: Props) => {
       sender: myName?.textContent,
       receiver: currentNickname?.textContent,
     });
-    selected.current = true;
+    setIsChosen(true);
 
     // const currStreamContainer = containerRef.current?.closest(".stream-container");
-    if (isChosen) {
-      containerRef.current!.classList.remove("chosen-stream");
-      videoRef.current!.classList.remove("opacity");
-      setIsChosen(false);
-      return;
-    }
+    // if (isChosen) {
+    //   containerRef.current!.classList.remove("chosen-stream");
+    //   videoRef.current!.classList.remove("opacity");
+    //   setIsChosen(false);
+    //   return;
+    // }
     containerRef.current!.classList.add("chosen-stream");
     videoRef.current!.classList.add("opacity");
 

@@ -15,7 +15,7 @@ import {
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useRecoilValue, useRecoilState } from "recoil";
-import { meetingSocketState } from "@/app/store/socket";
+import { meetingSocketState, isChosenState } from "@/app/store/socket";
 import { avatarState } from "@/app/store/avatar";
 import { keywords } from "../../../../public/data/keywords.js";
 import AvatarCollection from "@/containers/main/AvatarCollection";
@@ -46,6 +46,7 @@ const Meeting = () => {
     [],
   );
   const [isCanvasModalOpen, setIsCanvasModalOpen] = useState<boolean>(false);
+  const [, setIsChosen] = useRecoilState(isChosenState);
 
   // const [isLoveMode, setIsLoveMode] = useState<boolean>(false);
   // const [isChooseMode, setIsChooseMode] = useState<boolean>(false);
@@ -594,6 +595,7 @@ const Meeting = () => {
 
   const undoOneToOneMode = (loverElement: HTMLDivElement) => {
     console.log("1:1 모드 해제");
+    setIsChosen(false);
     const streamElements = document.getElementsByClassName("stream-container");
     videoContainerRef.current?.classList.remove("one-one-four");
     streamElements[0].classList.remove("a");
