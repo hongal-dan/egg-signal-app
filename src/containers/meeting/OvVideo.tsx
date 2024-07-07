@@ -27,6 +27,7 @@ const OpenViduVideoComponent = (props: Props) => {
 
   const handleChoose = () => {
     if (selected.current) {
+      alert("선택은 한 번만 할 수 있어요!");
       return;
     }
     const myName = document.querySelector(".pub")?.querySelector(".nickname");
