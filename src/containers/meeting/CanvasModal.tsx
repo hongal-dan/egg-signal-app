@@ -250,15 +250,11 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
   const handleVoteSubmit = (votedUser: string) => {
     setHasSubmitted(true);
     setSelectedUser(votedUser);
-    if (votedUser) {
-      socket.emit("submitVote", {
-        // userName: userInfo?.nickname,
-        userName: testName, // FIXME 테스트용 랜덤 닉네임 저장, 배포 전에 삭제해야함
-        votedUser: votedUser,
-      });
-    } else {
-      alert("투표할 그림을 골라주세요.");
-    }
+    socket.emit("submitVote", {
+      // userName: userInfo?.nickname,
+      userName: testName, // FIXME 테스트용 랜덤 닉네임 저장, 배포 전에 삭제해야함
+      votedUser: votedUser,
+    });
   };
 
   const handleWinnerPrizeSubmit = (
