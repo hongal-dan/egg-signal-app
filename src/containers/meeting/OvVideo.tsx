@@ -39,20 +39,12 @@ const OpenViduVideoComponent = (props: Props) => {
       ?.querySelector(".nickname");
     console.log(currentNickname?.textContent);
 
-    console.log("선택!!!!!!!!");
     socket.emit("choose", {
       sender: myName?.textContent,
       receiver: currentNickname?.textContent,
     });
     setIsChosen(true);
 
-    // const currStreamContainer = containerRef.current?.closest(".stream-container");
-    // if (isChosen) {
-    //   containerRef.current!.classList.remove("chosen-stream");
-    //   videoRef.current!.classList.remove("opacity");
-    //   setIsChosen(false);
-    //   return;
-    // }
     containerRef.current!.classList.add("chosen-stream");
     videoRef.current!.classList.add("opacity");
 

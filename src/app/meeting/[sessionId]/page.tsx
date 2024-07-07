@@ -544,15 +544,10 @@ const Meeting = () => {
     console.log("선택 모드로 변경 ", publisher);
     // 이성만 선택 버튼 활성화
     const oppositeRef = subRef.current.slice(2);
-    console.log("이성: ", oppositeRef);
 
     oppositeRef.forEach(subContainer => {
-      console.log("누구니 ", subContainer);
       const chooseBtn = subContainer!.getElementsByClassName("choose-btn")[0];
-      // const btnArray = Array.from(chooseBtn);
-      // btnArray.forEach(btn => {
       chooseBtn.classList.remove("hidden");
-      // });
     });
   };
 
