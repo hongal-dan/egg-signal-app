@@ -287,12 +287,17 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
     return Object.entries(drawings).map(([user, drawing], index) => (
       <div
         key={index}
-        className={`${
-          selectedUser === user ? "border-4 border-yellow-50" : "border"
-        }`}
+        className={
+          "relative w-1/3 p-1 border-gray-300 shadow-lg border rounded-lg"
+        }
         onClick={() => handleVoteSubmit(user)}
       >
-        <img src={drawing} className="w-full h-full object-cover" />
+        {selectedUser === user && (
+          <div className="absolute top-0 left-0 p-2">
+            <IoMdHeart className="text-red-600 text-xl border rounded-xl bg-white" />
+          </div>
+        )}
+        <img src={drawing} className="  rounded-xl" />
       </div>
     ));
   };
