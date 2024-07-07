@@ -432,25 +432,31 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
           <>
             {testName !== voteResults && (
               <div>
-                <h2 className="text-xl font-bold mb-4">투표 결과</h2>
-                <div className="mb-4">1등은 {voteResults}입니다~</div>
-                {/* {userInfo?.nickname === voteResults && ( */}
-                <div>
-                  <img
-                    src={drawings[voteResults]}
-                    className="w-full h-full object-cover"
-                  />
+                <div className="flex flex-col items-center">
+                  <div className="mb-4 text-2xl font-bold ">
+                    1등 대{voteResults}
+                  </div>
+                  {/* {userInfo?.nickname === voteResults && ( */}
+                  <div>
+                    <img
+                      src={drawings[voteResults]}
+                      className="w-[365px] h-[324px] object-cover rounded-2xl"
+                    />
+                  </div>
                 </div>
               </div>
             )}
+
             {testName === voteResults && ( // FIXME 테스트용 랜덤 닉네임 저장, 배포 전에 삭제해야함
-              <div>
+              <div className="flex flex-col items-center">
                 <h3 className="text-lg font-semibold mb-2">
-                  같이 있고 싶은 사람을 골라보세요
+                  누구와 대화하고 싶나요?
                 </h3>
-                <span>남은 시간: {timeLeft}초</span>
-                <div className="grid grid-cols-3 grid-rows-2 gap-2 mb-5">
-                  {renderWinnerChoiceOptions()}
+                <div className="flex flex-col items-end">
+                  <span>남은 시간: {timeLeft}초</span>
+                  <div className="grid grid-cols-3 grid-rows-2 gap-2 mb-5 w-full">
+                    {renderWinnerChoiceOptions()}
+                  </div>
                 </div>
               </div>
             )}
