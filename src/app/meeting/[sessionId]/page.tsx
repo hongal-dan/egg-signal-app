@@ -188,6 +188,7 @@ const Meeting = () => {
     console.log(partnerName, " 빼고 소리 ", flag ? "듣기" : "차단");
     const partnerStreamId = getKeyById(partnerName);
     subscribers.forEach(sub => {
+      console.log(sub.stream.streamId, " 순회 중");
       if (
         sub instanceof Subscriber &&
         sub.stream.streamId !== partnerStreamId
@@ -207,6 +208,7 @@ const Meeting = () => {
 
     if (loserStreamIds.length > 0) {
       subscribers.forEach(sub => {
+        console.log(sub.stream.streamId, " 순회 중");
         if (
           sub instanceof Subscriber &&
           !loserStreamIds.includes(sub.stream.streamId)
