@@ -13,7 +13,11 @@ import {
   onlineListState,
 } from "@/app/store/commonSocket";
 import { userState } from "@/app/store/userInfo";
-import { chatRoomState, newMessageSenderState } from "@/app/store/chat";
+import {
+  chatRoomState,
+  newMessageSenderState,
+  messageAlarmState,
+} from "@/app/store/chat";
 // import { logoutUser } from "@/services/auth";
 import { Socket } from "socket.io-client";
 import { testState } from "@/app/store/userInfo"; // FIXME 테스트용 랜덤 닉네임 저장, 배포 전에 삭제해야함
@@ -69,7 +73,7 @@ const MainContent = () => {
   const [newMessageSenders, setNewMessageSenders] = useRecoilState(
     newMessageSenderState,
   );
-  const [messageAlarm, setMessageAlarm] = useState(false);
+  const [messageAlarm, setMessageAlarm] = useRecoilState(messageAlarmState);
   const [openedChatRoomId, setOpenedChatRoomId] = useRecoilState(chatRoomState);
   const [, setOnlineList] = useRecoilState(onlineListState);
   const [notiList, setNotiList] = useRecoilState(notiListState);
@@ -144,13 +148,12 @@ const MainContent = () => {
 
   useEffect(() => {
     checkNewMessageAfterLogin();
+    checkNewMessage();
   }, [currentUser]);
 
   useEffect(() => {
-    // setCurrentUser(userInfo);
     console.log("MainContent useEffect");
     updateUserInfo();
-    checkNewMessage();
 
     const newCommonSocket = io(`${url}/common`, {
       transports: ["websocket"],
