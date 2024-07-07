@@ -13,41 +13,52 @@ import {
   onlineListState,
 } from "@/app/store/commonSocket";
 import { userState } from "@/app/store/userInfo";
-import { chatRoomState, newMessageSenderState } from "@/app/store/chat";
-import { logoutUser } from "@/services/auth";
+import {
+  chatRoomState,
+  newMessageSenderState,
+  messageAlarmState,
+} from "@/app/store/chat";
+// import { logoutUser } from "@/services/auth";
 import { Socket } from "socket.io-client";
 import { testState } from "@/app/store/userInfo"; // FIXME 테스트용 랜덤 닉네임 저장, 배포 전에 삭제해야함
+import { getUserInfo } from "@/services/users";
+import { defaultSessionState } from "@/app/store/ovInfo";
 
-interface Friend {
-  friend: string;
-  chatRoomId: string;
-  newMessage: boolean;
-}
+// interface Friend {
+//   friend: string;
+//   chatRoomId: string;
+//   newMessage: boolean;
+// }
 
-interface MainContentProps {
-  userInfo: {
-    id: string;
-    nickname: string;
-    gender: "MALE" | "FEMALE";
-    newNotification: boolean;
-    notifications: string[];
-    friends: Friend[];
-  };
-}
+// interface MainContentProps {
+//   userInfo: {
+//     id: string;
+//     nickname: string;
+//     gender: "MALE" | "FEMALE";
+//     newNotification: boolean;
+//     notifications: string[];
+//     friends: Friend[];
+//   };
+// }
+
+// interface UserInfo {
+//   id: string;
+//   nickname: string;
+//   gender: "MALE" | "FEMALE";
+//   newNotification: boolean;
+//   notifications: string[];
+//   friends: Friend[];
+// }
 
 interface Notification {
   _id: string;
   from: string;
-  createdAt: string;
-  updatedAt: string;
-  __v: number;
 }
 
-const MainContent = ({ userInfo }: MainContentProps) => {
+const MainContent = () => {
   const [, setTestName] = useRecoilState(testState); // FIXME 테스트용 랜덤 닉네임 저장, 배포 전에 삭제해야함
 
   const router = useRouter();
-  // const [avatarOn, setAvatarOn] = useState<boolean>(true);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isFriendListVisible, setIsFriendListVisible] =
     useState<boolean>(false);
@@ -63,96 +74,140 @@ const MainContent = ({ userInfo }: MainContentProps) => {
   const [newMessageSenders, setNewMessageSenders] = useRecoilState(
     newMessageSenderState,
   );
+  const [messageAlarm, setMessageAlarm] = useRecoilState(messageAlarmState);
   const [openedChatRoomId, setOpenedChatRoomId] = useRecoilState(chatRoomState);
   const [, setOnlineList] = useRecoilState(onlineListState);
   const [notiList, setNotiList] = useRecoilState(notiListState);
 
+  const [, setDefaultUserInfo] = useRecoilState(defaultSessionState);
+
   const checkOnlineFriends = () => {
-    const onlineList = localStorage.getItem("onlineFriends");
+    const onlineList = sessionStorage.getItem("onlineFriends");
     if (!onlineList || onlineList.length === 0) {
       return;
     }
     setOnlineList(JSON.parse(onlineList));
   };
 
-  // 내가 접속하지 않은 동안 온 메시지가 있으면 알람 표시
+  const updateUserInfo = async () => {
+    console.log("updateUserInfo");
+    const response = await getUserInfo(
+      JSON.parse(localStorage.getItem("token")!),
+    );
+    const currentUser = {
+      id: response.data.id,
+      nickname: response.data.nickname,
+      gender: response.data.gender,
+      newNotification: response.data.newNotification,
+      notifications: response.data.notifications,
+      friends: response.data.friends,
+    };
+    setCurrentUser(currentUser);
+  };
+
+  // 새로고침 했을 때 메시지 알람 유지
   const checkNewMessage = () => {
-    if (userInfo.friends) {
-      const senders: string[] = [];
-      userInfo.friends.map(f => {
-        if (f.newMessage) {
-          senders.push(f.chatRoomId);
-        }
-      });
-      setNewMessageSenders(senders);
+    const messageSenders = sessionStorage.getItem("messageSenders");
+    if (!messageSenders || messageSenders.length === 0) {
+      return;
+    }
+    setNewMessageSenders(JSON.parse(messageSenders));
+  };
+
+  // 접속 안 한 동안 나한테 온 메시지가 있는지 확인
+  const checkNewMessageAfterLogin = () => {
+    const newSenders: string[] = [];
+    currentUser.friends.map(friend => {
+      if (friend.newMessage) {
+        newSenders.push(friend.chatRoomId);
+      }
+    });
+    if (newSenders.length !== 0) {
+      sessionStorage.setItem("messageSenders", JSON.stringify(newSenders));
+      setMessageAlarm(true);
     }
   };
 
   useEffect(() => {
-    setCurrentUser(userInfo);
-  }, []);
+    checkNewMessageAfterLogin();
+    checkNewMessage();
+  }, [currentUser]);
 
   useEffect(() => {
-    console.log("MainContent: ", currentUser);
+    console.log("MainContent useEffect");
+    updateUserInfo();
+
     const newCommonSocket = io(`${url}/common`, {
       transports: ["websocket"],
-      withCredentials: true,
+      auth: { token: JSON.parse(localStorage.getItem("token")!) },
+      // withCredentials: true,
     });
     setCommonSocket(newCommonSocket);
 
     newCommonSocket.on("connect", () => {
-      newCommonSocket.emit("serverCertificate");
       console.log("common connected");
     });
 
-    checkNewMessage();
-    newCommonSocket.on("newMessageNotification", res => {
-      console.log(res);
-      if (newMessageSenders === null) {
-        setNewMessageSenders([res]);
+    newCommonSocket.emit("serverCertificate");
+    newCommonSocket.emit("friendStat");
+
+    newCommonSocket.on("newMessageNotification", (res: string) => {
+      console.log(res, "이가 나한테 메시지 보냄");
+      const messageSenders = sessionStorage.getItem("messageSenders");
+      if (!messageSenders || messageSenders.length === 0) {
+        sessionStorage.setItem("messageSenders", JSON.stringify([res]));
       } else {
-        setNewMessageSenders([...res]);
+        const prevList = JSON.parse(messageSenders);
+        prevList.push(res);
+        const newList = Array.from(new Set(prevList)) as string[]; // 동일한 알람 제거
+        sessionStorage.setItem("messageSenders", JSON.stringify(newList));
       }
+      setNewMessageSenders(prev => [...prev, res]);
     });
 
     newCommonSocket.on("friendOnline", (res: string) => {
       console.log("온라인 유저: ", res);
-      const onlineList = localStorage.getItem("onlineFriends");
+      const onlineList = sessionStorage.getItem("onlineFriends");
       if (!onlineList || onlineList.length === 0) {
-        localStorage.setItem("onlineFriends", JSON.stringify([res]));
+        sessionStorage.setItem("onlineFriends", JSON.stringify([res]));
       } else {
         const prevList = JSON.parse(onlineList);
         prevList.push(res);
         const newList = Array.from(new Set(prevList)) as string[];
-        localStorage.setItem("onlineFriends", JSON.stringify(newList));
+        console.log(newList);
+        sessionStorage.setItem("onlineFriends", JSON.stringify(newList));
         setOnlineList(newList);
       }
     });
 
     newCommonSocket.on("friendOffline", (res: string) => {
       console.log(res, "접속 종료");
-      const onlineList = localStorage.getItem("onlineFriends");
+      const onlineList = sessionStorage.getItem("onlineFriends");
       if (onlineList) {
         const prevList = JSON.parse(onlineList);
         const newList = prevList.filter((el: string) => el !== res);
         console.log(newList);
-        localStorage.setItem("onlineFriends", JSON.stringify(newList));
+        sessionStorage.setItem("onlineFriends", JSON.stringify(newList));
         setOnlineList(newList);
       }
     });
 
     newCommonSocket.emit("reqGetNotifications");
 
-    newCommonSocket.on("resGetNotifications", (res: Notification) => {
+    newCommonSocket.on("resGetNotifications", (res: Notification[]) => {
       console.log("내 알람?", res);
-      // const newNotiList = res
-      // console.log(newNotiList);
-      setNotiList([...notiList, res]);
+      const newNotiList = res.map((r: Notification) => {
+        return {
+          _id: r._id,
+          from: r.from,
+        };
+      });
+      setNotiList(newNotiList);
     });
 
     newCommonSocket.on("newFriendRequest", res => {
       console.log("새로운 친구 요청", res);
-      const newNoti = res.userNickname; // 나한테 요청 보낸 친구
+      const newNoti = { _id: res._id, from: res.userNickname }; // 나한테 요청 보낸 친구
       setNotiList(prev => [...prev, newNoti]);
     });
 
@@ -168,7 +223,7 @@ const MainContent = ({ userInfo }: MainContentProps) => {
       };
       console.log(updateCurrentUser);
       setCurrentUser(updateCurrentUser);
-      window.location.reload();
+      // window.location.reload();
     });
 
     newCommonSocket.on("friendRequestAccepted", res => {
@@ -178,12 +233,43 @@ const MainContent = ({ userInfo }: MainContentProps) => {
         friends: [...prevState.friends, ...res.friends],
       }));
     });
+
+    // 내가 접속하기 전부터 접속한 친구 확인용
+    newCommonSocket.on("friendStat", res => {
+      const onlineList = sessionStorage.getItem("onlineFriends");
+      if (!onlineList || onlineList.length === 0) {
+        const newList: string[] = [];
+        res.forEach((el: any) => {
+          const key = Object.keys(el)[0];
+          if (el[key]) {
+            newList.push(key);
+          }
+        });
+        console.log("friend state new List!!", newList);
+        setOnlineList(newList);
+        sessionStorage.setItem("onlineFriends", JSON.stringify(newList));
+      } else {
+        const prevList = JSON.parse(onlineList);
+        res.forEach((el: any) => {
+          const key = Object.keys(el)[0];
+          if (el[key]) {
+            prevList.push(key);
+          }
+        });
+        const newList = Array.from(new Set(prevList)) as string[];
+        console.log("update online list: ", newList);
+        sessionStorage.setItem("onlineFriends", JSON.stringify(newList));
+        setOnlineList(newList);
+      }
+    });
   }, []);
 
   const connectSocket = async () => {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       const newSocket = io(`${url}/meeting`, {
         transports: ["websocket"],
+        // withCredentials: true,
+        auth: { token: JSON.parse(localStorage.getItem("token")!) },
       });
       newSocket.on("connect", () => {
         setSocket(newSocket);
@@ -192,20 +278,30 @@ const MainContent = ({ userInfo }: MainContentProps) => {
     });
   };
 
+  type ovInfo = {
+    sessionId: string;
+    token: string;
+    participantName: string;
+  }
+
   const randomNum = Math.floor(Math.random() * 1000).toString(); // 테스트용 익명 닉네임 부여
-  const handleLoadingOn: React.MouseEventHandler<HTMLButtonElement> = async () => {
-    const meetingSocket = await connectSocket() as Socket | null;
-    setTestName(`${userInfo.nickname}-${randomNum}`); // FIXME 테스트용 랜덤 닉네임 저장, 배포 전에 삭제해야함
+  const handleLoadingOn: React.MouseEventHandler<
+    HTMLButtonElement
+  > = async () => {
+    const meetingSocket = (await connectSocket()) as Socket | null;
     console.log("socket: ", meetingSocket);
+    console.log("currentUser: ", currentUser);
+    console.log("testName", currentUser.nickname + "-" + randomNum);
     meetingSocket?.emit("ready", {
-      participantName: `${userInfo.nickname}-${randomNum}`,
-      gender: userInfo.gender,
+      participantName: `${currentUser.nickname}-${randomNum}`,
+      gender: currentUser.gender,
     });
     if (startButton.current) startButton.current.disabled = true;
     setIsLoading(true);
-    meetingSocket?.on("startCall", async ovInfo => {
+    meetingSocket?.on("startCall", async (ovInfo: ovInfo) => {
       console.log(ovInfo);
-      sessionStorage.setItem("ovInfo", JSON.stringify(ovInfo)); // 세션 스토리지에 저장
+      setTestName(ovInfo.participantName); // FIXME 테스트용 랜덤 닉네임 저장, 배포 전에 삭제해야함
+      setDefaultUserInfo({sessionId: ovInfo.sessionId, token: ovInfo.token, participantName: ovInfo.participantName}); // FIXME 배포용은 participantName 삭제해야함;
       setIsLoading(false);
       setIsEnterLoading(true);
       router.push(`/meeting/${ovInfo.sessionId}`);
@@ -217,7 +313,8 @@ const MainContent = ({ userInfo }: MainContentProps) => {
 
   const handleLoadingCancel = () => {
     socket?.emit("cancel", {
-      participantName: `${userInfo.nickname}-${randomNum}`,
+      participantName: `${currentUser.nickname}-${randomNum}`,
+      gender: currentUser.gender,
     }); // 테스트용 익명 닉네임 부여
     if (startButton.current) startButton.current.disabled = false;
     setIsLoading(false);
@@ -250,9 +347,11 @@ const MainContent = ({ userInfo }: MainContentProps) => {
 
   const handleLogout = async () => {
     try {
-      await logoutUser();
+      // await logoutUser();
+      localStorage.removeItem("token");
+      sessionStorage.removeItem("onlineFriends");
       commonSocket?.disconnect();
-      router.push("/login");
+      window.location.reload();
     } catch (error) {
       console.error("Log out Error: ", error);
     }
@@ -279,9 +378,6 @@ const MainContent = ({ userInfo }: MainContentProps) => {
     }
   }, [isFriendListVisible]);
 
-  // return avatar == null ? (
-  //   <AvatarCollection />
-  // ) :
   return (
     <div>
       <button
@@ -297,7 +393,7 @@ const MainContent = ({ userInfo }: MainContentProps) => {
           </div>
           <div className="w-10 h-10 relative flex items-center justify-center text-xl bg-white rounded-2xl shadow">
             {notiList.length !== 0 && (
-              <div className="absolute left-[-5px] top-[-5px] w-4 h-4 rounded-full bg-red-600" />
+              <div className="absolute left-[-5px] top-[-5px] w-4 h-4 rounded-full bg-rose-500" />
             )}
             <button onClick={toggleNotiList}>🔔</button>
             {isNotiVisible && (
@@ -357,8 +453,9 @@ const MainContent = ({ userInfo }: MainContentProps) => {
             className="relative w-48 h-10 flex items-center justify-center bg-amber-100 rounded-2xl shadow"
             onClick={toggleFriendList}
           >
-            {newMessageSenders?.length !== 0 && newMessageSenders && (
-              <div className="absolute left-[-5px] top-[-5px] w-5 h-5 rounded-full bg-red-600" />
+            {(messageAlarm ||
+              (newMessageSenders && newMessageSenders.length !== 0)) && (
+              <div className="absolute left-[-5px] top-[-5px] w-4 h-4 rounded-full bg-rose-500" />
             )}
             <p className="text-xl font-bold">친구</p>
           </button>

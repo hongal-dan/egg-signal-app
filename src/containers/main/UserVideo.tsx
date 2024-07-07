@@ -76,14 +76,14 @@ class Avatar {
 
   disposeMaterial(material: THREE.Material): void {
     const materialsWithMaps = [
-      'map',
-      'lightMap',
-      'bumpMap',
-      'normalMap',
-      'envMap'
+      "map",
+      "lightMap",
+      "bumpMap",
+      "normalMap",
+      "envMap",
     ] as const;
 
-    materialsWithMaps.forEach((mapName) => {
+    materialsWithMaps.forEach(mapName => {
       const materialWithMap = material as THREE.MeshStandardMaterial;
       if (materialWithMap[mapName]) {
         (materialWithMap[mapName] as THREE.Texture).dispose();
@@ -118,8 +118,7 @@ class Avatar {
 function UserVideoComponent2() {
   const avatarName = useRecoilValue(avatarState);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [avatar] = useState<Avatar | null>(new Avatar(avatarName));
-  // const mindarThreeRef = useRef<MindARThree | null>(null);
+  const [avatar] = useState<Avatar>(new Avatar(avatarName));
 
   useEffect(() => {
     const mindarThree = new MindARThree({
@@ -128,14 +127,14 @@ function UserVideoComponent2() {
 
     const { renderer, scene, camera } = mindarThree;
     // 기본 배경색으로 변경
-    renderer.setClearColor(0xfae4c9, 1);
+    // renderer.setClearColor(0xfae4c9, 1);
+    renderer.setClearColor(0x000000, 0);
     const light = new THREE.HemisphereLight(0xffffff, 0xbbbbff, 2.5);
     scene.add(light);
-    
+
     // 화면 상의 특정 위치를 기준으로 얼굴을 식별하고 추적 여기서 1은 그냥 식별자임
     const anchor = mindarThree.addAnchor(1);
 
-    
     const setup = async () => {
       await avatar!.init();
       if (avatar!.gltf && avatar!.gltf.scene) {
@@ -146,22 +145,41 @@ function UserVideoComponent2() {
 
       await mindarThree.start();
 
+      const video = document.querySelector("video");
+      if (!video) {
+        console.error("비디오 없음!!!");
+        return;
+      }
+
+      const videoTexture = new THREE.VideoTexture(video);
+      videoTexture.wrapS = THREE.RepeatWrapping;
+      videoTexture.repeat.x = -1; // 텍스처 좌우 반전
+
+      scene.background = videoTexture;
+
+      // 얼굴 인식 못할 때 scene 배경
+      const imgTexture = new THREE.TextureLoader().load(
+        `/avatar/${avatarName}.png`,
+      );
+      imgTexture.wrapS = THREE.RepeatWrapping;
+      imgTexture.wrapT = THREE.RepeatWrapping;
+
       // 받은 정보로 프레임마다 아바타 모양 렌더링
       renderer.setAnimationLoop(() => {
         // 가장 최근의 추정치를 가져옴
         const estimate = mindarThree.getLatestEstimate();
         if (estimate && estimate.blendshapes) {
           avatar!.updateBlendshapes(estimate.blendshapes);
+          scene.background = videoTexture;
+        } else {
+          scene.background = imgTexture;
         }
         renderer.render(scene, camera);
       });
     };
 
     setup();
-    // const canvas = document.querySelector("canvas");
-    // if (canvas) {
-    //   canvas.style.backgroundColor = "#fae4c9";
-    // }
+
     return () => {
       renderer.setAnimationLoop(null);
 

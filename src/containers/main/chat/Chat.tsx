@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { userState } from "@/app/store/userInfo";
 import { commonSocketState } from "@/app/store/commonSocket";
-import { chatRoomState, newMessageSenderState } from "@/app/store/chat";
+import { chatRoomState } from "@/app/store/chat";
 import { useRecoilValue, useRecoilState } from "recoil";
 import { FaCircleArrowUp } from "react-icons/fa6";
 
@@ -22,9 +22,6 @@ interface Chat {
 const Chat: React.FC<Props> = ({ friend, onClose }) => {
   const commonSocket = useRecoilValue(commonSocketState);
   const currentUser = useRecoilValue(userState);
-  const [newMessageSenders, setNewMessageSenders] = useRecoilState(
-    newMessageSenderState,
-  );
   const [chat, setChat] = useState<Chat[]>([]);
   const [message, setMessage] = useState("");
   const [chatRoomId, setChatRoomId] = useRecoilState(chatRoomState);
@@ -37,19 +34,29 @@ const Chat: React.FC<Props> = ({ friend, onClose }) => {
     }
   }, [chat]);
 
+  // chat history를 한 번만 받아오도록 설정
+  const handleChatHistory = (res: Chat[]) => {
+    console.log("chat history: ", res);
+    const chatHistory = res.map((msg: Chat) => ({
+      sender: msg.sender,
+      message: msg.message,
+    }));
+    setChat(chatHistory);
+    // chat history를 받았으면 이벤트 핸들러 등록 해제
+    commonSocket!.off("chatHistory", handleChatHistory);
+  };
+
   useEffect(() => {
     console.log("joinChat emit: ", friend.chatRoomId);
     if (commonSocket) {
-      commonSocket.emit("joinchat", { newChatRoomId: friend.chatRoomId });
-      setChatRoomId(friend.chatRoomId);
-      commonSocket.on("chatHistory", res => {
-        console.log("chat histroy: ", res);
-        const chatHistory = res.map((msg: Chat) => ({
-          sender: msg.sender,
-          message: msg.message,
-        }));
-        setChat(chatHistory);
+      commonSocket.emit("joinchat", {
+        newChatRoomId: friend.chatRoomId,
+        friendName: friend.friend,
       });
+      setChatRoomId(friend.chatRoomId);
+
+      commonSocket.on("chatHistory", handleChatHistory);
+
       commonSocket.on("message", res => {
         if (res.sender === currentUser?.nickname) {
           return;
@@ -60,21 +67,6 @@ const Chat: React.FC<Props> = ({ friend, onClose }) => {
         };
         setChat(prevChat => [...prevChat, newChat]);
       });
-    }
-
-    // 알람 켜져있었으면 알람 끄기
-    if (
-      newMessageSenders &&
-      newMessageSenders.find(el => el === friend.chatRoomId)
-    ) {
-      const updateSenders = newMessageSenders.filter(
-        el => el !== friend.chatRoomId,
-      );
-      if (updateSenders.length === 0) {
-        setNewMessageSenders(null);
-      } else {
-        setNewMessageSenders(updateSenders);
-      }
     }
 
     return () => {

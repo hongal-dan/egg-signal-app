@@ -9,7 +9,7 @@ html {
 }
 
 .streamcomponent.speaking {
-  @apply shadow-lg shadow-green-300;
+  @apply w-full h-full shadow-lg shadow-lime-500;
 }
 
 .MALE {

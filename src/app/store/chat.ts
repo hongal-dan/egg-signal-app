@@ -10,8 +10,13 @@ export const chatRoomState = atom<string | null>({
 });
 
 // 나한테 채팅 알람 보낸 사람 정보
-export const newMessageSenderState = atom<string[] | null>({
+export const newMessageSenderState = atom<string[]>({
   key: "newMessageSenderState",
-  default: null,
-  dangerouslyAllowMutability: true,
+  default: [],
+});
+
+// 안 읽은 메시지가 있는지 여부
+export const messageAlarmState = atom<boolean>({
+  key: "messageAlarmState",
+  default: false,
 });

@@ -1,9 +1,9 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import Friend from "./Friend";
 import Chat from "./Chat";
 import { commonSocketState, onlineListState } from "@/app/store/commonSocket";
-import { newMessageSenderState } from "@/app/store/chat";
+import { newMessageSenderState, messageAlarmState } from "@/app/store/chat";
 import { useRecoilState, useRecoilValue } from "recoil";
 
 interface Friend {
@@ -17,12 +17,26 @@ interface FriendListPros {
 
 const FriendList: React.FC<FriendListPros> = ({ friendsList }) => {
   const commonSocket = useRecoilValue(commonSocketState);
-  const newMessageSenders = useRecoilValue(newMessageSenderState);
-  const [onlineList, setOnlineList] = useRecoilState(onlineListState);
+  const onlineList = useRecoilValue(onlineListState);
+  const [newMessageSenders, setNewMessageSenders] = useRecoilState(
+    newMessageSenderState,
+  );
+  const [, setmessageAlarm] = useRecoilState(messageAlarmState);
   const [selectedFriend, setSelectedFriend] = useState<Friend | null>(null);
   const [isChatVisible, setIsChatVisible] = useState<boolean>(false);
 
   const toggleChat = (friend: Friend) => {
+    if (!isChatVisible) {
+      const updateSenders = newMessageSenders.filter(
+        p => p !== friend.chatRoomId,
+      );
+      if (updateSenders.length === 0) {
+        setmessageAlarm(false);
+      }
+      sessionStorage.setItem("messageSenders", JSON.stringify(updateSenders));
+      setNewMessageSenders(updateSenders);
+    }
+
     setSelectedFriend(friend);
     setIsChatVisible(prev => {
       if (prev === true) {
@@ -49,43 +63,25 @@ const FriendList: React.FC<FriendListPros> = ({ friendsList }) => {
     return onlineList.includes(friendNickName);
   };
 
-  useEffect(() => {
-    if (commonSocket) {
-      commonSocket.emit("friendStat");
-      commonSocket.on("friendStat", res => {
-        const onlineList = localStorage.getItem("onlineFriends");
-        if (!onlineList || onlineList.length === 0) {
-          localStorage.setItem("onlineFriends", JSON.stringify([res]));
-        } else {
-          const prevList = JSON.parse(onlineList);
-          prevList.push(res);
-          const newList = Array.from(new Set(prevList)) as string[];
-          localStorage.setItem("onlineFriends", JSON.stringify(newList));
-          setOnlineList(newList);
-        }
-      });
+  const isNewMessageSender = (friend: Friend) => {
+    if (newMessageSenders.find(el => el === friend.chatRoomId)) {
+      console.log(friend.friend, " 알람 보냄");
+      return true;
     }
-  });
+    return false;
+  };
 
   return (
     <div
       className={`w-72 h-[700px] overflow-auto ${friendsList && friendsList.length > 0 ? "scrollbar-custom" : "scrollbar-hide"}`}
     >
-      {/* <div className="text-end">
-        <button onClick={onClose} className="font-bold">
-          ✕
-        </button>
-      </div> */}
       {friendsList.map((friend, index) => (
         <div key={index} className="relative">
-          {newMessageSenders &&
-            newMessageSenders.find(el => el === friend.chatRoomId) && (
-              <div className="absolute left-0 top-0 w-3 h-3 rounded-full bg-red-600" />
-            )}
           <Friend
             friend={friend}
             onChat={() => toggleChat(friend)}
             isOnline={checkFriendOnline(friend.friend)}
+            isNewMessageSender={isNewMessageSender(friend)}
           />
         </div>
       ))}

@@ -3,7 +3,7 @@
 import React, { useRef, useEffect, useState } from "react";
 import imageCompression from "browser-image-compression";
 import { useRecoilValue } from "recoil";
-import { userState } from "@/app/store/userInfo";
+// import { userState } from "@/app/store/userInfo";
 import { meetingSocketState } from "@/app/store/socket";
 import { testState } from "@/app/store/userInfo"; //FIXME 테스트용 랜덤 닉네임 저장, 배포 전에 삭제해야함
 import { drawingKeywords } from "../../../public/data/drawingKeywords";
@@ -44,7 +44,7 @@ const CanvasModal: React.FC<CanvasModalProps> = ({
   const [currentStage, setCurrentStage] = useState("drawing");
   const drawingKeywordRef = useRef<HTMLParagraphElement>(null);
   const socket = useRecoilValue(meetingSocketState)!;
-  const userInfo = useRecoilValue(userState);
+  // const userInfo = useRecoilValue(userState);
   const testName = useRecoilValue(testState); //FIXME 테스트용 랜덤 닉네임 저장, 배포 전에 삭제해야함
 
   const intervalRef = useRef<NodeJS.Timeout | null>(null);

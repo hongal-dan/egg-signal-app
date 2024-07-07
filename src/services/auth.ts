@@ -23,25 +23,44 @@ const createUser = async (request: CreateUser) => {
   }
 };
 
-const loginUser = async (request: LoginUser) => {
+// const loginUser = async (request: LoginUser) => {
+//   try {
+//     const response = await axios.post("/api/auth/signIn", request, {
+//       withCredentials: true,
+//     });
+//     console.log("response = ", response);
+//     return response;
+//   } catch (error) {
+//     return error;
+//   }
+// };
+
+const loginUserHeader = async (request: LoginUser) => {
   try {
-    const response = await axios.post(`/api/auth/signIn`, request, {
-      withCredentials: true,
-    });
+    console.log(authUrl);
+    console.log(process.env.NEXT_PUBLIC_API_SERVER);
+    // const response = await axios.post(`${authUrl}/signIn`, request);
+    const response = await axios.post(`${authUrl}/signIn`, request);
+    console.log("authUrl: ", authUrl)
+    console.log(process.env.NEXT_PUBLIC_API_SERVER)
     console.log("response = ", response);
+    console.log(response.headers['authorization']);
+    localStorage.setItem("token", JSON.stringify(response.headers['authorization']));
+
     return response;
-  } catch (error) {
+  } catch (error: any) {
+    console.error(error);
     return error;
   }
 };
 
 const logoutUser = async () => {
   try {
-    const response = await axios.get(`/api/auth/signOut`);
+    const response = await axios.get("/api/auth/signOut");
     console.log(response);
   } catch (error) {
     return error;
   }
 };
 
-export { createUser, loginUser, logoutUser };
+export { createUser, logoutUser, loginUserHeader };

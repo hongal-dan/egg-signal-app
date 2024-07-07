@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import { RecoilRoot } from 'recoil';
-import React from 'react';
+import { RecoilRoot } from "recoil";
+import React from "react";
 
 interface RecoilRootWrapperProps {
-	children: React.ReactNode;
+  children: React.ReactNode;
 }
 
 export default function RecoilRootWrapper({
-	children,
+  children,
 }: RecoilRootWrapperProps) {
-	return <RecoilRoot>{children}</RecoilRoot>;
+  return <RecoilRoot>{children}</RecoilRoot>;
 }

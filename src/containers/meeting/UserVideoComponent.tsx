@@ -1,12 +1,10 @@
 "use client";
-import React, { useRef, useEffect } from "react";
+import React, { useRef } from "react";
 import OpenViduVideoComponent from "./OvVideo";
 import { StreamManager } from "openvidu-browser";
 
-// todo: 소켓 리코일에서 꺼내쓰기
 export default function UserVideoComponent(props: {
   streamManager: StreamManager;
-  socket: any;
   className: string;
 }) {
   const streamComponentRef = useRef<HTMLDivElement>(null);
@@ -20,11 +18,13 @@ export default function UserVideoComponent(props: {
   nickname = JSON.parse(jsonString).clientData;
   // console.log(rawData)
 
-
   return (
     <div>
       {props.streamManager !== undefined ? (
-        <div className={`streamcomponent ${props.className}`} ref={streamComponentRef}>
+        <div
+          className={`streamcomponent ${props.className}`}
+          ref={streamComponentRef}
+        >
           <div className="arrow-container hidden" id="arrow">
             <div className="arrow-body">
               <div className="arrow-head"></div>
@@ -32,7 +32,6 @@ export default function UserVideoComponent(props: {
           </div>
           <OpenViduVideoComponent
             streamManager={props.streamManager}
-            socket={props.socket}
           />
           <div>
             <p className="nickname">{nickname}</p>
