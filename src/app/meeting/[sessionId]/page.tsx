@@ -546,10 +546,12 @@ const Meeting = () => {
       keywordRef.current.innerText = "";
       console.log("선택모드 p태그 삭제");
     }
-    const chooseBtns = document.getElementsByClassName("choose-btn");
-    const btnArray = Array.from(chooseBtns);
-    btnArray.forEach(btn => {
-      btn.classList.add("hidden");
+
+    const oppositeRef = subRef.current.slice(2);
+
+    oppositeRef.forEach(subContainer => {
+      const chooseBtn = subContainer!.getElementsByClassName("choose-btn")[0];
+      chooseBtn.classList.add("hidden");
     });
   };
 
