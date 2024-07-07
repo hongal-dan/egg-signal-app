@@ -18,7 +18,6 @@ import { chatRoomState, newMessageSenderState } from "@/app/store/chat";
 import { Socket } from "socket.io-client";
 import { testState } from "@/app/store/userInfo"; // FIXME 테스트용 랜덤 닉네임 저장, 배포 전에 삭제해야함
 import { getUserInfo } from "@/services/users";
-import { defaultSessionState } from "@/app/store/ovInfo";
 
 // interface Friend {
 //   friend: string;
@@ -74,8 +73,6 @@ const MainContent = () => {
   const [, setOnlineList] = useRecoilState(onlineListState);
   const [notiList, setNotiList] = useRecoilState(notiListState);
 
-  const [, setDefaultUserInfo] = useRecoilState(defaultSessionState);
-
   const checkOnlineFriends = () => {
     const onlineList = sessionStorage.getItem("onlineFriends");
     if (!onlineList || onlineList.length === 0) {
@@ -83,6 +80,27 @@ const MainContent = () => {
     }
     setOnlineList(JSON.parse(onlineList));
   };
+
+  // const handleGetUserInfo = async (token: string) => {
+  //   try {
+  //     const response = await getUserInfo(token).then();
+  //     console.log(response.data);
+  //     const currentUser = {
+  //       id: response.data.id,
+  //       nickname: response.data.nickname,
+  //       gender: response.data.gender,
+  //       newNotification: response.data.newNotification,
+  //       notifications: response.data.notifications,
+  //       friends: response.data.friends,
+  //     };
+  //     return currentUser;
+  //   } catch (error) {
+  //     console.error("Error fetching data: ", error);
+  //   }
+  // };
+
+  // const currentUser = await handleGetUserInfo(JSON.parse(token));
+  // console.log(currentUser);
 
   const updateUserInfo = async () => {
     console.log("updateUserInfo");
@@ -256,12 +274,6 @@ const MainContent = () => {
     });
   };
 
-  type ovInfo = {
-    sessionId: string;
-    token: string;
-    participantName: string;
-  }
-
   const randomNum = Math.floor(Math.random() * 1000).toString(); // 테스트용 익명 닉네임 부여
   const handleLoadingOn: React.MouseEventHandler<
     HTMLButtonElement
@@ -276,10 +288,11 @@ const MainContent = () => {
     });
     if (startButton.current) startButton.current.disabled = true;
     setIsLoading(true);
-    meetingSocket?.on("startCall", async (ovInfo: ovInfo) => {
+    meetingSocket?.on("startCall", async ovInfo => {
       console.log(ovInfo);
       setTestName(ovInfo.participantName); // FIXME 테스트용 랜덤 닉네임 저장, 배포 전에 삭제해야함
-      setDefaultUserInfo({sessionId: ovInfo.sessionId, token: ovInfo.token, participantName: ovInfo.participantName}); // FIXME 배포용은 participantName 삭제해야함;
+      console.log("서버에게서 받은 이름===========", ovInfo.participantName);
+      sessionStorage.setItem("ovInfo", JSON.stringify(ovInfo)); // 세션 스토리지에 저장
       setIsLoading(false);
       setIsEnterLoading(true);
       router.push(`/meeting/${ovInfo.sessionId}`);
