@@ -14,9 +14,13 @@ import { PiCrownSimpleDuotone } from "react-icons/pi";
 
 type CanvasModalProps = {
   onClose: () => void;
+  keywordsIndex: number;
 };
 
-const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
+const CanvasModal: React.FC<CanvasModalProps> = ({
+  onClose,
+  keywordsIndex,
+}) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const contextRef = useRef<CanvasRenderingContext2D | null>(null);
   const [hasSubmitted, setHasSubmitted] = useState<boolean>(false);
@@ -73,7 +77,7 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
     contextRef.current = context;
 
     const startDrawing = () => {
-      const drawingIndex = Math.floor(Math.random() * drawingKeywords.length);
+      const drawingIndex = Math.floor(keywordsIndex % drawingKeywords.length);
       /**추후 서버에서 받을 예정 */
       if (drawingKeywordRef.current)
         drawingKeywordRef.current.innerText = drawingKeywords[drawingIndex];

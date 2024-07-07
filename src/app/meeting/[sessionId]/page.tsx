@@ -45,6 +45,7 @@ const Meeting = () => {
     [],
   );
   const [isCanvasModalOpen, setIsCanvasModalOpen] = useState<boolean>(false);
+  const [keywordsIndex, setKeywordsIndex] = useState(0);
 
   // const [isLoveMode, setIsLoveMode] = useState<boolean>(false);
   // const [isChooseMode, setIsChooseMode] = useState<boolean>(false);
@@ -764,10 +765,12 @@ const Meeting = () => {
         console.error(e);
       }
     });
-
+    
     /**사생대회 모달 */
     socket?.on("drawingContest", response => {
       console.log("drawingContest 도착", response);
+      const index = response.keywordsIndex;
+      setKeywordsIndex(index);
       setIsCanvasModalOpen(true);
     });
 
@@ -1038,7 +1041,10 @@ const Meeting = () => {
         </div>
       )}
       {isCanvasModalOpen && (
-        <CanvasModal onClose={() => setIsCanvasModalOpen(false)} />
+        <CanvasModal
+          onClose={() => setIsCanvasModalOpen(false)}
+          keywordsIndex={keywordsIndex}
+        />
       )}
       {!isOpenCam ? (
         <div ref={captureRef} className="hidden">
