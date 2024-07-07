@@ -1,8 +1,6 @@
 "use client";
-import { newMessageSenderState } from "@/app/store/chat";
 import React from "react";
 import { AiOutlineMessage } from "react-icons/ai";
-import { useRecoilValue } from "recoil";
 
 interface Props {
   friend: {
@@ -11,10 +9,15 @@ interface Props {
   };
   onChat: () => void;
   isOnline: boolean;
+  isNewMessageSender: boolean;
 }
 
-const Friend: React.FC<Props> = ({ friend, onChat, isOnline }) => {
-  const newMessageSenders = useRecoilValue(newMessageSenderState);
+const Friend: React.FC<Props> = ({
+  friend,
+  onChat,
+  isOnline,
+  isNewMessageSender,
+}) => {
   console.log(friend.friend, ": ", isOnline ? "온라인" : "오프라인");
   return (
     <div
@@ -25,10 +28,9 @@ const Friend: React.FC<Props> = ({ friend, onChat, isOnline }) => {
       <div className="flex gap-3 items-center">
         <div className="relative">
           <AiOutlineMessage className="w-7 h-7" />
-          {newMessageSenders.length !== 0 &&
-            newMessageSenders.find(el => el === friend.chatRoomId) && (
-              <div className="absolute left-[-5px] top-[-5px] w-2 h-2 rounded-full bg-rose-500" />
-            )}
+          {isNewMessageSender && (
+            <div className="absolute left-[-5px] top-[-5px] w-2 h-2 rounded-full bg-rose-500" />
+          )}
         </div>
         {isOnline ? (
           <div className="w-5 h-5 rounded-full bg-green-300" />

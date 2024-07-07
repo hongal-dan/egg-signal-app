@@ -118,8 +118,7 @@ class Avatar {
 function UserVideoComponent2() {
   const avatarName = useRecoilValue(avatarState);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [avatar] = useState<Avatar | null>(new Avatar(avatarName));
-  // const mindarThreeRef = useRef<MindARThree | null>(null);
+  const [avatar] = useState<Avatar>(new Avatar(avatarName));
 
   useEffect(() => {
     const mindarThree = new MindARThree({
@@ -143,12 +142,12 @@ function UserVideoComponent2() {
         /// 앵커에 아바타 추가
         anchor.group.add(avatar!.gltf.scene);
       }
-    
+
       await mindarThree.start();
-    
-      const video = document.querySelector('video');
+
+      const video = document.querySelector("video");
       if (!video) {
-        console.error('비디오 없음!!!');
+        console.error("비디오 없음!!!");
         return;
       }
 
@@ -158,12 +157,22 @@ function UserVideoComponent2() {
 
       scene.background = videoTexture;
 
+      // 얼굴 인식 못할 때 scene 배경
+      const imgTexture = new THREE.TextureLoader().load(
+        `/avatar/${avatarName}.png`,
+      );
+      imgTexture.wrapS = THREE.RepeatWrapping;
+      imgTexture.wrapT = THREE.RepeatWrapping;
+
       // 받은 정보로 프레임마다 아바타 모양 렌더링
       renderer.setAnimationLoop(() => {
         // 가장 최근의 추정치를 가져옴
         const estimate = mindarThree.getLatestEstimate();
         if (estimate && estimate.blendshapes) {
           avatar!.updateBlendshapes(estimate.blendshapes);
+          scene.background = videoTexture;
+        } else {
+          scene.background = imgTexture;
         }
         renderer.render(scene, camera);
       });
