@@ -261,26 +261,19 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
     }
   };
 
-  const handleWinnerPrizeSubmit = (selectedUser: string | null) => {
+  const handleWinnerPrizeSubmit = (
+    selectedUser: string | null,
+    losers: string[],
+  ) => {
     setHasSubmitted(true);
     setSelectedUser(selectedUser);
-    console.log(voteResults);
-    let winners!: string[], losers;
+    let winners!: string[];
 
-    if (selectedUser !== "kep") winners = [voteResults!, selectedUser!];
-    else winners = [voteResults!];
-
-    losers = Object.keys(drawings).filter(user => winners.includes(user));
-
-    console.log(winners, losers, voteResults, "위너 루저 보트리젙ㄹ트");
-    socket.emit("winnerPrize", { winners, losers });
-
-    setFinalResults({ winners, losers });
-
-    // 일정 시간 후에 "final" 상태로 전환
-    setTimeout(() => {
-      setCurrentStage("final");
-    }, 1000);
+    if (selectedUser !== "kep")
+      winners = [voteResultsRef.current!, selectedUser!];
+    else winners = [voteResultsRef.current!];
+    losers = losers.filter(loser => !winners.includes(loser));
+    socket.emit("winnerPrize", { userName: testName, winners, losers });
   };
 
   const renderDrawings = () => {
