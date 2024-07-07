@@ -14,3 +14,9 @@ export const newMessageSenderState = atom<string[]>({
   key: "newMessageSenderState",
   default: [],
 });
+
+// 안 읽은 메시지가 있는지 여부
+export const messageAlarmState = atom<boolean>({
+  key: "messageAlarmState",
+  default: false,
+});

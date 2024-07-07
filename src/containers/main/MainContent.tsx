@@ -13,7 +13,11 @@ import {
   onlineListState,
 } from "@/app/store/commonSocket";
 import { userState } from "@/app/store/userInfo";
-import { chatRoomState, newMessageSenderState } from "@/app/store/chat";
+import {
+  chatRoomState,
+  newMessageSenderState,
+  messageAlarmState,
+} from "@/app/store/chat";
 // import { logoutUser } from "@/services/auth";
 import { Socket } from "socket.io-client";
 import { testState } from "@/app/store/userInfo"; // FIXME 테스트용 랜덤 닉네임 저장, 배포 전에 삭제해야함
@@ -69,6 +73,7 @@ const MainContent = () => {
   const [newMessageSenders, setNewMessageSenders] = useRecoilState(
     newMessageSenderState,
   );
+  const [messageAlarm, setMessageAlarm] = useRecoilState(messageAlarmState);
   const [openedChatRoomId, setOpenedChatRoomId] = useRecoilState(chatRoomState);
   const [, setOnlineList] = useRecoilState(onlineListState);
   const [notiList, setNotiList] = useRecoilState(notiListState);
@@ -118,21 +123,37 @@ const MainContent = () => {
     setCurrentUser(currentUser);
   };
 
-  // 내가 접속하지 않은 동안 온 메시지가 있으면 알람 표시
+  // 새로고침 했을 때 메시지 알람 유지
   const checkNewMessage = () => {
     const messageSenders = sessionStorage.getItem("messageSenders");
     if (!messageSenders || messageSenders.length === 0) {
       return;
-    } else {
-      setNewMessageSenders(JSON.parse(messageSenders));
+    }
+    setNewMessageSenders(JSON.parse(messageSenders));
+  };
+
+  // 접속 안 한 동안 나한테 온 메시지가 있는지 확인
+  const checkNewMessageAfterLogin = () => {
+    const newSenders: string[] = [];
+    currentUser.friends.map(friend => {
+      if (friend.newMessage) {
+        newSenders.push(friend.chatRoomId);
+      }
+    });
+    if (newSenders.length !== 0) {
+      sessionStorage.setItem("messageSenders", JSON.stringify(newSenders));
+      setMessageAlarm(true);
     }
   };
 
   useEffect(() => {
-    // setCurrentUser(userInfo);
+    checkNewMessageAfterLogin();
+    checkNewMessage();
+  }, [currentUser]);
+
+  useEffect(() => {
     console.log("MainContent useEffect");
     updateUserInfo();
-    checkNewMessage();
 
     const newCommonSocket = io(`${url}/common`, {
       transports: ["websocket"],
@@ -142,10 +163,11 @@ const MainContent = () => {
     setCommonSocket(newCommonSocket);
 
     newCommonSocket.on("connect", () => {
-      newCommonSocket.emit("serverCertificate");
-      newCommonSocket.emit("friendStat");
       console.log("common connected");
     });
+
+    newCommonSocket.emit("serverCertificate");
+    newCommonSocket.emit("friendStat");
 
     newCommonSocket.on("newMessageNotification", (res: string) => {
       console.log(res, "이가 나한테 메시지 보냄");
@@ -444,7 +466,8 @@ const MainContent = () => {
             className="relative w-48 h-10 flex items-center justify-center bg-amber-100 rounded-2xl shadow"
             onClick={toggleFriendList}
           >
-            {newMessageSenders?.length !== 0 && newMessageSenders && (
+            {(messageAlarm ||
+              (newMessageSenders && newMessageSenders.length !== 0)) && (
               <div className="absolute left-[-5px] top-[-5px] w-4 h-4 rounded-full bg-rose-500" />
             )}
             <p className="text-xl font-bold">친구</p>
