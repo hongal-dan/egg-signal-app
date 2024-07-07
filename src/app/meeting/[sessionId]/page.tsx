@@ -735,7 +735,7 @@ const Meeting = () => {
                 loser,
               ) as HTMLDivElement;
               console.log("loser:", loser);
-              loserElement.classList.toggle("black-white");
+              loserElement?.classList.toggle("black-white");
               setTimeout(() => {
                 // pubElement.classList.toggle("black-white");
                 loserElement.classList.toggle("black-white");
