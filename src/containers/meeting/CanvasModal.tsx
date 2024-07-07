@@ -310,11 +310,16 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
       <div
         key={index}
         className={`${
-          selectedUser === user ? "border-4 border-yellow-50" : "border"
+          selectedUser === user
+            ? "border-6 border-yellow-400 rounded-2xl"
+            : "border rounded-2xl"
         }`}
-        onClick={() => handleWinnerPrizeSubmit(user)}
+        onClick={() => handleWinnerPrizeSubmit(user, otherUsers)}
       >
-        <img src={capturedPhoto[user]} className="w-full h-full object-cover" />
+        <img
+          src={capturedPhoto[user]}
+          className="w-full h-full object-cover rounded-2xl"
+        />
       </div>
     ));
   };
