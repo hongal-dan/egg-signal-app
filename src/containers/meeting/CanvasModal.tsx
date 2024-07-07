@@ -413,15 +413,19 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
         )}
 
         {currentStage === "voting" && (
-          <>
-            <h2 className="text-xl font-bold mb-4">그림을 골라보세요</h2>
-            <div className="mb-4 text-xl">
-              <span>남은 시간: {timeLeft}초</span>
+          <div className="flex flex-col items-center">
+            <h2 className="text-2xl font-bold mb-4">
+              어떤 그림이 마음에 드나요?
+            </h2>
+            <div className="flex flex-col items-end">
+              <div className="mb-4 text-l">
+                <span>남은 시간: {timeLeft}초</span>
+              </div>
+              <div className="flex flex-wrap justify-center gap-2 mb-5 w-full rounded-lg">
+                {renderDrawings()}
+              </div>
             </div>
-            <div className="grid grid-cols-3 grid-rows-2 gap-2 mb-5">
-              {renderDrawings()}
-            </div>
-          </>
+          </div>
         )}
 
         {currentStage === "winnerChoice" && voteResults && (
