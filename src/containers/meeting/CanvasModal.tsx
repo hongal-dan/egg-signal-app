@@ -115,10 +115,14 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
 
     socket.on(
       "voteResults",
-      (results: { winner: string; photos: Record<string, string> }) => {
+      (results: {
+        winner: string;
+        losers: string[];
+        photos: Record<string, string>;
+      }) => {
         setHasSubmitted(false);
         clearInterval(intervalRef.current!);
-        const { winner, photos } = results;
+        const { winner, losers, photos } = results;
         const updatedPhotos: Record<string, string> = {};
         Object.entries(photos).forEach(([userName, photo]) => {
           updatedPhotos[userName] = photo;
@@ -133,7 +137,7 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
             if (t > 1) return t - 1;
             else {
               if (!hasSubmittedRef.current) {
-                handleWinnerPrizeSubmit("kep");
+                handleWinnerPrizeSubmit("kep", losers);
                 setHasSubmitted(true);
               }
               clearInterval(intervalRef.current!);
