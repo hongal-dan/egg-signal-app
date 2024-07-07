@@ -7,7 +7,10 @@ import { userState } from "@/app/store/userInfo";
 import { meetingSocketState } from "@/app/store/socket";
 import { testState } from "@/app/store/userInfo"; //FIXME 테스트용 랜덤 닉네임 저장, 배포 전에 삭제해야함
 import { drawingKeywords } from "../../../public/data/drawingKeywords";
-import { setInterval } from "timers";
+import { BsEraserFill } from "react-icons/bs";
+import { RiBrushFill } from "react-icons/ri";
+import { IoMdHeart } from "react-icons/io";
+import { PiCrownSimpleDuotone } from "react-icons/pi";
 
 type CanvasModalProps = {
   onClose: () => void;
