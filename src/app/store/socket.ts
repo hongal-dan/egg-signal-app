@@ -13,3 +13,8 @@ export const isLastChooseState = atom<boolean>({
   key: "isLastChooseState",
   default: false,
 });
+
+export const isChosenState = atom<boolean>({
+  key: "isChosenState",
+  default: false,
+});

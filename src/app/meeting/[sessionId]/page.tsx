@@ -15,7 +15,11 @@ import {
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useRecoilValue, useRecoilState } from "recoil";
-import { isLastChooseState, meetingSocketState } from "@/app/store/socket";
+import {
+  isLastChooseState,
+  meetingSocketState,
+  isChosenState,
+} from "@/app/store/socket";
 import { avatarState } from "@/app/store/avatar";
 import { keywords } from "../../../../public/data/keywords.js";
 import AvatarCollection from "@/containers/main/AvatarCollection";
@@ -42,6 +46,11 @@ const Meeting = () => {
     [],
   );
   const [isCanvasModalOpen, setIsCanvasModalOpen] = useState<boolean>(false);
+  const [, setIsChosen] = useRecoilState(isChosenState);
+
+  // const [isLoveMode, setIsLoveMode] = useState<boolean>(false);
+  // const [isChooseMode, setIsChooseMode] = useState<boolean>(false);
+  // const [isOneToOneMode, setIsOneToOneMode] = useState<boolean>(false);
   const captureRef = useRef<HTMLDivElement>(null);
   const keywordRef = useRef<HTMLParagraphElement>(null);
   const pubRef = useRef<HTMLDivElement>(null);
@@ -61,7 +70,8 @@ const Meeting = () => {
   const [, setIsLastChoose] = useRecoilState(isLastChooseState);
   const [lover, setLover] = useState<string>("");
 
-  const {sessionId, token, participantName} = useRecoilValue(defaultSessionState);
+  const { sessionId, token, participantName } =
+    useRecoilValue(defaultSessionState);
   const [, setSessionInfo] = useRecoilState(winnerSessionState);
 
   const router = useRouter();
@@ -69,7 +79,6 @@ const Meeting = () => {
   const [capturedImage, setCapturedImage] = useState<string>("");
   const [isFinish, setIsFinish] = useState(false);
 
-  
   // 어떻게든 종료 하면 세션에서 나가게함.
   useEffect(() => {
     console.log("메인이 실행되었습니다.");
@@ -339,12 +348,11 @@ const Meeting = () => {
     setPublisher(undefined);
     setSortedSubscribers([]);
     setIsFull(false);
-    
-    if(!isSucceedFlag){
+
+    if (!isSucceedFlag) {
       router.push("/main");
       return;
-    }
-    else{
+    } else {
       router.push("/meeting/matching");
       return;
     }
@@ -531,16 +539,19 @@ const Meeting = () => {
   };
 
   const undoChooseMode = () => {
+    setIsChosen(false);
     // 선택 모드 일 때는 마우스 하버시에 선택 가능한 상태로 변경
     // 클릭 시에 선택된 상태로 변경
     if (keywordRef.current) {
       keywordRef.current.innerText = "";
       console.log("선택모드 p태그 삭제");
     }
-    const chooseBtns = document.getElementsByClassName("choose-btn");
-    const btnArray = Array.from(chooseBtns);
-    btnArray.forEach(btn => {
-      btn.classList.add("hidden");
+
+    const oppositeRef = subRef.current.slice(2);
+
+    oppositeRef.forEach(subContainer => {
+      const chooseBtn = subContainer!.getElementsByClassName("choose-btn")[0];
+      chooseBtn.classList.add("hidden");
     });
   };
 
@@ -550,11 +561,13 @@ const Meeting = () => {
     if (keywordRef.current) {
       keywordRef.current.innerText = "대화해보고 싶은 사람을 선택해주세요";
     }
-    console.log("선택 모드로 변경");
-    const chooseBtns = document.getElementsByClassName("choose-btn");
-    const btnArray = Array.from(chooseBtns);
-    btnArray.forEach(btn => {
-      btn.classList.remove("hidden");
+    console.log("선택 모드로 변경 ", publisher);
+    // 이성만 선택 버튼 활성화
+    const oppositeRef = subRef.current.slice(2);
+
+    oppositeRef.forEach(subContainer => {
+      const chooseBtn = subContainer!.getElementsByClassName("choose-btn")[0];
+      chooseBtn.classList.remove("hidden");
     });
   };
 
@@ -597,6 +610,7 @@ const Meeting = () => {
 
   const undoOneToOneMode = (loverElement: HTMLDivElement) => {
     console.log("1:1 모드 해제");
+    setIsChosen(false);
     const streamElements = document.getElementsByClassName("stream-container");
     videoContainerRef.current?.classList.remove("one-one-four");
     streamElements[0].classList.remove("a");
@@ -863,7 +877,7 @@ const Meeting = () => {
       }
     });
 
-    socket?.on("lastChooseResult", (response) => {
+    socket?.on("lastChooseResult", response => {
       try {
         console.log("lastChooseResult 도착");
         console.log("lastChooseResult = ", response);
@@ -885,20 +899,20 @@ const Meeting = () => {
 
     type lastCupidResult = {
       lover: string;
-    }
+    };
 
     socket?.on("matching", (response: lastCupidResult) => {
       try {
         console.log("matching도착", response);
         const { lover } = response;
-        if(lover != "0") {
+        if (lover != "0") {
           // 러버 저장하고 넘겨야해요. 모달로 띄워야되니까
           console.log("제게는 사랑하는 짝이 있어요. 그게 누구냐면..", lover);
           setLover(lover);
           captureVideoFrame(lover);
           setIsMatched(true); // 이게 성공 모달
         }
-      } catch(e: any) { 
+      } catch (e: any) {
         console.error(e);
       }
     });
@@ -909,7 +923,6 @@ const Meeting = () => {
       setSessionInfo({ sessionId: sessionName, token: token });
       leaveSession(true);
     });
-
 
     /**사생대회 모달 */
     socket?.on("drawingContest", response => {
@@ -987,8 +1000,12 @@ const Meeting = () => {
   };
 
   const captureVideoFrame = (lover: string) => {
-    const loverVideoContainer = document.getElementById(lover) as HTMLDivElement;
-    const loverVideoElement = loverVideoContainer.querySelector('video') as HTMLVideoElement;
+    const loverVideoContainer = document.getElementById(
+      lover,
+    ) as HTMLDivElement;
+    const loverVideoElement = loverVideoContainer.querySelector(
+      "video",
+    ) as HTMLVideoElement;
     const canvas = document.createElement("canvas");
     if (loverVideoElement) {
       canvas.width = loverVideoElement.videoWidth;
@@ -1111,7 +1128,7 @@ const Meeting = () => {
       }
       setIsFull(true);
       console.log("startTimer", sessionId, token, participantName);
-      socket?.emit("startTimer", {sessionId: sessionId});
+      socket?.emit("startTimer", { sessionId: sessionId });
     }
     if (isFull && subscribers.length !== 5) {
       if (keywordRef.current) {
@@ -1156,8 +1173,7 @@ const Meeting = () => {
 
   return !avatar ? (
     <AvatarCollection />
-  ) : !isFinish ? 
-  (
+  ) : !isFinish ? (
     <>
       {!isFull ? (
         <div className="w-[100vw] h-[100vh] flex flex-col justify-center items-center gap-24">
@@ -1258,12 +1274,19 @@ const Meeting = () => {
           <UserVideoComponent2 />
         </div>
       ) : null}
-
     </>
-  ) :
-      (<>
-        {isFinish ? (<MatchingResult capturedImage={capturedImage} lover={lover} isMatched={isMatched} onClose={leaveSession}/>) : null}
-      </>);
+  ) : (
+    <>
+      {isFinish ? (
+        <MatchingResult
+          capturedImage={capturedImage}
+          lover={lover}
+          isMatched={isMatched}
+          onClose={leaveSession}
+        />
+      ) : null}
+    </>
+  );
 };
 
 export default Meeting;
