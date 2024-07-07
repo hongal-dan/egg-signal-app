@@ -18,13 +18,15 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
   const contextRef = useRef<CanvasRenderingContext2D | null>(null);
   const [hasSubmitted, setHasSubmitted] = useState<boolean>(false);
   const hasSubmittedRef = useRef<boolean>(hasSubmitted);
+  const [selectedUser, setSelectedUser] = useState<string | null>(null);
+  const selectedUserRef = useRef<string | null>(selectedUser);
   const [isDrawing, setIsDrawing] = useState(false);
   const [color, setColor] = useState("black");
   const [brushSize, setBrushSize] = useState(8);
   const [drawings, setDrawings] = useState<Record<string, string>>({});
   const [voteResults, setVoteResults] = useState<string | null>(null);
+  const voteResultsRef = useRef<string | null>(voteResults);
   const [timeLeft, setTimeLeft] = useState(15);
-  const [selectedUser, setSelectedUser] = useState<string | null>(null);
   const [finalResults, setFinalResults] = useState<{
     winners: string[];
     losers: string[];
@@ -43,6 +45,14 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
   useEffect(() => {
     hasSubmittedRef.current = hasSubmitted;
   }, [hasSubmitted]);
+
+  useEffect(() => {
+    selectedUserRef.current = selectedUser;
+  }, [selectedUser]);
+
+  useEffect(() => {
+    voteResultsRef.current = voteResults;
+  }, [voteResults]);
 
   useEffect(() => {
     const canvas = canvasRef.current!;
