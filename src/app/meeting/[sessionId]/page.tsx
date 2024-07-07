@@ -969,7 +969,7 @@ const Meeting = () => {
     });
   };
 
-  const meetingCupipResultEvent = () => {
+  const meetingCupidResultEvent = () => {
     type cupidResult = {
       lover: string;
       loser: Array<string>;
@@ -1173,13 +1173,6 @@ const Meeting = () => {
     meetingCamEvent();
   }, [publisher]);
 
-  useEffect(() => {
-    if (!subscribers) {
-      return;
-    }
-    meetingCupipResultEvent();
-  }, [subscribers]);
-
   const getUserID = (person: StreamManager): string => {
     const idMatch = person?.stream.connection.data.match(
       /"clientData":"([a-zA-Z0-9-\uAC00-\uD7A3]+)"/,
@@ -1224,6 +1217,11 @@ const Meeting = () => {
 
   useEffect(() => {
     console.log("subscribers", subscribers);
+    if (!subscribers) {
+      return;
+    }
+    meetingCupidResultEvent();
+
     if (subscribers.length === 5) {
       if (getUserGender(publisher!) === "MALE") {
         sortSubscribers("MALE");
