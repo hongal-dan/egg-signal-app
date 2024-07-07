@@ -15,14 +15,18 @@ import {
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useRecoilValue, useRecoilState } from "recoil";
-import { isLastChooseState, meetingSocketState } from "@/app/store/socket";
+import { meetingSocketState } from "@/app/store/socket";
 import { avatarState } from "@/app/store/avatar";
 import { keywords } from "../../../../public/data/keywords.js";
 import AvatarCollection from "@/containers/main/AvatarCollection";
 import { userState } from "@/app/store/userInfo";
 import CanvasModal from "@/containers/meeting/CanvasModal";
-import { defaultSessionState, winnerSessionState } from "@/app/store/ovInfo";
-import MatchingResult from "@/containers/meeting/MatchingResult";
+
+// type Props = {
+//   sessionId: string;
+//   token: string;
+//   participantName: string;
+// };
 
 type chooseResult = {
   sender: string;
@@ -42,6 +46,10 @@ const Meeting = () => {
     [],
   );
   const [isCanvasModalOpen, setIsCanvasModalOpen] = useState<boolean>(false);
+
+  // const [isLoveMode, setIsLoveMode] = useState<boolean>(false);
+  // const [isChooseMode, setIsChooseMode] = useState<boolean>(false);
+  // const [isOneToOneMode, setIsOneToOneMode] = useState<boolean>(false);
   const captureRef = useRef<HTMLDivElement>(null);
   const keywordRef = useRef<HTMLParagraphElement>(null);
   const pubRef = useRef<HTMLDivElement>(null);
@@ -57,19 +65,9 @@ const Meeting = () => {
   const [isFull, setIsFull] = useState<boolean>(false);
   const userInfo = useRecoilValue(userState);
   const isFullRef = useRef(isFull);
-  const [isMatched, setIsMatched] = useState<boolean>(false); // 매칭이 되었는지 여부
-  const [, setIsLastChoose] = useRecoilState(isLastChooseState);
-  const [lover, setLover] = useState<string>("");
-
-  const {sessionId, token, participantName} = useRecoilValue(defaultSessionState);
-  const [, setSessionInfo] = useRecoilState(winnerSessionState);
 
   const router = useRouter();
 
-  const [capturedImage, setCapturedImage] = useState<string>("");
-  const [isFinish, setIsFinish] = useState(false);
-
-  
   // 어떻게든 종료 하면 세션에서 나가게함.
   useEffect(() => {
     console.log("메인이 실행되었습니다.");
@@ -220,14 +218,13 @@ const Meeting = () => {
 
     const newSession = OV.initSession();
     setSession(newSession);
-    // const { sessionId, token } = JSON.parse(
-    //   sessionStorage.getItem("ovInfo")!,
-    // );
+    const { sessionId, token, participantName } = JSON.parse(
+      sessionStorage.getItem("ovInfo")!,
+    );
     // Connect to the session
     newSession
       .connect(token, {
-        // clientData: userInfo?.nickname as string,  // FIXME 배포시엔 저를 써주세요.
-        clientData: participantName, // FIXME 배포 시 랜덤닉네임 말고 유저 아이디로
+        clientData: participantName,
         gender: userInfo?.gender as string,
       })
       .then(async () => {
@@ -310,7 +307,7 @@ const Meeting = () => {
           prevIds.filter(id => id !== streamId),
         );
       }
-      // console.log("Publisher stopped speaking:", event.connection);
+      console.log("Publisher stopped speaking:", event.connection);
     });
   };
 
@@ -326,7 +323,7 @@ const Meeting = () => {
     });
   };
 
-  const leaveSession = (isSucceedFlag = false) => {
+  const leaveSession = () => {
     if (session) {
       session.disconnect();
     }
@@ -334,20 +331,13 @@ const Meeting = () => {
       socket.disconnect();
       setSocket(null);
     }
+
     setSession(undefined);
     setSubscribers([]);
     setPublisher(undefined);
     setSortedSubscribers([]);
     setIsFull(false);
-    
-    if(!isSucceedFlag){
-      router.push("/main");
-      return;
-    }
-    else{
-      router.push("/meeting/matching");
-      return;
-    }
+    router.push("/main");
   };
 
   // 화살표 출발 도착 좌표 계산
@@ -709,11 +699,7 @@ const Meeting = () => {
             if (keywordRef.current) {
               keywordRef.current.innerText = "";
             }
-            setIsFinish(true);
-            if (session) {
-              session.disconnect();
-            }
-            // leaveSession();
+            leaveSession();
           }
         }, 1000);
       } catch (e: any) {
@@ -844,7 +830,7 @@ const Meeting = () => {
     });
 
     // 선택시간 신호 받고 선택 모드로 변경
-    socket?.on("cupidTime", (response: string) => {
+    socket?.on("cupidTime", (response: number) => {
       try {
         console.log("cupidTime 도착", response);
         setChooseMode();
@@ -852,64 +838,6 @@ const Meeting = () => {
         console.error(e);
       }
     });
-
-    socket?.on("lastCupidTime", (response: any) => {
-      try {
-        console.log("lastCupidTime 도착", response);
-        setChooseMode();
-        setIsLastChoose(true);
-      } catch (e: any) {
-        console.error(e);
-      }
-    });
-
-    socket?.on("lastChooseResult", (response) => {
-      try {
-        console.log("lastChooseResult 도착");
-        console.log("lastChooseResult = ", response);
-        undoChooseMode(); // 선택모드 해제
-        removeChooseSign(); // 선택된 사람 표시 제거
-        changeLoveStickMode(response as Array<chooseResult>);
-        setTimeout(() => {
-          console.log("원 위치로 변경");
-          undoLoveStickMode();
-          if (keywordRef.current) {
-            console.log("1분 후 세션이 종료됩니다");
-            keywordRef.current.innerText = "1분 후 세션이 종료됩니다";
-          }
-        }, 10000); // 10초 후 원 위치
-      } catch (e: any) {
-        console.error(e);
-      }
-    });
-
-    type lastCupidResult = {
-      lover: string;
-    }
-
-    socket?.on("matching", (response: lastCupidResult) => {
-      try {
-        console.log("matching도착", response);
-        const { lover } = response;
-        if(lover != "0") {
-          // 러버 저장하고 넘겨야해요. 모달로 띄워야되니까
-          console.log("제게는 사랑하는 짝이 있어요. 그게 누구냐면..", lover);
-          setLover(lover);
-          captureVideoFrame(lover);
-          setIsMatched(true); // 이게 성공 모달
-        }
-      } catch(e: any) { 
-        console.error(e);
-      }
-    });
-
-    socket?.on("choice", response => {
-      console.log("choice 도착!~~~~~~~~~~~~~~", response);
-      const { sessionName, token } = response;
-      setSessionInfo({ sessionId: sessionName, token: token });
-      leaveSession(true);
-    });
-
 
     /**사생대회 모달 */
     socket?.on("drawingContest", response => {
@@ -984,22 +912,6 @@ const Meeting = () => {
         console.error(e);
       }
     });
-  };
-
-  const captureVideoFrame = (lover: string) => {
-    const loverVideoContainer = document.getElementById(lover) as HTMLDivElement;
-    const loverVideoElement = loverVideoContainer.querySelector('video') as HTMLVideoElement;
-    const canvas = document.createElement("canvas");
-    if (loverVideoElement) {
-      canvas.width = loverVideoElement.videoWidth;
-      canvas.height = loverVideoElement.videoHeight;
-      const context = canvas.getContext("2d");
-      if (context) {
-        context.drawImage(loverVideoElement, 0, 0, canvas.width, canvas.height);
-        const dataUrl = canvas.toDataURL("image/png");
-        setCapturedImage(dataUrl);
-      }
-    }
   };
 
   const [, setMin] = useState(5); // todo: 시작 시간 서버로부터 받기
@@ -1160,8 +1072,7 @@ const Meeting = () => {
 
   return !avatar ? (
     <AvatarCollection />
-  ) : !isFinish ? 
-  (
+  ) : (
     <>
       {!isFull ? (
         <div className="w-[100vw] h-[100vh] flex flex-col justify-center items-center gap-24">
@@ -1182,7 +1093,7 @@ const Meeting = () => {
                 className="btn btn-large btn-danger"
                 type="button"
                 id="buttonLeaveSession"
-                onClick={() => leaveSession()}
+                onClick={leaveSession}
                 value="Leave session"
               />
               <div className="flex items-center">
@@ -1219,6 +1130,7 @@ const Meeting = () => {
                 >
                   <UserVideoComponent
                     streamManager={publisher}
+                    socket={socket}
                     className={
                       speakingPublisherIds.includes(publisher.stream.streamId)
                         ? "speaking"
@@ -1242,6 +1154,7 @@ const Meeting = () => {
                   <UserVideoComponent
                     key={sub.stream.streamId}
                     streamManager={sub}
+                    socket={socket}
                     className={
                       speakingPublisherIds.includes(sub.stream.streamId)
                         ? "speaking"
@@ -1262,12 +1175,8 @@ const Meeting = () => {
           <UserVideoComponent2 />
         </div>
       ) : null}
-
     </>
-  ) :
-      (<>
-        {isFinish ? (<MatchingResult capturedImage={capturedImage} lover={lover} isMatched={isMatched} onClose={leaveSession}/>) : null}
-      </>);
+  );
 };
 
 export default Meeting;
