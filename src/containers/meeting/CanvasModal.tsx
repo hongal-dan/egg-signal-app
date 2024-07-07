@@ -151,9 +151,17 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
     socket.on("finalResults", results => {
       setFinalResults(results);
       setCurrentStage("final");
+      const { winners, losers } = results;
+
       setTimeout(() => {
         onClose();
-      }, 5000);
+      }, 7000);
+
+      socket.emit("drawingOneToOne", {
+        userName: testName,
+        winners,
+        losers,
+      });
     });
 
     return () => {
