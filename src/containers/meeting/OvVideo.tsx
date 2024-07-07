@@ -26,6 +26,9 @@ const OpenViduVideoComponent = (props: Props) => {
   }, [videoRef, props.streamManager]);
 
   const handleChoose = () => {
+    if (selected.current) {
+      return;
+    }
     const myName = document.querySelector(".pub")?.querySelector(".nickname");
     console.log(myName?.textContent);
     const currentNickname = containerRef.current
@@ -33,19 +36,12 @@ const OpenViduVideoComponent = (props: Props) => {
       ?.querySelector(".nickname");
     console.log(currentNickname?.textContent);
 
-    if (!selected.current) {
-      socket.emit("choose", {
-        sender: myName?.textContent,
-        receiver: currentNickname?.textContent,
-      });
-      selected.current = true;
-    } else {
-      // 모든 choose-btn div element 에 onclick 속성 없애기
-      const buttons = document.querySelectorAll(".choose-btn");
-      buttons.forEach(button => {
-        (button as HTMLElement).onclick = null;
-      });
-    }
+    console.log("선택!!!!!!!!");
+    socket.emit("choose", {
+      sender: myName?.textContent,
+      receiver: currentNickname?.textContent,
+    });
+    selected.current = true;
 
     // const currStreamContainer = containerRef.current?.closest(".stream-container");
     if (isChosen) {
