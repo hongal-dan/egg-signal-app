@@ -338,56 +338,74 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
               </div>
             </div>
 
-            <div className="flex items-start justify-between w-full">
-              <canvas
-                ref={canvasRef}
-                onMouseDown={startDrawing}
-                onMouseUp={finishDrawing}
-                onMouseMove={draw}
-                className="border border-black mr-5 mt-2 bg-[#ffefcef1]"
-              />
-              <div className="flex flex-col flex-grow">
-                <div className="flex flex-wrap mb-4" style={{ width: "80px" }}>
-                  {["red", "orange", "green", "blue", "black"].map(col => (
-                    <button
-                      key={col}
-                      onClick={() => setColor(col)}
-                      className="m-1 w-7 h-7"
-                      style={{ backgroundColor: col }}
-                    ></button>
-                  ))}
-                  <button
-                    key="white"
-                    onClick={() => setColor("white")}
-                    className="m-1 w-7 h-7 bg-white"
-                    style={
-                      {
-                        // FIXME backgroundImage: 'url("/eraser-icon.png")' /**추후 이미지 수정 */,
-                      }
-                    }
-                  ></button>
+            <div className="flex flex-col items-end">
+              <div className="flex items-start justify-between w-full flex-grow">
+                <div>
+                  {" "}
+                  <canvas
+                    ref={canvasRef}
+                    onMouseDown={startDrawing}
+                    onMouseUp={finishDrawing}
+                    onMouseMove={draw}
+                    onMouseLeave={finishDrawing}
+                    className="border border-grey-700 rounded-2xl  mt-2 bg-[#ffefcef1]"
+                  />
                 </div>
-
-                <div>브러쉬 굵기</div>
-                <div className="flex flex-wrap mb-4" style={{ width: "100px" }}>
-                  {[5, 8, 12].map(size => (
-                    <button
-                      key={size}
-                      onClick={() => setBrushSize(size)}
-                      className="m-1 w-15 h-7"
-                      style={
-                        {
-                          // FIXME backgroundImage: `url(/brush-${size}px.png)` /**추후 이미지 수정 */,
-                        }
-                      }
+                <div className="flex flex-col">
+                  <div className="flex h-33 "> </div>
+                  <div className="flex flex-col justify-end h-[384px]">
+                    <div
+                      className="flex flex-wrap mb-4"
+                      style={{ width: "80px" }}
                     >
-                      {size}
-                    </button>
-                  ))}
-                </div>
-
-                <div className="flex flex-wrap">
-                  <button onClick={clearCanvas}>전부 지우기</button>
+                      {[
+                        "red",
+                        "orange",
+                        "#facc15",
+                        "green",
+                        "blue",
+                        "lightpink",
+                        "black",
+                      ].map(col => (
+                        <button
+                          key={col}
+                          onClick={() => setColor(col)}
+                          className="m-1 w-7 h-7 rounded-2xl"
+                        >
+                          <RiBrushFill
+                            className="text-col"
+                            style={{ color: col, fontSize: "30px" }}
+                          />
+                        </button>
+                      ))}
+                      <button
+                        key="white"
+                        onClick={() => setColor("#F7F7F7")}
+                        className="m-1 ml-2 w-7 h-7 bg-white rounded-full"
+                      >
+                        {" "}
+                        <BsEraserFill
+                          className="text-black"
+                          style={{ fontSize: "24px", color: "#7F7F7F" }}
+                        />
+                      </button>
+                    </div>
+                    <div className="flex flex-col mt-4 mb-4">
+                      {[5, 8, 12].map((size, idx) => (
+                        <button
+                          key={size}
+                          onClick={() => setBrushSize(size)}
+                          className={`bg-inherit text-black text-[${size}px]`}
+                          style={{
+                            fontSize: `${size * 4}px`,
+                            color: `${color}`,
+                          }}
+                        >
+                          ●
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
