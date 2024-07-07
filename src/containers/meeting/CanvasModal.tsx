@@ -309,9 +309,7 @@ const CanvasModal: React.FC<CanvasModalProps> = ({
     return Object.entries(drawings).map(([user, drawing], index) => (
       <div
         key={index}
-        className={
-          "relative w-1/3 p-1 border-gray-300 shadow-lg border rounded-lg"
-        }
+        className={"relative  p-1 border-gray-300 shadow-lg border rounded-lg"}
         onClick={() => handleVoteSubmit(user)}
       >
         {selectedUser === user && (
