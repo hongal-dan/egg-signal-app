@@ -540,21 +540,18 @@ const Meeting = () => {
     if (keywordRef.current) {
       keywordRef.current.innerText = "대화해보고 싶은 사람을 선택해주세요";
     }
-    console.log("선택 모드로 변경");
+    console.log("선택 모드로 변경 ", publisher);
     // 이성만 선택 버튼 활성화
-    const subScribersContainers =
-      publisher && getUserGender(publisher) == "MALE"
-        ? document.querySelectorAll("FEMALE")
-        : document.querySelectorAll("MALE");
-    console.log("이성 컨테이너: ", subScribersContainers);
+    const oppositeRef = subRef.current.slice(2);
+    console.log("이성: ", oppositeRef);
 
-    subScribersContainers.forEach(subContainer => {
+    oppositeRef.forEach(subContainer => {
       console.log("누구니 ", subContainer);
-      const chooseBtns = subContainer.getElementsByClassName("choose-btn");
-      const btnArray = Array.from(chooseBtns);
-      btnArray.forEach(btn => {
-        btn.classList.remove("hidden");
-      });
+      const chooseBtn = subContainer!.getElementsByClassName("choose-btn")[0];
+      // const btnArray = Array.from(chooseBtn);
+      // btnArray.forEach(btn => {
+      chooseBtn.classList.remove("hidden");
+      // });
     });
   };
 
