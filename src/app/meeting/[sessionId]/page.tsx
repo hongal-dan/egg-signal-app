@@ -330,6 +330,10 @@ const Meeting = () => {
     if (session) {
       session.disconnect();
     }
+    if (socket) {
+      socket.disconnect();
+      setSocket(null);
+    }
     setSession(undefined);
     setSubscribers([]);
     setPublisher(undefined);
@@ -337,10 +341,6 @@ const Meeting = () => {
     setIsFull(false);
     
     if(!isSucceedFlag){
-      if (socket) {
-        socket.disconnect();
-        setSocket(null);
-      }
       router.push("/main");
       return;
     }
