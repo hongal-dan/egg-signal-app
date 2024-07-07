@@ -185,17 +185,13 @@ const Meeting = () => {
 
   // 내가 매칭 된 경우, 매칭 안 된 참여자들 소리 안 듣기
   const toggleLoserAudio = (partnerName: string, flag: boolean) => {
-    console.log(partnerName, " 빼고 소리 ", flag ? "듣기" : "차단");
     const partnerStreamId = getKeyById(partnerName);
 
-    console.log("구독자 설마 없음? ", subscribers);
     subscribers.forEach(sub => {
-      console.log(sub.stream.streamId, " 순회 중");
       if (
         sub instanceof Subscriber &&
         sub.stream.streamId !== partnerStreamId
       ) {
-        console.log(sub.stream.streamId, flag ? " 해제" : " 차단");
         sub.subscribeToAudio(flag);
       }
     });
@@ -203,20 +199,16 @@ const Meeting = () => {
 
   // 내가 매칭 안 된 경우, 매칭 된 참여자들 소리 안 듣기
   const toggleLoverAudio = (loser: string[], flag: boolean) => {
-    console.log(loser, " 빼고 소리 ", flag ? "듣기" : "차단");
     const loserStreamIds = loser
       .map(loserName => getKeyById(loserName))
       .filter(id => id !== null);
 
-    console.log("구독자 설마 없음? ", subscribers);
     if (loserStreamIds.length > 0) {
       subscribers.forEach(sub => {
-        console.log(sub.stream.streamId, " 순회 중");
         if (
           sub instanceof Subscriber &&
           !loserStreamIds.includes(sub.stream.streamId)
         ) {
-          console.log(sub.stream.streamId, flag ? " 듣기" : " 차단");
           sub.subscribeToAudio(flag);
         }
       });
@@ -1012,7 +1004,6 @@ const Meeting = () => {
             });
 
             setOneToOneMode(loverElement);
-            console.log("====loser 음소거 시작====");
             toggleLoserAudio(lover, false); // 나머지 오디오 차단
             setTimeout(() => {
               // console.log("1:1 모드 해제")
@@ -1021,7 +1012,6 @@ const Meeting = () => {
                 console.log("즐거운시간 삭제");
               }
               undoOneToOneMode(loverElement);
-              console.log("====loser 음소거 해제====");
               toggleLoserAudio(lover, true); // 나머지 오디오 재개
               loser.forEach(loser => {
                 const loserElement = document.getElementById(
