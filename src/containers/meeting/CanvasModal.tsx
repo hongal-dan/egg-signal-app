@@ -38,6 +38,8 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
   const userInfo = useRecoilValue(userState);
   const testName = useRecoilValue(testState); //FIXME 테스트용 랜덤 닉네임 저장, 배포 전에 삭제해야함
 
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+
   useEffect(() => {
     hasSubmittedRef.current = hasSubmitted;
   }, [hasSubmitted]);
@@ -64,7 +66,7 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
         drawingKeywordRef.current.innerText = drawingKeywords[drawingIndex];
 
       setTimeLeft(15);
-      const timer = setInterval(() => {
+      intervalRef.current = setInterval(() => {
         setTimeLeft(t => {
           if (t > 1) return t - 1;
           else {
@@ -72,7 +74,7 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
               handleForwardDrawing();
               setHasSubmitted(true);
             }
-            clearInterval(timer);
+            clearInterval(intervalRef.current!);
             return 0;
           }
         });
@@ -83,7 +85,7 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
 
     socket.on("drawingSubmit", (drawings: Record<string, string>) => {
       setHasSubmitted(false);
-
+      clearInterval(intervalRef.current!);
       const updatedDrawings: Record<string, string> = {};
       Object.entries(drawings).forEach(([userName, drawingBuffer]) => {
         const blob = new Blob([drawingBuffer], { type: "image/webp" });
@@ -95,7 +97,7 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
       setCurrentStage("voting");
       const users = Object.keys(drawings);
       setTimeLeft(15);
-      const timer = setInterval(() => {
+      intervalRef.current = setInterval(() => {
         setTimeLeft(t => {
           if (t > 1) return t - 1;
           else {
@@ -104,7 +106,7 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
               handleVoteSubmit(users[0]);
               setHasSubmitted(true);
             }
-            clearInterval(timer);
+            clearInterval(intervalRef.current!);
             return 0;
           }
         });
@@ -115,6 +117,7 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
       "voteResults",
       (results: { winner: string; photos: Record<string, string> }) => {
         setHasSubmitted(false);
+        clearInterval(intervalRef.current!);
         const { winner, photos } = results;
         const updatedPhotos: Record<string, string> = {};
         Object.entries(photos).forEach(([userName, photo]) => {
@@ -125,7 +128,7 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
         setCurrentStage("winnerChoice");
 
         setTimeLeft(15);
-        const timer = setInterval(() => {
+        intervalRef.current = setInterval(() => {
           setTimeLeft(t => {
             if (t > 1) return t - 1;
             else {
@@ -133,7 +136,7 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
                 handleWinnerPrizeSubmit("kep");
                 setHasSubmitted(true);
               }
-              clearInterval(timer);
+              clearInterval(intervalRef.current!);
               return 0;
             }
           });
@@ -154,6 +157,7 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
       socket.off("drawingSubmit");
       socket.off("voteResults");
       socket.off("finalResults");
+      if (intervalRef.current) clearInterval(intervalRef.current);
     };
   }, []);
 
