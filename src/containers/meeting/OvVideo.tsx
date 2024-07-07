@@ -1,24 +1,25 @@
 "use client";
 
-import React, { useRef } from "react";
+import React from "react";
 import { StreamManager } from "openvidu-browser";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { isChosenState } from "@/app/store/socket";
 import { useRecoilState } from "recoil";
 import "../../styles/App.css";
+import { isLastChooseState, meetingSocketState } from "@/app/store/socket";
+import { useRecoilValue } from "recoil";
 
 type Props = {
   streamManager: StreamManager;
-  socket: any;
 };
 
 const OpenViduVideoComponent = (props: Props) => {
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const btnRef = useRef<HTMLDivElement>(null);
+  const videoRef = React.useRef<HTMLVideoElement>(null);
+  const containerRef = React.useRef<HTMLDivElement>(null);
+  const btnRef = React.useRef<HTMLDivElement>(null);
   const [isChosen, setIsChosen] = useRecoilState<boolean>(isChosenState);
-  const socket = props.socket;
-  // const selected = useRef<boolean>(false);
+  const socket = useRecoilValue(meetingSocketState);
+  const isLastChoose = useRecoilValue(isLastChooseState);
 
   useEffect(() => {
     if (props.streamManager && videoRef.current) {
@@ -38,12 +39,21 @@ const OpenViduVideoComponent = (props: Props) => {
       ?.closest(".streamcomponent")
       ?.querySelector(".nickname");
     console.log(currentNickname?.textContent);
+    // const currStreamContainer = containerRef.current?.closest(".stream-container");
+    const emitChoose = (eventName: string) => {
+      socket?.emit(eventName, {
+        sender: myName?.textContent,
+        receiver: currentNickname?.textContent,
+      });
+    };
 
-    socket.emit("choose", {
-      sender: myName?.textContent,
-      receiver: currentNickname?.textContent,
-    });
-    setIsChosen(true);
+    containerRef.current!.classList.add("chosen-stream");
+    videoRef.current!.classList.add("opacity");
+    if (!isLastChoose) {
+      emitChoose("choose");
+    } else {
+      emitChoose("lastChoose");
+    }
 
     containerRef.current!.classList.add("chosen-stream");
     videoRef.current!.classList.add("opacity");
@@ -66,4 +76,4 @@ const OpenViduVideoComponent = (props: Props) => {
   );
 };
 
-export default OpenViduVideoComponent;
+export default React.memo(OpenViduVideoComponent);
