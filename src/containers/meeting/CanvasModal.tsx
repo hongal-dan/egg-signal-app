@@ -318,12 +318,24 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
     <div className="fixed z-1000 left-0 top-0 w-full h-full overflow-hidden bg-[rgba(0,0,0,0.05)]">
       <div className="bg-white p-5 border border-gray-300 w-full max-w-[39rem] absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 shadow-lg rounded-2xl min-w-[576px]">
         {currentStage === "drawing" && (
-          <div className="flex flex-col items-center">
-            <div className="mb-4 text-xl">
-              <p className="drawingKeyword" ref={drawingKeywordRef}></p>
-            </div>
-            <div className="mb-4 text-l">
-              <span>남은 시간: {timeLeft}초</span>
+          <div className="flex flex-col ">
+            <div className=" flex flex-col items-center">
+              <p
+                className="drawingKeyword text-2xl"
+                ref={drawingKeywordRef}
+              ></p>
+              <div className="text-l w-full flex justify-between items-center">
+                <div className="flex mt-1 justify-start">
+                  <button
+                    onClick={clearCanvas}
+                    className="border-solid border-orange-400 rounded-xl border-opacity-10 bg-orange-200 bg-opacity-20 border-[2px] p-1"
+                    style={{ fontSize: `13px` }}
+                  >
+                    다시 그리기
+                  </button>
+                </div>{" "}
+                <p className="flex justify-end">남은 시간: {timeLeft}초</p>
+              </div>
             </div>
 
             <div className="flex items-start justify-between w-full">
