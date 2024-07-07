@@ -9,10 +9,15 @@ interface Props {
   };
   onChat: () => void;
   isOnline: boolean;
-  isSender: boolean;
+  isNewMessageSender: boolean;
 }
 
-const Friend: React.FC<Props> = ({ friend, onChat, isOnline, isSender }) => {
+const Friend: React.FC<Props> = ({
+  friend,
+  onChat,
+  isOnline,
+  isNewMessageSender,
+}) => {
   console.log(friend.friend, ": ", isOnline ? "온라인" : "오프라인");
   return (
     <div
@@ -23,7 +28,7 @@ const Friend: React.FC<Props> = ({ friend, onChat, isOnline, isSender }) => {
       <div className="flex gap-3 items-center">
         <div className="relative">
           <AiOutlineMessage className="w-7 h-7" />
-          {isSender && (
+          {isNewMessageSender && (
             <div className="absolute left-[-5px] top-[-5px] w-2 h-2 rounded-full bg-rose-500" />
           )}
         </div>

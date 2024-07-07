@@ -63,7 +63,7 @@ const FriendList: React.FC<FriendListPros> = ({ friendsList }) => {
     return onlineList.includes(friendNickName);
   };
 
-  const isSender = (friend: Friend) => {
+  const isNewMessageSender = (friend: Friend) => {
     if (newMessageSenders.find(el => el === friend.chatRoomId)) {
       console.log(friend.friend, " 알람 보냄");
       return true;
@@ -81,7 +81,7 @@ const FriendList: React.FC<FriendListPros> = ({ friendsList }) => {
             friend={friend}
             onChat={() => toggleChat(friend)}
             isOnline={checkFriendOnline(friend.friend)}
-            isSender={isSender(friend)}
+            isNewMessageSender={isNewMessageSender(friend)}
           />
         </div>
       ))}
