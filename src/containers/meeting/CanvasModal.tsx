@@ -316,7 +316,7 @@ const CanvasModal: React.FC<CanvasModalProps> = ({ onClose }) => {
 
   return (
     <div className="fixed z-1000 left-0 top-0 w-full h-full overflow-hidden bg-[rgba(0,0,0,0.05)]">
-      <div className="bg-white p-5 border border-gray-300 w-4/5 max-w-xl absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 shadow-lg">
+      <div className="bg-white p-5 border border-gray-300 w-full max-w-[39rem] absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 shadow-lg rounded-2xl min-w-[576px]">
         {currentStage === "drawing" && (
           <div className="flex flex-col items-center">
             <div className="mb-4 text-xl">
