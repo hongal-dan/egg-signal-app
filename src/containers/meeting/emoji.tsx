@@ -26,7 +26,7 @@ function Emoji() {
           <button
             key={index}
             onClick={() => handleEmojiClick(emoji)}
-            className="m-1 p-1 rounded-full focus:outline-none"
+            className="m-1 p-1"
           >
             <span className="text-2xl">{emoji}</span>
           </button>
