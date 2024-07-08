@@ -952,6 +952,23 @@ const Meeting = () => {
       }, 20000);
     });
 
+    /**이모티콘 */
+    socket?.on("emojiBroadcast", ({ nickname, emojiIndex }) => {
+      const targetUserVideo = document.getElementById(nickname);
+
+      if (targetUserVideo && emojiContainerRef.current) {
+        const emojiElement = document.createElement("div");
+        emojiElement.className =
+          "absolute text-5xl animate__animated animate__bounceInUp";
+        emojiElement.innerText = emojiIndex;
+        targetUserVideo.appendChild(emojiElement);
+
+        setTimeout(() => {
+          targetUserVideo.removeChild(emojiElement);
+        }, 1000);
+      }
+    });
+
     // 자기소개 시간
     socket?.on("Introduce", response => {
       try {
