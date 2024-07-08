@@ -400,7 +400,7 @@ const MainContent = () => {
           <Tutorial />
           <MainChat />
         </div>
-        <div className="grid grid-rows-3 ml-20 justify-center md:h-screen">
+        <div className="grid grid-rows-3 justify-center md:h-screen">
           <div className="w-full flex items-end justify-end gap-[10px] mb-5">
             <div className="w-10 h-10 relative flex items-center justify-center text-xl bg-white rounded-2xl shadow">
               {notiList.length !== 0 && (
@@ -416,11 +416,11 @@ const MainContent = () => {
           </div>
           <video
             id="myCam"
-            className="mx-auto w-[480px] h-[320px]"
+            className="mx-auto w-[320px] h-[240px]"
             autoPlay
             playsInline
           ></video>
-          <div className="grid grid-rows-2 mt-10">
+          <div className="grid grid-rows-2">
             <div>
               <button
                 className="w-full h-12 bg-amber-400 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mb-1 z-10 relative"
