@@ -7,7 +7,7 @@ const withAuth = <Props extends object>(
   WrappedComponent: ComponentType<Props>, 
   isPublic: boolean = false // 모두에게 공개된 페이지인지 여부
 ) => {
-  return (props: Props) => {  
+  const ComponentWithAuth = ((props: Props) => {  
     const router = useRouter();
     const pathname = usePathname();
     const [isLoading, setIsLoading] = useState(true);
@@ -47,7 +47,9 @@ const withAuth = <Props extends object>(
     }
 
     return <WrappedComponent {...props} />; 
-  };
+  });
+
+  return ComponentWithAuth;
 };
 
 export default withAuth;
