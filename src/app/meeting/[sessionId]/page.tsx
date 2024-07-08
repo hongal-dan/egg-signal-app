@@ -27,6 +27,8 @@ import { userState } from "@/app/store/userInfo";
 import CanvasModal from "@/containers/meeting/CanvasModal";
 import { defaultSessionState, winnerSessionState } from "@/app/store/ovInfo";
 import MatchingResult from "@/containers/meeting/MatchingResult";
+import "animate.css";
+import Emoji from "@/containers/meeting/emoji";
 
 type chooseResult = {
   sender: string;
@@ -1345,7 +1347,10 @@ const Meeting = () => {
             {/* <div ref={captureRef} className="hidden">
           <UserVideoComponent2 />
         </div> */}
-            <div className="col-md-6 video-container" ref={videoContainerRef}>
+            <div
+              className="relative col-md-6 video-container"
+              ref={videoContainerRef}
+            >
               {publisher !== undefined ? (
                 <div
                   // className={`stream-container col-md-6 col-xs-6 pub ${publisher.stream.streamId === speakingPublisherId ? "speaking" : ""} ${getUserGender(publisher)}`}
@@ -1388,7 +1393,8 @@ const Meeting = () => {
                 </div>
               ))}
             </div>
-          </div>
+          </div>{" "}
+          <Emoji />
         </div>
       )}
       {isCanvasModalOpen && (
