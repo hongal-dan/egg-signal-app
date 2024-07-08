@@ -213,16 +213,17 @@ const MainContent = () => {
 
     newCommonSocket.on("resAcceptFriend", res => {
       console.log("내가 상대방 요청 수락!! ", res);
-      const updateCurrentUser = {
-        id: res.id,
-        nickname: res.nickname,
-        gender: res.gender,
-        newNotification: res.newNotification,
-        notifications: res.notifications,
-        friends: res.friends,
-      };
-      console.log(updateCurrentUser);
-      setCurrentUser(updateCurrentUser);
+      updateUserInfo();
+      // const updateCurrentUser = {
+      //   id: res.id,
+      //   nickname: res.nickname,
+      //   gender: res.gender,
+      //   newNotification: res.newNotification,
+      //   notifications: res.notifications,
+      //   friends: res.friends,
+      // };
+      // console.log(updateCurrentUser);
+      // setCurrentUser(updateCurrentUser);
       // window.location.reload();
     });
 
