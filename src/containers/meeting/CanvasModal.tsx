@@ -9,8 +9,9 @@ import { testState } from "@/app/store/userInfo"; //FIXME 테스트용 랜덤 �
 import { drawingKeywords } from "../../../public/data/drawingKeywords";
 import { BsEraserFill } from "react-icons/bs";
 import { RiBrushFill } from "react-icons/ri";
-import { IoMdHeart } from "react-icons/io";
 import { PiCrownSimpleDuotone } from "react-icons/pi";
+import RenderDrawings from "@/containers/meeting/drawingContest/RenderDrawings"; // Adjust the path as necessary
+
 
 type CanvasModalProps = {
   onClose: () => void;
@@ -304,24 +305,6 @@ const CanvasModal: React.FC<CanvasModalProps> = ({
     losers = losers.filter(loser => !winners.includes(loser));
     socket.emit("winnerPrize", { userName: testName, winners, losers });
   };
-
-  const renderDrawings = () => {
-    return Object.entries(drawings).map(([user, drawing], index) => (
-      <div
-        key={index}
-        className={"relative  p-1 border-gray-300 shadow-lg border rounded-lg"}
-        onClick={() => handleVoteSubmit(user)}
-      >
-        {selectedUser === user && (
-          <div className="absolute top-0 left-0 p-2">
-            <IoMdHeart className="text-red-600 text-xl border rounded-xl bg-white" />
-          </div>
-        )}
-        <img src={drawing} className="  rounded-xl" />
-      </div>
-    ));
-  };
-
   const renderWinnerChoiceOptions = () => {
     const otherUsers = Object.keys(capturedPhoto).filter(
       user => user !== voteResults,
@@ -448,7 +431,11 @@ const CanvasModal: React.FC<CanvasModalProps> = ({
                 <span>남은 시간: {timeLeft}초</span>
               </div>
               <div className="flex flex-wrap justify-center gap-2 mb-5 w-full rounded-lg">
-                {renderDrawings()}
+                <RenderDrawings
+                  drawings={drawings}
+                  selectedUser={selectedUser}
+                  handleVoteSubmit={handleVoteSubmit}
+                />
               </div>
             </div>
           </div>
