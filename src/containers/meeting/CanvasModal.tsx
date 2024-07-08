@@ -76,29 +76,7 @@ const CanvasModal: React.FC<CanvasModalProps> = ({
     context.fillRect(0, 0, canvas.width, canvas.height);
     contextRef.current = context;
 
-    const startDrawing = () => {
-      const drawingIndex = Math.floor(keywordsIndex % drawingKeywords.length);
-      /**추후 서버에서 받을 예정 */
-      if (drawingKeywordRef.current)
-        drawingKeywordRef.current.innerText = drawingKeywords[drawingIndex];
-
-      setTimeLeft(15);
-      intervalRef.current = setInterval(() => {
-        setTimeLeft(t => {
-          if (t > 1) return t - 1;
-          else {
-            if (!hasSubmittedRef.current) {
-              handleForwardDrawing();
-              setHasSubmitted(true);
-            }
-            clearInterval(intervalRef.current!);
-            return 0;
-          }
-        });
-      }, 1000);
-    };
-
-    startDrawing();
+    startDrawingContest();
 
     socket.on("drawingSubmit", (drawings: Record<string, string>) => {
       setHasSubmitted(false);
@@ -227,6 +205,28 @@ const CanvasModal: React.FC<CanvasModalProps> = ({
     context.clearRect(0, 0, canvas.width, canvas.height);
     context.fillStyle = "#f0f0f0";
     context.fillRect(0, 0, canvas.width, canvas.height);
+  };
+
+  const startDrawingContest = () => {
+    const drawingIndex = Math.floor(keywordsIndex % drawingKeywords.length);
+
+    if (drawingKeywordRef.current)
+      drawingKeywordRef.current.innerText = drawingKeywords[drawingIndex];
+
+    setTimeLeft(15);
+    intervalRef.current = setInterval(() => {
+      setTimeLeft(t => {
+        if (t > 1) return t - 1;
+        else {
+          if (!hasSubmittedRef.current) {
+            handleForwardDrawing();
+            setHasSubmitted(true);
+          }
+          clearInterval(intervalRef.current!);
+          return 0;
+        }
+      });
+    }, 1000);
   };
 
   const captureVideoFrame = () => {
