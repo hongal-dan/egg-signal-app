@@ -24,7 +24,9 @@ import { testState } from "@/app/store/userInfo"; // FIXME 테스트용 랜덤 �
 import { getUserInfo } from "@/services/users";
 import { defaultSessionState } from "@/app/store/ovInfo";
 import MainChat from "./chat/MainChat";
- 
+
+import Tutorial from "./tutorial/Tutorial";
+
 // interface Friend {
 //   friend: string;
 //   chatRoomId: string;
@@ -395,13 +397,11 @@ const MainContent = () => {
       </button>
       <div className="grid grid-cols-3 md:h-screen">
         <div className="flex justify-center items-center">
+          <Tutorial />
           <MainChat />
         </div>
-        <div className="grid grid-rows-3 justify-center px-6 py-8 md:h-screen">
+        <div className="grid grid-rows-3 justify-center md:h-screen">
           <div className="w-full flex items-end justify-end gap-[10px] mb-5">
-            <div className="w-10 h-10 flex items-center justify-center text-xl bg-white rounded-2xl shadow">
-              <button>🚨</button>
-            </div>
             <div className="w-10 h-10 relative flex items-center justify-center text-xl bg-white rounded-2xl shadow">
               {notiList.length !== 0 && (
                 <div className="absolute left-[-5px] top-[-5px] w-4 h-4 rounded-full bg-rose-500" />

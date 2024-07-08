@@ -2,7 +2,6 @@
 import { commonSocketState } from "@/app/store/commonSocket";
 import { useRecoilValue } from "recoil";
 import { useState, useEffect, useRef } from "react";
-import ScrollToBottom from 'react-scroll-to-bottom';
 const MainChat = () => {
   const [messageInput, setMessageInput] = useState("");
   const commonSocket = useRecoilValue(commonSocketState);
@@ -10,12 +9,12 @@ const MainChat = () => {
     { message: string; nickname: string }[]
   >([]);
   const messagesEndRef = useRef<HTMLUListElement>(null);
-  const [isSending, setIsSending] = useState(false); // 메시지 전송 상태 추가
+  const [, setIsSending] = useState(false); // 메시지 전송 상태 추가
   const [isChatExpanded, setIsChatExpanded] = useState(false);
 
   useEffect(() => {
     const handleHomeChat = (data: { message: string; nickname: string }) => {
-      setMessages((prevMessages) => [...prevMessages, data]);
+      setMessages(prevMessages => [...prevMessages, data]);
     };
 
     commonSocket?.on("homeChat", handleHomeChat);
@@ -32,19 +31,21 @@ const MainChat = () => {
     });
   }, [messages]);
 
-  const handleSendMessage = (e:any) => {
-    e.preventDefault()
-    if (messageInput.trim() === "") { return } // isSending 확인 추가
+  const handleSendMessage = (e: any) => {
+    e.preventDefault();
+    if (messageInput.trim() === "") {
+      return;
+    } // isSending 확인 추가
     // isSending 확인 추가
-      setIsSending(true);
-      console.log(messageInput);
-      commonSocket?.emit("homeChat", { message: messageInput });
-      setMessageInput("");
-      setIsSending(false); // 메시지 전송 후 상태 초기화
+    setIsSending(true);
+    console.log(messageInput);
+    commonSocket?.emit("homeChat", { message: messageInput });
+    setMessageInput("");
+    setIsSending(false); // 메시지 전송 후 상태 초기화
   };
 
   return (
-    <div className="fixed bottom-0 left-0 w-full md:w-1/3 bg-white border rounded-md shadow-md">
+    <div className="fixed bottom-10 left-10 z-20 w-[400px] bg-white border rounded-md shadow-md">
       {/* 채팅창 높이 조절 */}
       <div
         className={`transition-all duration-300 ease-in-out ${
@@ -56,7 +57,7 @@ const MainChat = () => {
           className="flex items-center justify-between p-4 cursor-pointer"
           onClick={() => setIsChatExpanded(!isChatExpanded)}
         >
-          <h3 className="text-lg font-bold">HomeChat</h3>
+          <h3 className="text-lg font-bold">전체 채팅</h3>
           <button
             className={`transform transition-transform duration-300 ${
               isChatExpanded ? "rotate-180" : ""
@@ -69,7 +70,7 @@ const MainChat = () => {
         {/* 채팅 메시지 목록 (축소 시에도 일부 표시) */}
         <ul
           className={`overflow-y-auto p-4 transition-all duration-300 ease-in-out ${
-            isChatExpanded ? "h-4/5" : "h-fit max-h-32" // 축소 시 최대 높이 제한
+            isChatExpanded ? "h-4/5" : "hidden" // 축소 시 최대 높이 제한
           }`}
           ref={messagesEndRef}
         >
@@ -82,7 +83,8 @@ const MainChat = () => {
                   {msg.message}
                 </li>
               ))}
-              <li className="text-center text-gray-500">...</li> {/* 이전 메시지 표시 */}
+              <li className="text-center text-gray-500">...</li>{" "}
+              {/* 이전 메시지 표시 */}
             </>
           )}
 
@@ -106,7 +108,7 @@ const MainChat = () => {
               className="w-full border rounded-md p-2"
               placeholder="메시지를 입력하세요"
               value={messageInput}
-              onChange={(e) => setMessageInput(e.target.value)}
+              onChange={e => setMessageInput(e.target.value)}
             />
           </form>
         </div>
