@@ -71,7 +71,7 @@ const MainChat = () => {
         <ul
           className={`overflow-y-auto p-4 transition-all duration-300 ease-in-out ${
             isChatExpanded ? "h-4/5" : "hidden" // 축소 시 최대 높이 제한
-          }`}
+          } ${messages.length > 0 ? "scrollbar-custom" : "scrollbar-hide"}`}
           ref={messagesEndRef}
         >
           {/* 최근 메시지 3개만 표시 (축소된 경우) */}
