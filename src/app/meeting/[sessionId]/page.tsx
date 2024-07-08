@@ -925,6 +925,8 @@ const Meeting = () => {
     /**사생대회 모달 */
     socket?.on("drawingContest", response => {
       console.log("drawingContest 도착", response);
+      const index = response.keywordsIndex;
+      setKeywordsIndex(index);
       setIsCanvasModalOpen(true);
     });
 
