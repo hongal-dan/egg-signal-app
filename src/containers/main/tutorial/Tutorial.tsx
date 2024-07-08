@@ -29,7 +29,7 @@ const Tutorial = () => {
       onMouseLeave={handleMouseLeave}
     >
       <p
-        className="text-ㅣㅎ text-end my-5 pr-1"
+        className="text-lg text-end my-5 pr-1"
         onClick={() => setShowTutorial(prev => !prev)}
       >
         가이드
