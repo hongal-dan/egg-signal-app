@@ -1409,7 +1409,11 @@ const Meeting = () => {
                   />
                 </div>
               ))}
-            </div>
+            </div>{" "}
+            <div
+              ref={emojiContainerRef}
+              className="absolute w-full h-full top-0 left-0"
+            ></div>
           </div>{" "}
           <Emoji />
         </div>
