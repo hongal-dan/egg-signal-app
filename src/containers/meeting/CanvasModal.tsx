@@ -14,6 +14,7 @@ import RenderDrawings from "@/containers/meeting/drawingContest/RenderDrawings";
 import RenderWinnerChoiceOptions from "./drawingContest/RenderWinnerChoiceOptions";
 import DrawingStage from "./drawingContest/DrawingStage";
 import VotingStage from "./drawingContest/VotingStage";
+import WinnerChoiceStage from "./drawingContest/WinnerChoiceStage";
 
 
 type CanvasModalProps = {
@@ -337,43 +338,15 @@ const CanvasModal: React.FC<CanvasModalProps> = ({
         )}
 
         {currentStage === "winnerChoice" && voteResults && (
-          <>
-            {testName !== voteResults && (
-              <div>
-                <div className="flex flex-col items-center">
-                  <div className="mb-4 text-2xl font-bold ">
-                    1등 대{voteResults}
-                  </div>
-                  {/* {userInfo?.nickname === voteResults && ( */}
-                  <div>
-                    <img
-                      src={drawings[voteResults]}
-                      className="w-[365px] h-[324px] object-cover rounded-2xl"
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {testName === voteResults && ( // FIXME 테스트용 랜덤 닉네임 저장, 배포 전에 삭제해야함
-              <div className="flex flex-col items-center">
-                <h3 className="text-lg font-semibold mb-2">
-                  누구와 대화하고 싶나요?
-                </h3>
-                <div className="flex flex-col items-end">
-                  <span>남은 시간: {timeLeft}초</span>
-                  <div className="grid grid-cols-3 grid-rows-2 gap-2 mb-5 w-full">
-                    <RenderWinnerChoiceOptions
-                      capturedPhoto={capturedPhoto}
-                      voteResults={voteResults}
-                      selectedUser={selectedUser}
-                      handleWinnerPrizeSubmit={handleWinnerPrizeSubmit}
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
-          </>
+          <WinnerChoiceStage
+            testName={testName}
+            voteResults={voteResults}
+            drawings={drawings}
+            capturedPhoto={capturedPhoto}
+            selectedUser={selectedUser}
+            handleWinnerPrizeSubmit={handleWinnerPrizeSubmit}
+            timeLeft={timeLeft}
+          />
         )}
 
         {currentStage === "final" && finalResults && (
