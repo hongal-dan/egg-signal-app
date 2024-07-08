@@ -12,6 +12,7 @@ import { RiBrushFill } from "react-icons/ri";
 import { PiCrownSimpleDuotone } from "react-icons/pi";
 import RenderDrawings from "@/containers/meeting/drawingContest/RenderDrawings"; // Adjust the path as necessary
 import RenderWinnerChoiceOptions from "./drawingContest/RenderWinnerChoiceOptions";
+import DrawingStage from "./drawingContest/DrawingStage";
 
 type CanvasModalProps = {
   onClose: () => void;
@@ -310,94 +311,18 @@ const CanvasModal: React.FC<CanvasModalProps> = ({
     <div className="fixed z-1000 left-0 top-0 w-full h-full overflow-hidden bg-[rgba(0,0,0,0.05)]">
       <div className="bg-white p-5 border border-gray-300 w-full max-w-[39rem] absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 shadow-lg rounded-2xl min-w-[576px]">
         {currentStage === "drawing" && (
-          <div className="flex flex-col ">
-            <div className=" flex flex-col items-center">
-              <p
-                className="drawingKeyword text-2xl"
-                ref={drawingKeywordRef}
-              ></p>
-              <div className="text-l w-full flex justify-between items-center">
-                <div className="flex mt-1 justify-start">
-                  <button
-                    onClick={clearCanvas}
-                    className="border-solid border-orange-400 rounded-xl border-opacity-10 bg-orange-200 bg-opacity-20 border-[2px] p-1 text-sm"
-                  >
-                    다시 그리기
-                  </button>
-                </div>{" "}
-                <p className="flex justify-end">남은 시간: {timeLeft}초</p>
-              </div>
-            </div>
-
-            <div className="flex flex-col items-end">
-              <div className="flex items-start justify-between w-full flex-grow">
-                <div>
-                  {" "}
-                  <canvas
-                    ref={canvasRef}
-                    onMouseDown={startDrawing}
-                    onMouseUp={finishDrawing}
-                    onMouseMove={draw}
-                    onMouseLeave={finishDrawing}
-                    className="border border-grey-700 rounded-2xl  mt-2 bg-[#ffefcef1]"
-                  />
-                </div>
-                <div className="flex flex-col">
-                  <div className="flex h-33 "> </div>
-                  <div className="flex flex-col justify-end h-[384px]">
-                    <div className="flex flex-wrap mb-4 w-20">
-                      {[
-                        "red",
-                        "orange",
-                        "#facc15",
-                        "green",
-                        "blue",
-                        "lightpink",
-                        "black",
-                      ].map(col => (
-                        <button
-                          key={col}
-                          onClick={() => setColor(col)}
-                          className="m-1 w-7 h-7 rounded-2xl"
-                        >
-                          <RiBrushFill
-                            className="text-col text-3xl"
-                            style={{ color: col }}
-                          />
-                        </button>
-                      ))}
-                      <button
-                        key="white"
-                        onClick={() => setColor("#F7F7F7")}
-                        className="m-1 ml-2 w-7 h-7 bg-white rounded-full"
-                      >
-                        {" "}
-                        <BsEraserFill
-                          className="text-black text-2xl"
-                          style={{ color: "#7F7F7F" }}
-                        />
-                      </button>
-                    </div>
-                    <div className="flex flex-col mt-4 mb-4">
-                      {[5, 8, 12].map((size, idx) => (
-                        <button
-                          key={size}
-                          onClick={() => setBrushSize(size)}
-                          className={`bg-inherit text-black text-[${size}px]`}
-                          style={{
-                            fontSize: `${size * 4}px`,
-                            color: `${color}`,
-                          }}
-                        >
-                          ●
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+          <DrawingStage
+            clearCanvas={clearCanvas}
+            timeLeft={timeLeft}
+            drawingKeywordRef={drawingKeywordRef}
+            canvasRef={canvasRef}
+            startDrawing={startDrawing}
+            finishDrawing={finishDrawing}
+            draw={draw}
+            setColor={setColor}
+            setBrushSize={setBrushSize}
+            color={color}
+          />
         )}
 
         {currentStage === "voting" && (
