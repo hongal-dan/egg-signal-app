@@ -21,7 +21,7 @@ import {
   isChosenState,
 } from "@/app/store/socket";
 import { avatarState } from "@/app/store/avatar";
-import { keywords } from "../../../../public/data/keywords.js";
+import { keywords } from "../../../../../public/data/keywords.js";
 import AvatarCollection from "@/containers/main/AvatarCollection";
 import { userState } from "@/app/store/userInfo";
 import CanvasModal from "@/containers/meeting/CanvasModal";
@@ -90,13 +90,6 @@ const Meeting = () => {
       console.log("메인이 종료되었습니다.");
     };
   }, []);
-
-  // 메인 비디오 스트림을 변경
-  // const handleMainVideoStream = (stream: StreamManager) => {
-  //   if (mainStreamManager !== stream) {
-  //     setMainStreamManager(stream);
-  //   }
-  // };
 
   const deleteSubscriber = (streamManager: StreamManager) => {
     setSubscribers(prevSubscribers =>
