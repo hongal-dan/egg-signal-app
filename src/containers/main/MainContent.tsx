@@ -359,12 +359,25 @@ const MainContent = () => {
       // await logoutUser();
       localStorage.removeItem("token");
       sessionStorage.removeItem("onlineFriends");
+      OffCommonSocketEvent();
       commonSocket?.disconnect();
       window.location.reload();
+
     } catch (error) {
       console.error("Log out Error: ", error);
     }
   };
+
+  const OffCommonSocketEvent = () => {
+    commonSocket?.off("newMessageNotification");
+    commonSocket?.off("friendOnline");
+    commonSocket?.off("friendOffline");
+    commonSocket?.off("resGetNotifications");
+    commonSocket?.off("newFriendRequest");
+    commonSocket?.off("resAcceptFriend");
+    commonSocket?.off("friendRequestAccepted");
+    commonSocket?.off("friendStat");
+  }
 
   useEffect(() => {
     startWebCam();
