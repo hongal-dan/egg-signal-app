@@ -358,8 +358,7 @@ const CanvasModal: React.FC<CanvasModalProps> = ({
                 <div className="flex mt-1 justify-start">
                   <button
                     onClick={clearCanvas}
-                    className="border-solid border-orange-400 rounded-xl border-opacity-10 bg-orange-200 bg-opacity-20 border-[2px] p-1"
-                    style={{ fontSize: `13px` }}
+                    className="border-solid border-orange-400 rounded-xl border-opacity-10 bg-orange-200 bg-opacity-20 border-[2px] p-1 text-sm"
                   >
                     다시 그리기
                   </button>
@@ -384,10 +383,7 @@ const CanvasModal: React.FC<CanvasModalProps> = ({
                 <div className="flex flex-col">
                   <div className="flex h-33 "> </div>
                   <div className="flex flex-col justify-end h-[384px]">
-                    <div
-                      className="flex flex-wrap mb-4"
-                      style={{ width: "80px" }}
-                    >
+                    <div className="flex flex-wrap mb-4 w-20">
                       {[
                         "red",
                         "orange",
@@ -403,8 +399,8 @@ const CanvasModal: React.FC<CanvasModalProps> = ({
                           className="m-1 w-7 h-7 rounded-2xl"
                         >
                           <RiBrushFill
-                            className="text-col"
-                            style={{ color: col, fontSize: "30px" }}
+                            className="text-col text-3xl"
+                            style={{ color: col }}
                           />
                         </button>
                       ))}
@@ -415,8 +411,8 @@ const CanvasModal: React.FC<CanvasModalProps> = ({
                       >
                         {" "}
                         <BsEraserFill
-                          className="text-black"
-                          style={{ fontSize: "24px", color: "#7F7F7F" }}
+                          className="text-black text-2xl"
+                          style={{ color: "#7F7F7F" }}
                         />
                       </button>
                     </div>
