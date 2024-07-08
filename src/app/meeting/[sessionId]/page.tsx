@@ -28,7 +28,7 @@ import CanvasModal from "@/containers/meeting/CanvasModal";
 import { defaultSessionState, winnerSessionState } from "@/app/store/ovInfo";
 import MatchingResult from "@/containers/meeting/MatchingResult";
 import "animate.css";
-import Emoji from "@/containers/meeting/emoji";
+import Emoji from "@/containers/meeting/Emoji";
 
 type chooseResult = {
   sender: string;
@@ -955,17 +955,21 @@ const Meeting = () => {
     /**이모티콘 */
     socket?.on("emojiBroadcast", ({ nickname, emojiIndex }) => {
       const targetUserVideo = document.getElementById(nickname);
-
-      if (targetUserVideo && emojiContainerRef.current) {
+      if (targetUserVideo) {
         const emojiElement = document.createElement("div");
         emojiElement.className =
           "absolute text-5xl animate__animated animate__bounceInUp";
         emojiElement.innerText = emojiIndex;
-        targetUserVideo.appendChild(emojiElement);
 
-        setTimeout(() => {
-          targetUserVideo.removeChild(emojiElement);
-        }, 1000);
+        const emojiContainer =
+          targetUserVideo.querySelector(".emoji-container");
+        if (emojiContainer) {
+          emojiContainer.appendChild(emojiElement);
+
+          setTimeout(() => {
+            emojiContainer.removeChild(emojiElement);
+          }, 1000);
+        }
       }
     });
 
