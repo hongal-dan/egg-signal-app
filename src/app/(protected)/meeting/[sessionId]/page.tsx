@@ -315,6 +315,7 @@ const Meeting = () => {
     setPublisher(undefined);
     setSortedSubscribers([]);
     setIsFull(false);
+    OffSocketEvent();
 
     if (!isSucceedFlag) {
       router.push("/main");
@@ -786,8 +787,8 @@ const Meeting = () => {
 
     socket?.on("choice", response => {
       console.log("choice 도착!~~~~~~~~~~~~~~", response);
-      const { sessionName, token } = response;
-      setSessionInfo({ sessionId: sessionName, token: token });
+      const { sessionId, token } = response;
+      setSessionInfo({ sessionId: sessionId, token: token });
       leaveSession(true);
     });
 
@@ -1014,6 +1015,23 @@ const Meeting = () => {
     }
   };
 
+  const OffSocketEvent = () => {
+    if(socket) {
+      socket.off("keyword");
+      socket.off("finish");
+      socket.off("chooseResult");
+      socket.off("cupidTime");
+      socket.off("lastCupidTime");
+      socket.off("lastChooseResult");
+      socket.off("matching");
+      socket.off("choice");
+      socket.off("drawingContest");
+      socket.off("Introduce");
+      socket.off("cupidResult");
+      socket.off("cam");
+    }
+  }
+
   const [, setMin] = useState(5); // todo: 시작 시간 서버로부터 받기
   const [sec, setSec] = useState(0);
   const time = useRef(300);
@@ -1129,6 +1147,8 @@ const Meeting = () => {
       setIsFull(true);
       console.log("startTimer", sessionId, token, participantName);
       socket?.emit("startTimer", { sessionId: sessionId });
+      console.log(socket, "socket============================================");
+
     }
     if (isFull && subscribers.length !== 5) {
       if (keywordRef.current) {
