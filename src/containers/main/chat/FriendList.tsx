@@ -75,16 +75,22 @@ const FriendList: React.FC<FriendListPros> = ({ friendsList }) => {
     <div
       className={`w-72 h-[700px] overflow-auto ${friendsList && friendsList.length > 0 ? "scrollbar-custom" : "scrollbar-hide"}`}
     >
-      {friendsList.map((friend, index) => (
-        <div key={index} className="relative">
-          <Friend
-            friend={friend}
-            onChat={() => toggleChat(friend)}
-            isOnline={checkFriendOnline(friend.friend)}
-            isNewMessageSender={isNewMessageSender(friend)}
-          />
+      {friendsList.length === 0 ? (
+        <div className="flex justify-center items-center h-full">
+          <p className="text-gray-400 text-xl">아직 친구가 없어요😓</p>
         </div>
-      ))}
+      ) : (
+        friendsList.map((friend, index) => (
+          <div key={index} className="relative">
+            <Friend
+              friend={friend}
+              onChat={() => toggleChat(friend)}
+              isOnline={checkFriendOnline(friend.friend)}
+              isNewMessageSender={isNewMessageSender(friend)}
+            />
+          </div>
+        ))
+      )}
       {isChatVisible && selectedFriend && (
         <div className="w-full absolute top-[250px] left-[-330px] bottom-0 bg-white shadow-md rounded-lg z-11">
           <Chat friend={selectedFriend} onClose={closeChat} />
