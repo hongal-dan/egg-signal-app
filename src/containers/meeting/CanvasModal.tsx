@@ -7,11 +7,6 @@ import { useRecoilValue } from "recoil";
 import { meetingSocketState } from "@/app/store/socket";
 import { testState } from "@/app/store/userInfo"; //FIXME 테스트용 랜덤 닉네임 저장, 배포 전에 삭제해야함
 import { drawingKeywords } from "../../../public/data/drawingKeywords";
-import { BsEraserFill } from "react-icons/bs";
-import { RiBrushFill } from "react-icons/ri";
-import { PiCrownSimpleDuotone } from "react-icons/pi";
-import RenderDrawings from "@/containers/meeting/drawingContest/RenderDrawings"; // Adjust the path as necessary
-import RenderWinnerChoiceOptions from "./drawingContest/RenderWinnerChoiceOptions";
 import DrawingStage from "./drawingContest/DrawingStage";
 import VotingStage from "./drawingContest/VotingStage";
 import WinnerChoiceStage from "./drawingContest/WinnerChoiceStage";
