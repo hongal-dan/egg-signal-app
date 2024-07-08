@@ -19,7 +19,7 @@ export default function UserVideoComponent(props: {
   // console.log(rawData)
 
   return (
-    <div>
+    <div className="stream-wrapper">
       {props.streamManager !== undefined ? (
         <div
           className={`streamcomponent ${props.className}`}
