@@ -144,28 +144,6 @@ const Meeting = () => {
     }
   };
 
-  // const muteAudio = () => {
-  //   if (publisher) {
-  //     // 오디오 트랙 비활성화
-  //     const audioTracks = publisher.stream.getMediaStream().getAudioTracks();
-  //     audioTracks.forEach(track => {
-  //       track.enabled = false;
-  //       track.stop();
-  //     });
-  //     console.log("Audio tracks disabled");
-  //   }
-  // };
-
-  // const unMuteAudio = () => {
-  //   if (publisher) {
-  //     const audioTracks = publisher.stream.getMediaStream().getAudioTracks();
-  //     audioTracks.forEach(track => {
-  //       track.enabled = true;
-  //     });
-  //     console.log("Audio tracks enabled");
-  //   }
-  // };
-
   // 오디오 차단 관련
   const getKeyById = (id: string) => {
     const element = document.getElementById(id);
@@ -294,7 +272,6 @@ const Meeting = () => {
 
     // 세션에서 발화자 이벤트 리스너 추가
     newSession.on("publisherStartSpeaking", (event: PublisherSpeakingEvent) => {
-      // console.log("Publisher started speaking:", event.connection);
       const streamId = event.connection.stream?.streamId;
       if (streamId !== undefined) {
         setSpeakingPublisherIds(prevIds => [...prevIds, streamId]);
@@ -310,7 +287,6 @@ const Meeting = () => {
           prevIds.filter(id => id !== streamId),
         );
       }
-      // console.log("Publisher stopped speaking:", event.connection);
     });
   };
 
@@ -915,7 +891,9 @@ const Meeting = () => {
               const loserElementContainer = document.getElementById(
                 loser,
               ) as HTMLDivElement;
-              const loserElement = loserElementContainer.querySelector(".stream-wrapper") as HTMLDivElement;
+              const loserElement = loserElementContainer.querySelector(
+                ".stream-wrapper",
+              ) as HTMLDivElement;
               loserElement.classList.add("black-white");
             });
 
@@ -933,7 +911,9 @@ const Meeting = () => {
                 const loserElementContainer = document.getElementById(
                   loser,
                 ) as HTMLDivElement;
-                const loserElement = loserElementContainer.querySelector(".stream-wrapper") as HTMLDivElement;
+                const loserElement = loserElementContainer.querySelector(
+                  ".stream-wrapper",
+                ) as HTMLDivElement;
                 loserElement.classList.remove("black-white");
               });
             }, 60000); // 1분 후 원 위치
@@ -960,7 +940,9 @@ const Meeting = () => {
               const loserElementContainer = document.getElementById(
                 loser,
               ) as HTMLDivElement;
-              const loserElement = loserElementContainer.querySelector(".stream-wrapper") as HTMLDivElement;
+              const loserElement = loserElementContainer.querySelector(
+                ".stream-wrapper",
+              ) as HTMLDivElement;
               loserElement.classList.add("black-white");
               setTimeout(() => {
                 // pubElement.classList.toggle("black-white");

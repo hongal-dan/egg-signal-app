@@ -25,7 +25,7 @@ const DrawingStage: React.FC<DrawingStageProps> = ({
   draw,
   setColor,
   setBrushSize,
-  color
+  color,
 }) => {
   return (
     <div className="flex flex-col ">
@@ -60,13 +60,24 @@ const DrawingStage: React.FC<DrawingStageProps> = ({
             <div className="flex h-33 "> </div>
             <div className="flex flex-col justify-end h-[384px]">
               <div className="flex flex-wrap mb-4 w-20">
-                {["red", "orange", "#facc15", "green", "blue", "lightpink", "black"].map(col => (
+                {[
+                  "red",
+                  "orange",
+                  "#facc15",
+                  "green",
+                  "blue",
+                  "lightpink",
+                  "black",
+                ].map(col => (
                   <button
                     key={col}
                     onClick={() => setColor(col)}
                     className="m-1 w-7 h-7 rounded-2xl"
                   >
-                    <RiBrushFill className="text-col text-3xl" style={{ color: col }} />
+                    <RiBrushFill
+                      className="text-col text-3xl"
+                      style={{ color: col }}
+                    />
                   </button>
                 ))}
                 <button
@@ -74,11 +85,14 @@ const DrawingStage: React.FC<DrawingStageProps> = ({
                   onClick={() => setColor("#F7F7F7")}
                   className="m-1 ml-2 w-7 h-7 bg-white rounded-full"
                 >
-                  <BsEraserFill className="text-black text-2xl" style={{ color: "#7F7F7F" }} />
+                  <BsEraserFill
+                    className="text-black text-2xl"
+                    style={{ color: "#7F7F7F" }}
+                  />
                 </button>
               </div>
               <div className="flex flex-col mt-4 mb-4">
-                {[5, 8, 12].map((size, idx) => (
+                {[5, 8, 12].map(size => (
                   <button
                     key={size}
                     onClick={() => setBrushSize(size)}

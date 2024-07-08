@@ -109,7 +109,7 @@ const Matching = () => {
       setSubscriber(subscriber);
     });
 
-    newSession.on("streamDestroyed", event => {
+    newSession.on("streamDestroyed", () => {
       setSubscriber(undefined);
     });
 
@@ -154,9 +154,7 @@ const Matching = () => {
     <div className="flex flex-col h-[100vh] justify-center items-center gap-20">
       <div className="col-md-6 flex w-[60vw] gap-20">
         {publisher !== undefined ? (
-          <div
-            className={`stream-container col-md-6 col-xs-6`}
-          >
+          <div className={`stream-container col-md-6 col-xs-6`}>
             <UserVideoComponent
               streamManager={publisher}
               className={
@@ -168,9 +166,7 @@ const Matching = () => {
           </div>
         ) : null}
         {subscriber !== undefined ? (
-          <div
-            className={`stream-container col-md-6 col-xs-6`}
-          >
+          <div className={`stream-container col-md-6 col-xs-6`}>
             <UserVideoComponent
               streamManager={subscriber!}
               className={

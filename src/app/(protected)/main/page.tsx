@@ -8,7 +8,6 @@ import axios from "axios";
 const Main = () => {
   const [isMounted, setIsMounted] = useState(false);
   const [isError, setIsError] = useState(true);
-  console.log("몇번나올까요 ??????????????????? 정답은 2번", isError);
 
   const checkServerHealth = async () => {
     try {
@@ -28,8 +27,7 @@ const Main = () => {
     return () => {
       setIsMounted(false);
       setIsError(false);
-      console.log("언마운트 됩니다~~~~~~~~~~~~~~");
-    }
+    };
   }, []);
 
   return isMounted ? (
