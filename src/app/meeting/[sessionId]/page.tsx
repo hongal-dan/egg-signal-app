@@ -999,11 +999,11 @@ const Meeting = () => {
               ?.closest(".stream-container") as HTMLDivElement;
 
             loser.forEach(loser => {
-              const loserElement = document.getElementById(
+              const loserElementContainer = document.getElementById(
                 loser,
               ) as HTMLDivElement;
-              console.log("loser:", loser);
-              loserElement.classList.toggle("black-white");
+              const loserElement = loserElementContainer.querySelector(".stream-wrapper") as HTMLDivElement;
+              loserElement.classList.add("black-white");
             });
 
             setOneToOneMode(loverElement);
@@ -1017,11 +1017,11 @@ const Meeting = () => {
               undoOneToOneMode(loverElement);
               toggleLoserAudio(lover, true); // 나머지 오디오 재개
               loser.forEach(loser => {
-                const loserElement = document.getElementById(
+                const loserElementContainer = document.getElementById(
                   loser,
                 ) as HTMLDivElement;
-                console.log("loser:", loser);
-                loserElement.classList.toggle("black-white");
+                const loserElement = loserElementContainer.querySelector(".stream-wrapper") as HTMLDivElement;
+                loserElement.classList.remove("black-white");
               });
             }, 60000); // 1분 후 원 위치
           }
@@ -1044,14 +1044,14 @@ const Meeting = () => {
             console.log("====lover 음소거 시작====");
             toggleLoverAudio(loser, false); // 매칭된 사람들 오디오 차단
             loser.forEach(loser => {
-              const loserElement = document.getElementById(
+              const loserElementContainer = document.getElementById(
                 loser,
               ) as HTMLDivElement;
-              console.log("loser:", loser);
-              loserElement?.classList.toggle("black-white");
+              const loserElement = loserElementContainer.querySelector(".stream-wrapper") as HTMLDivElement;
+              loserElement.classList.add("black-white");
               setTimeout(() => {
                 // pubElement.classList.toggle("black-white");
-                loserElement.classList.toggle("black-white");
+                loserElement.classList.remove("black-white");
               }, 60000); // 1분 후 흑백 해제
             });
             // muteAudio();
