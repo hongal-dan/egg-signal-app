@@ -925,6 +925,8 @@ const Meeting = () => {
     /**그림대회 모달 */
     socket?.on("drawingContest", response => {
       console.log("drawingContest 도착", response);
+      const index = response.keywordsIndex;
+      setKeywordsIndex(index);
       if (keywordRef.current)
         keywordRef.current.innerText = "잠시 후 그림 대회가 시작됩니다";
 
@@ -935,8 +937,6 @@ const Meeting = () => {
       }, 4500);
 
       setTimeout(() => {
-        const index = response.keywordsIndex;
-        setKeywordsIndex(index);
         setIsCanvasModalOpen(true);
         if (keywordRef.current) {
           keywordRef.current!.innerText = "주제에 맞는 그림을 그려보세요";
