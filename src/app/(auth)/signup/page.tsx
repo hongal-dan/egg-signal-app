@@ -38,7 +38,7 @@ const validationSchema = Yup.object().shape({
     .required("비밀번호 확인은 필수 항목입니다."),
 });
 
-export default function Signup() {
+const Signup = () => {
   const router = useRouter();
 
   const initialValues: FormValues = {
@@ -161,3 +161,5 @@ export default function Signup() {
     </div>
   );
 }
+
+export default Signup;

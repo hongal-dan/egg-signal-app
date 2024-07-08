@@ -1,12 +1,9 @@
 "use client";
 
-// import { cookies } from "next/headers";
 import MainContent from "@/containers/main/MainContent";
-// import { getUserInfo } from "@/services/users";
 import ServerError from "@/containers/error/ServerError";
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { redirect } from "next/navigation";
 
 const Main = () => {
   const [isMounted, setIsMounted] = useState(false);
@@ -28,11 +25,6 @@ const Main = () => {
   useEffect(() => {
     setIsMounted(true);
     checkServerHealth();
-    const token = localStorage.getItem("token");
-    if (!token) {
-      console.log("토큰 없음!");
-      redirect("/login");
-    }
     return () => {
       setIsMounted(false);
       setIsError(false);

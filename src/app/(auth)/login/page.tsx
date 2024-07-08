@@ -14,7 +14,7 @@ const validationSchema = Yup.object().shape({
   password: Yup.string().required("비밀번호를 입력하세요."),
 });
 
-export default function Login() {
+const Login = () => {
   const router = useRouter();
 
   const initialValues: FormValues = {
@@ -94,3 +94,5 @@ export default function Login() {
     </div>
   );
 }
+
+export default Login;

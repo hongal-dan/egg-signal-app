@@ -21,7 +21,7 @@ import {
   isChosenState,
 } from "@/app/store/socket";
 import { avatarState } from "@/app/store/avatar";
-import { keywords } from "../../../../public/data/keywords.js";
+import { keywords } from "../../../../../public/data/keywords.js";
 import AvatarCollection from "@/containers/main/AvatarCollection";
 import { userState } from "@/app/store/userInfo";
 import CanvasModal from "@/containers/meeting/CanvasModal";
@@ -90,13 +90,6 @@ const Meeting = () => {
       console.log("메인이 종료되었습니다.");
     };
   }, []);
-
-  // 메인 비디오 스트림을 변경
-  // const handleMainVideoStream = (stream: StreamManager) => {
-  //   if (mainStreamManager !== stream) {
-  //     setMainStreamManager(stream);
-  //   }
-  // };
 
   const deleteSubscriber = (streamManager: StreamManager) => {
     setSubscribers(prevSubscribers =>
@@ -754,106 +747,6 @@ const Meeting = () => {
         console.error(e);
       }
     });
-
-    // type cupidResult = {
-    //   lover: string;
-    //   loser: Array<string>;
-    // };
-
-    // // 선택 결과 받고 1:1 모드로 변경
-    // socket?.on("cupidResult", response => {
-    //   try {
-    //     console.log("cupidResult 도착", response);
-    //     const { lover, loser } = response as cupidResult;
-    //     console.log(lover, loser);
-
-    //     // 매칭 된 사람의 경우
-    //     setTimeout(() => {
-    //       console.log("큐피드result로 계산 시작");
-    //       if (lover != "0") {
-    //         console.log("이거도 없니?", keywordRef.current);
-    //         if (keywordRef.current) {
-    //           console.log("즐거운 시간 보내라고 p 태그 변경");
-    //           keywordRef.current.innerText = "즐거운 시간 보내세요~";
-    //         }
-    //         const loverElement = document
-    //           .getElementById(lover)
-    //           ?.closest(".stream-container") as HTMLDivElement;
-
-    //         loser.forEach(loser => {
-    //           const loserElement = document.getElementById(
-    //             loser,
-    //           ) as HTMLDivElement;
-    //           console.log("loser:", loser);
-    //           loserElement.classList.toggle("black-white");
-    //         });
-
-    //         setOneToOneMode(loverElement);
-    //         console.log("====loser 음소거 시작====");
-    //         toggleLoserAudio(lover, false); // 나머지 오디오 차단
-    //         setTimeout(() => {
-    //           // console.log("1:1 모드 해제")
-    //           if (keywordRef.current) {
-    //             keywordRef.current.innerText = "";
-    //             console.log("즐거운시간 삭제");
-    //           }
-    //           undoOneToOneMode(loverElement);
-    //           console.log("====loser 음소거 해제====");
-    //           toggleLoserAudio(lover, true); // 나머지 오디오 재개
-    //           loser.forEach(loser => {
-    //             const loserElement = document.getElementById(
-    //               loser,
-    //             ) as HTMLDivElement;
-    //             console.log("loser:", loser);
-    //             loserElement.classList.toggle("black-white");
-    //           });
-    //         }, 60000); // 1분 후 원 위치
-    //       }
-    //       // 매칭 안된 사람들의 경우
-    //       else {
-    //         // const pubElement = document.getElementsByClassName("pub")[0] as HTMLDivElement;
-    //         // pubElement.classList.toggle("black-white");
-    //         if (loser.length === 6) {
-    //           if (keywordRef.current) {
-    //             keywordRef.current.innerText =
-    //               "매칭 된 사람이 없습니다. 사이좋게 대화하세요";
-    //           }
-    //           return;
-    //         }
-    //         if (keywordRef.current) {
-    //           keywordRef.current.innerText =
-    //             "당신은 선택받지 못했습니다. 1분 간 오디오가 차단됩니다.";
-    //           console.log("미선택자 p태그 변경", keywordRef.current);
-    //         }
-    //         console.log("====lover 음소거 시작====");
-    //         toggleLoverAudio(loser, false); // 매칭된 사람들 오디오 차단
-    //         loser.forEach(loser => {
-    //           const loserElement = document.getElementById(
-    //             loser,
-    //           ) as HTMLDivElement;
-    //           console.log("loser:", loser);
-    //           loserElement.classList.toggle("black-white");
-    //           setTimeout(() => {
-    //             // pubElement.classList.toggle("black-white");
-    //             loserElement.classList.toggle("black-white");
-    //           }, 60000); // 1분 후 흑백 해제
-    //         });
-    //         // muteAudio();
-    //         setTimeout(() => {
-    //           if (keywordRef.current) {
-    //             keywordRef.current.innerText = "";
-    //             console.log("미선택자 p태그 초기화", keywordRef.current);
-    //           }
-    //           // unMuteAudio();
-    //           console.log("====lover 음소거 해제====");
-    //           toggleLoverAudio(loser, true); // 오디오 재개
-    //         }, 60000); // 1분 후 음소거 해제
-    //       }
-    //     }, 13000); // 결과 도착 후 13초뒤에 1:1 대화 진행
-    //   } catch (e: any) {
-    //     console.error(e);
-    //   }
-    // });
 
     // 선택시간 신호 받고 선택 모드로 변경
     socket?.on("cupidTime", (response: string) => {
