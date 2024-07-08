@@ -11,7 +11,7 @@ import { BsEraserFill } from "react-icons/bs";
 import { RiBrushFill } from "react-icons/ri";
 import { PiCrownSimpleDuotone } from "react-icons/pi";
 import RenderDrawings from "@/containers/meeting/drawingContest/RenderDrawings"; // Adjust the path as necessary
-
+import RenderWinnerChoiceOptions from "./drawingContest/RenderWinnerChoiceOptions";
 
 type CanvasModalProps = {
   onClose: () => void;
@@ -305,27 +305,6 @@ const CanvasModal: React.FC<CanvasModalProps> = ({
     losers = losers.filter(loser => !winners.includes(loser));
     socket.emit("winnerPrize", { userName: testName, winners, losers });
   };
-  const renderWinnerChoiceOptions = () => {
-    const otherUsers = Object.keys(capturedPhoto).filter(
-      user => user !== voteResults,
-    );
-    return otherUsers.map((user, index) => (
-      <div
-        key={index}
-        className={`${
-          selectedUser === user
-            ? "border-6 border-yellow-400 rounded-2xl"
-            : "border rounded-2xl"
-        }`}
-        onClick={() => handleWinnerPrizeSubmit(user, otherUsers)}
-      >
-        <img
-          src={capturedPhoto[user]}
-          className="w-full h-full object-cover rounded-2xl"
-        />
-      </div>
-    ));
-  };
 
   return (
     <div className="fixed z-1000 left-0 top-0 w-full h-full overflow-hidden bg-[rgba(0,0,0,0.05)]">
@@ -468,7 +447,12 @@ const CanvasModal: React.FC<CanvasModalProps> = ({
                 <div className="flex flex-col items-end">
                   <span>남은 시간: {timeLeft}초</span>
                   <div className="grid grid-cols-3 grid-rows-2 gap-2 mb-5 w-full">
-                    {renderWinnerChoiceOptions()}
+                    <RenderWinnerChoiceOptions
+                      capturedPhoto={capturedPhoto}
+                      voteResults={voteResults}
+                      selectedUser={selectedUser}
+                      handleWinnerPrizeSubmit={handleWinnerPrizeSubmit}
+                    />
                   </div>
                 </div>
               </div>
