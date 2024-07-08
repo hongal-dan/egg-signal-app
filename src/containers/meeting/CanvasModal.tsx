@@ -132,7 +132,7 @@ const CanvasModal: React.FC<CanvasModalProps> = ({
             if (t > 1) return t - 1;
             else {
               if (!hasSubmittedRef.current) {
-                handleWinnerPrizeSubmit("kep", losers);
+                handleWinnerPrizeSubmit("no", losers);
                 setHasSubmitted(true);
               }
               clearInterval(intervalRef.current!);
@@ -298,7 +298,7 @@ const CanvasModal: React.FC<CanvasModalProps> = ({
     setSelectedUser(selectedUser);
     let winners!: string[];
 
-    if (selectedUser !== "kep")
+    if (selectedUser !== "no")
       winners = [voteResultsRef.current!, selectedUser!];
     else winners = [voteResultsRef.current!];
     losers = losers.filter(loser => !winners.includes(loser));
