@@ -400,7 +400,7 @@ const MainContent = () => {
           <Tutorial />
           <MainChat />
         </div>
-        <div className="grid grid-rows-3 justify-center md:h-screen">
+        <div className="grid grid-rows-3 ml-20 justify-center md:h-screen">
           <div className="w-full flex items-end justify-end gap-[10px] mb-5">
             <div className="w-10 h-10 relative flex items-center justify-center text-xl bg-white rounded-2xl shadow">
               {notiList.length !== 0 && (
