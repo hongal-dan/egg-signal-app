@@ -2,7 +2,6 @@
 import { commonSocketState } from "@/app/store/commonSocket";
 import { useRecoilValue } from "recoil";
 import { useState, useEffect, useRef } from "react";
-import ScrollToBottom from 'react-scroll-to-bottom';
 const MainChat = () => {
   const [messageInput, setMessageInput] = useState("");
   const commonSocket = useRecoilValue(commonSocketState);
@@ -10,12 +9,12 @@ const MainChat = () => {
     { message: string; nickname: string }[]
   >([]);
   const messagesEndRef = useRef<HTMLUListElement>(null);
-  const [isSending, setIsSending] = useState(false); // 메시지 전송 상태 추가
+  const [, setIsSending] = useState(false); // 메시지 전송 상태 추가
   const [isChatExpanded, setIsChatExpanded] = useState(false);
 
   useEffect(() => {
     const handleHomeChat = (data: { message: string; nickname: string }) => {
-      setMessages((prevMessages) => [...prevMessages, data]);
+      setMessages(prevMessages => [...prevMessages, data]);
     };
 
     commonSocket?.on("homeChat", handleHomeChat);
@@ -32,15 +31,17 @@ const MainChat = () => {
     });
   }, [messages]);
 
-  const handleSendMessage = (e:any) => {
-    e.preventDefault()
-    if (messageInput.trim() === "") { return } // isSending 확인 추가
+  const handleSendMessage = (e: any) => {
+    e.preventDefault();
+    if (messageInput.trim() === "") {
+      return;
+    } // isSending 확인 추가
     // isSending 확인 추가
-      setIsSending(true);
-      console.log(messageInput);
-      commonSocket?.emit("homeChat", { message: messageInput });
-      setMessageInput("");
-      setIsSending(false); // 메시지 전송 후 상태 초기화
+    setIsSending(true);
+    console.log(messageInput);
+    commonSocket?.emit("homeChat", { message: messageInput });
+    setMessageInput("");
+    setIsSending(false); // 메시지 전송 후 상태 초기화
   };
 
   return (
@@ -82,7 +83,8 @@ const MainChat = () => {
                   {msg.message}
                 </li>
               ))}
-              <li className="text-center text-gray-500">...</li> {/* 이전 메시지 표시 */}
+              <li className="text-center text-gray-500">...</li>{" "}
+              {/* 이전 메시지 표시 */}
             </>
           )}
 
@@ -106,7 +108,7 @@ const MainChat = () => {
               className="w-full border rounded-md p-2"
               placeholder="메시지를 입력하세요"
               value={messageInput}
-              onChange={(e) => setMessageInput(e.target.value)}
+              onChange={e => setMessageInput(e.target.value)}
             />
           </form>
         </div>
