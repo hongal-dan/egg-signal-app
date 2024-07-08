@@ -13,6 +13,8 @@ import { PiCrownSimpleDuotone } from "react-icons/pi";
 import RenderDrawings from "@/containers/meeting/drawingContest/RenderDrawings"; // Adjust the path as necessary
 import RenderWinnerChoiceOptions from "./drawingContest/RenderWinnerChoiceOptions";
 import DrawingStage from "./drawingContest/DrawingStage";
+import VotingStage from "./drawingContest/VotingStage";
+
 
 type CanvasModalProps = {
   onClose: () => void;
@@ -326,23 +328,12 @@ const CanvasModal: React.FC<CanvasModalProps> = ({
         )}
 
         {currentStage === "voting" && (
-          <div className="flex flex-col items-center">
-            <h2 className="text-2xl font-bold mb-4">
-              어떤 그림이 마음에 드나요?
-            </h2>
-            <div className="flex flex-col items-end">
-              <div className="mb-4 text-l">
-                <span>남은 시간: {timeLeft}초</span>
-              </div>
-              <div className="flex flex-wrap justify-center gap-2 mb-5 w-full rounded-lg">
-                <RenderDrawings
-                  drawings={drawings}
-                  selectedUser={selectedUser}
-                  handleVoteSubmit={handleVoteSubmit}
-                />
-              </div>
-            </div>
-          </div>
+          <VotingStage
+            drawings={drawings}
+            selectedUser={selectedUser}
+            handleVoteSubmit={handleVoteSubmit}
+            timeLeft={timeLeft}
+          />
         )}
 
         {currentStage === "winnerChoice" && voteResults && (
