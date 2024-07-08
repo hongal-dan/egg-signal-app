@@ -1365,7 +1365,7 @@ const Meeting = () => {
           <UserVideoComponent2 />
         </div> */}
             <div
-              className="relative col-md-6 video-container"
+              className="relative col-md-6 video-container overflow-hidden"
               ref={videoContainerRef}
             >
               {publisher !== undefined ? (
@@ -1409,26 +1409,22 @@ const Meeting = () => {
                   />
                 </div>
               ))}
-            </div>{" "}
-            <div
-              ref={emojiContainerRef}
-              className="absolute w-full h-full top-0 left-0"
-            ></div>
-          </div>{" "}
-          <Emoji />
+            </div>
+            <Emoji />
+          </div>
+          {isCanvasModalOpen && (
+            <CanvasModal
+              onClose={() => setIsCanvasModalOpen(false)}
+              keywordsIndex={keywordsIndex}
+            />
+          )}
+          {!isOpenCam ? (
+            <div ref={captureRef} className="hidden">
+              <UserVideoComponent2 />
+            </div>
+          ) : null}
         </div>
       )}
-      {isCanvasModalOpen && (
-        <CanvasModal
-          onClose={() => setIsCanvasModalOpen(false)}
-          keywordsIndex={keywordsIndex}
-        />
-      )}
-      {!isOpenCam ? (
-        <div ref={captureRef} className="hidden">
-          <UserVideoComponent2 />
-        </div>
-      ) : null}
     </>
   ) : (
     <>
