@@ -1,9 +1,8 @@
 "use client";
-
 import { commonSocketState } from "@/app/store/commonSocket";
 import { useRecoilValue } from "recoil";
 import { useState, useEffect, useRef } from "react";
-
+import ScrollToBottom from 'react-scroll-to-bottom';
 const MainChat = () => {
   const [messageInput, setMessageInput] = useState("");
   const commonSocket = useRecoilValue(commonSocketState);
@@ -26,7 +25,10 @@ const MainChat = () => {
   }, [commonSocket]);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    messagesEndRef.current?.scrollTo({
+      top: messagesEndRef.current.scrollHeight, // scrollTop 값을 scrollHeight로 설정
+      behavior: "smooth",
+    });
   }, [messages]);
 
   const handleSendMessage = (e:any) => {
@@ -51,7 +53,6 @@ const MainChat = () => {
           </li>
         ))}
       </ul>
-
       <div className="p-4">
         <form onSubmit={(e) => {
               handleSendMessage(e);
