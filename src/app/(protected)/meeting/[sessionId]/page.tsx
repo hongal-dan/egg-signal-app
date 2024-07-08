@@ -181,7 +181,7 @@ const Meeting = () => {
           sub instanceof Subscriber &&
           !loserStreamIds.includes(sub.stream.streamId)
         ) {
-          sub.subscribeToAudio(flag);
+          sub?.subscribeToAudio(flag);
         }
       });
     }
@@ -821,7 +821,7 @@ const Meeting = () => {
     });
 
     // 자기소개 시간
-    socket?.on("Introduce", response => {
+    socket?.on("introduce", response => {
       try {
         if (keywordRef.current) {
           keywordRef.current.innerText =
@@ -1026,7 +1026,7 @@ const Meeting = () => {
       socket.off("matching");
       socket.off("choice");
       socket.off("drawingContest");
-      socket.off("Introduce");
+      socket.off("introduce");
       socket.off("cupidResult");
       socket.off("cam");
     }

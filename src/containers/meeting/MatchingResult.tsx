@@ -25,9 +25,8 @@ const MatchingResult: React.FC<MatchingResultProps> = ({ capturedImage, lover, i
   const testName = useRecoilValue(testState);
 
   const moveToPrivateRoom = () => {
-    console.log("개인룸으로 가고싶어요", myInfo);
     meetingSocket?.emit("moveToPrivateRoom", {
-      sessionName: sessionInfo.sessionId, 
+      sessionId: sessionInfo.sessionId, 
       // myName: myInfo.nickname, 
       myName: testName, // FIXME 배포시엔 위에거로 바꿔야함
       partnerName: lover,
@@ -36,7 +35,6 @@ const MatchingResult: React.FC<MatchingResultProps> = ({ capturedImage, lover, i
   }
 
   const requestAddFriend = () => {
-    console.log("친구 추가하고싶어요");
     commonSocket?.emit("reqRequestFriend", {
       userNickname: myInfo.nickname,
       // userNickname: testName, // FIXME 배포시엔 위에거로 바꿔야함
