@@ -16,7 +16,7 @@ phases:
       - IMAGE_TAG=$(echo ${CODEBUILD_RESOLVED_SOURCE_VERSION} | cut -c 1-7)
   build:
     commands:
-      - docker image build -t ${ECR_REPOSITORY_URI}:${IMAGE_TAG} .
+      - docker image build --build-arg JWT_SECRET="$JWT_SECRET" --build-arg NEXT_PUBLIC_API_SERVER="$NEXT_PUBLIC_API_SERVER" -t ${ECR_REPOSITORY_URI}:${IMAGE_TAG} .
   post_build:
     commands:
       # https://docs.aws.amazon.com/ko_kr/codepipeline/latest/userguide/file-reference.html#pipelines-create-image-definitions
