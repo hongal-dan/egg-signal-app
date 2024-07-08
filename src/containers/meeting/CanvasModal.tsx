@@ -7,16 +7,17 @@ import { useRecoilValue } from "recoil";
 import { meetingSocketState } from "@/app/store/socket";
 import { testState } from "@/app/store/userInfo"; //FIXME 테스트용 랜덤 닉네임 저장, 배포 전에 삭제해야함
 import { drawingKeywords } from "../../../public/data/drawingKeywords";
-import DrawingStage from "./drawingContest/DrawingStage";
-import VotingStage from "./drawingContest/VotingStage";
-import WinnerChoiceStage from "./drawingContest/WinnerChoiceStage";
-import FinalResultsStage from "./drawingContest/FinalStage";
+import DrawingStage from "@/containers/meeting/drawingContest/DrawingStage";
+import VotingStage from "@/containers/meeting/drawingContest/VotingStage";
+import WinnerChoiceStage from "@/containers/meeting/drawingContest/WinnerChoiceStage";
+import FinalResultsStage from "@/containers/meeting/drawingContest/FinalStage";
 
 type CanvasModalProps = {
   onClose: () => void;
   keywordsIndex: number;
 };
 
+/** keywordRef.current 이용해서 유저에게 tutorial전달 */
 const CanvasModal: React.FC<CanvasModalProps> = ({
   onClose,
   keywordsIndex,

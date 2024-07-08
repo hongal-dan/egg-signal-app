@@ -1,5 +1,5 @@
 import React from "react";
-import RenderWinnerChoiceOptions from "./RenderWinnerChoiceOptions"; // Adjust the path as necessary
+import RenderWinnerChoiceOptions from "./RenderWinnerChoiceOptions";
 
 interface WinnerChoiceStageProps {
   testName: string;
