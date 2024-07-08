@@ -45,7 +45,7 @@ const MainChat = () => {
   };
 
   return (
-    <div className="fixed bottom-0 left-0 w-full md:w-1/3 bg-white border rounded-md shadow-md">
+    <div className="fixed bottom-10 left-10 z-20 w-[400px] bg-white border rounded-md shadow-md">
       {/* 채팅창 높이 조절 */}
       <div
         className={`transition-all duration-300 ease-in-out ${
@@ -57,7 +57,7 @@ const MainChat = () => {
           className="flex items-center justify-between p-4 cursor-pointer"
           onClick={() => setIsChatExpanded(!isChatExpanded)}
         >
-          <h3 className="text-lg font-bold">HomeChat</h3>
+          <h3 className="text-lg font-bold">전체 채팅</h3>
           <button
             className={`transform transition-transform duration-300 ${
               isChatExpanded ? "rotate-180" : ""
@@ -70,7 +70,7 @@ const MainChat = () => {
         {/* 채팅 메시지 목록 (축소 시에도 일부 표시) */}
         <ul
           className={`overflow-y-auto p-4 transition-all duration-300 ease-in-out ${
-            isChatExpanded ? "h-4/5" : "h-fit max-h-32" // 축소 시 최대 높이 제한
+            isChatExpanded ? "h-4/5" : "hidden" // 축소 시 최대 높이 제한
           }`}
           ref={messagesEndRef}
         >
