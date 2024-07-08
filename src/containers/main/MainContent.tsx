@@ -228,10 +228,11 @@ const MainContent = () => {
 
     newCommonSocket.on("friendRequestAccepted", res => {
       console.log("상대방이 내 요청 수락!! ", res);
-      setCurrentUser(prevState => ({
-        ...prevState,
-        friends: [...prevState.friends, ...res.friends],
-      }));
+      updateUserInfo();
+      // setCurrentUser(prevState => ({
+      //   ...prevState,
+      //   friends: [...prevState.friends, ...res.friends],
+      // }));
     });
 
     // 내가 접속하기 전부터 접속한 친구 확인용
@@ -282,7 +283,7 @@ const MainContent = () => {
     sessionId: string;
     token: string;
     participantName: string;
-  }
+  };
 
   const randomNum = Math.floor(Math.random() * 1000).toString(); // 테스트용 익명 닉네임 부여
   const handleLoadingOn: React.MouseEventHandler<
@@ -301,7 +302,11 @@ const MainContent = () => {
     meetingSocket?.on("startCall", async (ovInfo: ovInfo) => {
       console.log(ovInfo);
       setTestName(ovInfo.participantName); // FIXME 테스트용 랜덤 닉네임 저장, 배포 전에 삭제해야함
-      setDefaultUserInfo({sessionId: ovInfo.sessionId, token: ovInfo.token, participantName: ovInfo.participantName}); // FIXME 배포용은 participantName 삭제해야함;
+      setDefaultUserInfo({
+        sessionId: ovInfo.sessionId,
+        token: ovInfo.token,
+        participantName: ovInfo.participantName,
+      }); // FIXME 배포용은 participantName 삭제해야함;
       setIsLoading(false);
       setIsEnterLoading(true);
       router.push(`/meeting/${ovInfo.sessionId}`);
