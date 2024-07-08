@@ -922,12 +922,32 @@ const Meeting = () => {
       leaveSession(true);
     });
 
-    /**사생대회 모달 */
+    /**그림대회 모달 */
     socket?.on("drawingContest", response => {
       console.log("drawingContest 도착", response);
-      const index = response.keywordsIndex;
-      setKeywordsIndex(index);
-      setIsCanvasModalOpen(true);
+      if (keywordRef.current)
+        keywordRef.current.innerText = "잠시 후 그림 대회가 시작됩니다";
+
+      setTimeout(() => {
+        if (keywordRef.current)
+          keywordRef.current.innerText =
+            "1등은 원하는사람과 1:1 대화를 할 수 있어요";
+      }, 4500);
+
+      setTimeout(() => {
+        const index = response.keywordsIndex;
+        setKeywordsIndex(index);
+        setIsCanvasModalOpen(true);
+        if (keywordRef.current) {
+          keywordRef.current!.innerText = "주제에 맞는 그림을 그려보세요";
+        }
+      }, 8000);
+
+      setTimeout(() => {
+        if (keywordRef.current) {
+          keywordRef.current!.innerText = "";
+        }
+      }, 20000);
     });
 
     // 자기소개 시간
