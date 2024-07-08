@@ -20,3 +20,14 @@ export const messageAlarmState = atom<boolean>({
   key: "messageAlarmState",
   default: false,
 });
+
+// 홈화면 채팅 뉴 메세지
+export interface ChatMessage {
+  nickname: string;
+  message: string;
+}
+
+export const homeChatMessageState = atom<ChatMessage[]>({
+  key: 'homeChatMessagesState',
+  default: [],
+});

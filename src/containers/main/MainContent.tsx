@@ -23,6 +23,8 @@ import { Socket } from "socket.io-client";
 import { testState } from "@/app/store/userInfo"; // FIXME 테스트용 랜덤 닉네임 저장, 배포 전에 삭제해야함
 import { getUserInfo } from "@/services/users";
 import { defaultSessionState } from "@/app/store/ovInfo";
+import MainChat from "./chat/MainChat";
+
 import Tutorial from "./tutorial/Tutorial";
 
 // interface Friend {
@@ -396,6 +398,7 @@ const MainContent = () => {
       <div className="grid grid-cols-3 md:h-screen">
         <div className="flex justify-center items-center">
           <Tutorial />
+          <MainChat />
         </div>
         <div className="grid grid-rows-3 justify-center md:h-screen">
           <div className="w-full flex items-end justify-end gap-[10px] mb-5">
