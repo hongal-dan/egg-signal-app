@@ -25,6 +25,7 @@ const MatchingResult: React.FC<MatchingResultProps> = ({
   const myInfo = useRecoilValue(userState);
   const sessionInfo = useRecoilValue(defaultSessionState);
   const [isLoading, setIsLoading] = useState(false);
+  const [isSend, setIsSend] = useState(false);
   const leaveSession = () => onClose();
 
   const testName = useRecoilValue(testState);
@@ -45,6 +46,7 @@ const MatchingResult: React.FC<MatchingResultProps> = ({
       // userNickname: testName, // FIXME 배포시엔 위에거로 바꿔야함
       friendNickname: lover.split("-")[0],
     });
+    setIsSend(true);
   };
 
   useEffect(() => {
@@ -108,6 +110,7 @@ const MatchingResult: React.FC<MatchingResultProps> = ({
               <button
                 onClick={requestAddFriend}
                 className="p-4 px-6 border border-green-700 rounded-3xl text-green-700 font-bold hover:bg-green-700 hover:text-white"
+                disabled={isSend}
               >
                 친구 추가
               </button>
