@@ -83,6 +83,7 @@ const MainContent = () => {
   const [notiList, setNotiList] = useRecoilState(notiListState);
 
   const [, setDefaultUserInfo] = useRecoilState(defaultSessionState);
+  const [chatExpanded, setChatExpanded] = useState(false);
 
   const checkOnlineFriends = () => {
     const onlineList = sessionStorage.getItem("onlineFriends");
@@ -401,6 +402,9 @@ const MainContent = () => {
 
   const handleMainContentClick = () => {
     setIsFriendListVisible(false);
+    if (chatExpanded) {
+      setChatExpanded(false);
+    }
   };
 
   return (
@@ -415,7 +419,6 @@ const MainContent = () => {
         <div className="grid grid-cols-3 md:h-screen">
           <div className="flex justify-center items-center">
             <Tutorial />
-            <MainChat />
           </div>
           <div className="grid grid-rows-3 justify-center md:h-screen">
             <div className="w-full flex items-end justify-end gap-[10px] mb-5">
@@ -478,6 +481,12 @@ const MainContent = () => {
             </div>
           </div>
         </div>
+      </div>
+      <div>
+        <MainChat
+          chatExpanded={chatExpanded}
+          setChatExpanded={setChatExpanded}
+        />
       </div>
       <div className="z-10 absolute bottom-10 right-10">
         <button
