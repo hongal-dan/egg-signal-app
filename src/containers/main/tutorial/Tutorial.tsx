@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from "react";
-import { GrFormPreviousLink, GrFormNextLink } from "react-icons/gr";
+import { BsArrowLeftCircle, BsArrowRightCircle } from "react-icons/bs";
 import Steps from "./Steps";
 
 const Tutorial = () => {
@@ -35,12 +35,12 @@ const Tutorial = () => {
       )}
       <div className={`${!showTutorial && "hidden"}`}>
         <div className="h-[550px] p-5">{Steps[currentStep]}</div>
-        <div className="absolute bottom-0 w-full flex justify-center">
-          <button onClick={handlePrev}>
-            <GrFormPreviousLink className="w-[50px] h-[50px]" />
+        <div className="absolute bottom-5 w-full flex justify-evenly">
+          <button onClick={handlePrev} className="hover:text-gray-500">
+            <BsArrowLeftCircle className="w-[40px] h-[40px]" />
           </button>
-          <button onClick={handleNext}>
-            <GrFormNextLink className="w-[50px] h-[50px]" />
+          <button onClick={handleNext} className="hover:text-gray-500">
+            <BsArrowRightCircle className="w-[40px] h-[40px] " />
           </button>
         </div>
       </div>
