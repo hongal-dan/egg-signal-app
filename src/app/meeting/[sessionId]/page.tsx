@@ -955,8 +955,10 @@ const Meeting = () => {
 
     /**이모티콘 */
     socket?.on("emojiBroadcast", ({ nickname, emojiIndex }) => {
-      const targetUserVideo = document.getElementById(nickname);
-      if (targetUserVideo) {
+      const targetVideo = document.getElementById(nickname);
+      const emojiContainer = targetVideo?.querySelector(".emoji-container");
+
+      if (emojiContainer) {
         const emojiElement = document.createElement("div");
         emojiElement.className =
           "emoji absolute text-5xl animate__animated animate__bounceInUp";
