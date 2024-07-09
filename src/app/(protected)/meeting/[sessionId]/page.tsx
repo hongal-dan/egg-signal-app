@@ -13,7 +13,6 @@ import {
   Subscriber,
 } from "openvidu-browser";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import { useRecoilValue, useRecoilState } from "recoil";
 import {
   isLastChooseState,
@@ -27,6 +26,7 @@ import { userState } from "@/app/store/userInfo";
 import CanvasModal from "@/containers/meeting/CanvasModal";
 import { defaultSessionState, winnerSessionState } from "@/app/store/ovInfo";
 import MatchingResult from "@/containers/meeting/MatchingResult";
+import EggTimer from "@/containers/meeting/EggTimer";
 
 type chooseResult = {
   sender: string;
@@ -665,8 +665,8 @@ const Meeting = () => {
   const meetingEvent = () => {
     socket?.on("keyword", message => {
       try {
-        time.current = 240; // 1분 지남
-        setProgressWidth(`${((totalTime - time.current) / totalTime) * 100}%`);
+        // time.current = 240; // 1분 지남
+        // setProgressWidth(`${((totalTime - time.current) / totalTime) * 100}%`);
         console.log("keyword Event: ", message);
         console.log("random user: ", message.getRandomParticipant);
         randomUser(parseInt(message.message), message.getRandomParticipant);
@@ -971,8 +971,8 @@ const Meeting = () => {
   const meetingCamEvent = () => {
     socket?.on("cam", message => {
       try {
-        time.current = 120; // 3분 지남 -지금 서버 기준 (나중에 시간 서버 시간 바뀌면 같이 바꿔야 함!)
-        setProgressWidth(`${((totalTime - time.current) / totalTime) * 100}%`);
+        // time.current = 120; // 3분 지남 -지금 서버 기준 (나중에 시간 서버 시간 바뀌면 같이 바꿔야 함!)
+        // setProgressWidth(`${((totalTime - time.current) / totalTime) * 100}%`);
         console.log("cam Event: ", message);
         let countdown = 5;
         const intervalId = setInterval(() => {
@@ -1016,7 +1016,7 @@ const Meeting = () => {
   };
 
   const OffSocketEvent = () => {
-    if(socket) {
+    if (socket) {
       socket.off("keyword");
       socket.off("finish");
       socket.off("chooseResult");
@@ -1030,14 +1030,14 @@ const Meeting = () => {
       socket.off("cupidResult");
       socket.off("cam");
     }
-  }
+  };
 
-  const [, setMin] = useState(5); // todo: 시작 시간 서버로부터 받기
-  const [sec, setSec] = useState(0);
-  const time = useRef(300);
-  const timerId = useRef<null | NodeJS.Timeout>(null);
-  const totalTime = 300;
-  const [progressWidth, setProgressWidth] = useState("0%");
+  // const [, setMin] = useState(5); // todo: 시작 시간 서버로부터 받기
+  // const [sec, setSec] = useState(0);
+  // const time = useRef(300);
+  // const timerId = useRef<null | NodeJS.Timeout>(null);
+  // const totalTime = 300;
+  // const [progressWidth, setProgressWidth] = useState("0%");
 
   useEffect(() => {
     const timeOut = setTimeout(() => {
@@ -1058,14 +1058,14 @@ const Meeting = () => {
       }
     }, 60000); // 60초 동안 6명 안들어 오면 나가기
 
-    timerId.current = setInterval(() => {
-      setMin(Math.floor(time.current / 60));
-      setSec(time.current % 60);
-      time.current -= 1;
-    }, 1000);
+    // timerId.current = setInterval(() => {
+    //   setMin(Math.floor(time.current / 60));
+    //   setSec(time.current % 60);
+    //   time.current -= 1;
+    // }, 1000);
 
     return () => {
-      clearInterval(timerId.current!);
+      // clearInterval(timerId.current!);
       clearTimeout(timeOut);
     };
   }, []);
@@ -1074,13 +1074,13 @@ const Meeting = () => {
     isFullRef.current = isFull;
   }, [isFull]);
 
-  useEffect(() => {
-    if (time.current <= 0) {
-      console.log("time out");
-      clearInterval(timerId.current!);
-    }
-    setProgressWidth(`${((totalTime - time.current) / totalTime) * 100}%`);
-  }, [sec]);
+  // useEffect(() => {
+  //   if (time.current <= 0) {
+  //     console.log("time out");
+  //     clearInterval(timerId.current!);
+  //   }
+  //   setProgressWidth(`${((totalTime - time.current) / totalTime) * 100}%`);
+  // }, [sec]);
 
   useEffect(() => {
     if (!publisher) {
@@ -1148,7 +1148,6 @@ const Meeting = () => {
       console.log("startTimer", sessionId, token, participantName);
       socket?.emit("startTimer", { sessionId: sessionId });
       console.log(socket, "socket============================================");
-
     }
     if (isFull && subscribers.length !== 5) {
       if (keywordRef.current) {
@@ -1217,7 +1216,7 @@ const Meeting = () => {
                 onClick={() => leaveSession()}
                 value="Leave session"
               />
-              <div className="flex items-center">
+              {/* <div className="flex items-center">
                 <Image src="/img/egg1.png" alt="" width={50} height={50} />
                 <p
                   className="bg-orange-300 h-[20px] rounded-lg"
@@ -1226,7 +1225,8 @@ const Meeting = () => {
                   }}
                 ></p>
                 <Image src="/img/egg2.png" alt="" width={50} height={50} />
-              </div>
+              </div> */}
+              <EggTimer setTime={5} />
             </div>
             <div className="keyword-wrapper">
               <p className="keyword" ref={keywordRef}></p>
