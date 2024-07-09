@@ -280,11 +280,13 @@ const MainContent = () => {
     setIsLoading(false);
   };
 
-  const toggleFriendList = () => {
+  const toggleFriendList = (e:(React.MouseEvent<HTMLButtonElement>)) => {
+    e.stopPropagation();
     setIsFriendListVisible(prev => !prev);
   };
 
-  const toggleNotiList = () => {
+  const toggleNotiList = (e:(React.MouseEvent<HTMLButtonElement>)) => {
+    e.stopPropagation();
     setIsNotiVisible(prev => !prev);
   };
 
@@ -365,34 +367,18 @@ const MainContent = () => {
 
   const handleMainContentClick = () => {
     setIsFriendListVisible(false);
+    setIsNotiVisible(false);
     if (chatExpanded) {
       setChatExpanded(false);
     }
   };
 
-  const handleClickOutside = (event: MouseEvent) => {
-    if (notiRef.current && !notiRef.current.contains(event.target as Node)) {
-      setIsNotiVisible(false);
-    }
-  };
-
-  useEffect(() => {
-    if (isNotiVisible) {
-      document.addEventListener("mousedown", handleClickOutside);
-    } else {
-      document.removeEventListener("mousedown", handleClickOutside);
-    }
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [isNotiVisible]);
-
   return (
     <>
         <Tutorial />
         <MainChat 
-                  chatExpanded={chatExpanded}
-                  setChatExpanded={setChatExpanded}/>
+        chatExpanded={chatExpanded}
+        setChatExpanded={setChatExpanded}/>
       <div onClick={handleMainContentClick} className="h-full flex items-center justify-center">
         <button
           className="fixed top-4 right-4 z-10 border-b border-gray-500 text-gray-500"
@@ -409,7 +395,7 @@ const MainContent = () => {
                 )}
                 <button onClick={toggleNotiList}>🔔</button>
                 {isNotiVisible && (
-                  <div ref={notiRef} className="w-[340px] h-[500px] absolute top-0 left-[50px] bg-zinc-200 shadow-md rounded-lg p-4 z-10">
+                  <div ref={notiRef} onClick={(e) => e.stopPropagation()} className="w-[340px] h-[500px] absolute top-0 left-[50px] bg-zinc-200 shadow-md rounded-lg p-4 z-10">
                     <Notifications />
                   </div>
                 )}
@@ -486,7 +472,7 @@ const MainContent = () => {
             <p className="text-xl font-bold">친구</p>
           </button>
           {isFriendListVisible && (
-            <div className="absolute bottom-[50px] right-1 bg-white shadow-md rounded-lg p-4 z-10">
+            <div onClick={(e) => e.stopPropagation()} className="absolute bottom-[50px] right-1 bg-white shadow-md rounded-lg p-4 z-10">
               <FriendList friendsList={currentUser.friends} />
             </div>
           )}
