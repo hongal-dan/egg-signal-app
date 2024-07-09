@@ -972,10 +972,14 @@ const Meeting = () => {
 
         emojiContainer.appendChild(emojiElement);
 
-          setTimeout(() => {
+        emojiElement.onanimationend = () => {
+          emojiElement.classList.replace(
+            "animate__bounceInUp",
+            "animate__bounceOutUp",
+          );
+          emojiElement.onanimationend = () =>
             emojiContainer.removeChild(emojiElement);
-          }, 1000);
-        }
+        };
       }
     });
 
