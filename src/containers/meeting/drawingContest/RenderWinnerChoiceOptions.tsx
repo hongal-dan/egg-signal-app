@@ -28,7 +28,6 @@ const RenderWinnerChoiceOptions: React.FC<RenderWinnerChoiceOptionsProps> = ({
 
   const filteredUsers = otherUsers.filter(user => {
     const gender = getUserGender(user);
-    console.log(gender, winnerGender, "성별", user, winnerName);
     return gender !== winnerGender;
   });
 
