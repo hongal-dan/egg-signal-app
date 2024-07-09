@@ -36,7 +36,6 @@ const Chat: React.FC<Props> = ({ friend, onClose }) => {
 
   // chat history를 한 번만 받아오도록 설정
   const handleChatHistory = (res: Chat[]) => {
-    console.log("chat history: ", res);
     const chatHistory = res.map((msg: Chat) => ({
       sender: msg.sender,
       message: msg.message,
