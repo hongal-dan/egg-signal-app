@@ -1249,7 +1249,7 @@ const Meeting = () => {
           <UserVideoComponent2 />
         </div> */}
             <div
-              className="relative col-md-6 video-container overflow-hidden"
+              className="relative col-md-6 video-container"
               ref={videoContainerRef}
             >
               {publisher !== undefined ? (
