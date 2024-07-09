@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useRef } from "react";
+import Image from "next/image";
 import UserVideoComponent from "@/containers/meeting/UserVideoComponent";
 import UserVideoComponent2 from "@/containers/main/UserVideo";
 import {
@@ -13,7 +14,6 @@ import {
   Subscriber,
 } from "openvidu-browser";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import { useRecoilValue, useRecoilState } from "recoil";
 import {
   isLastChooseState,
@@ -27,6 +27,7 @@ import { userState } from "@/app/store/userInfo";
 import CanvasModal from "@/containers/meeting/CanvasModal";
 import { defaultSessionState, winnerSessionState } from "@/app/store/ovInfo";
 import MatchingResult from "@/containers/meeting/MatchingResult";
+import EggTimer from "@/containers/meeting/EggTimer";
 import "animate.css";
 import Emoji from "@/containers/meeting/Emoji";
 import { createRoot } from "react-dom/client";
@@ -52,17 +53,12 @@ const Meeting = () => {
   const [keywordsIndex, setKeywordsIndex] = useState(0);
   const [, setIsChosen] = useRecoilState(isChosenState);
 
-  // const [isLoveMode, setIsLoveMode] = useState<boolean>(false);
-  // const [isChooseMode, setIsChooseMode] = useState<boolean>(false);
-  // const [isOneToOneMode, setIsOneToOneMode] = useState<boolean>(false);
   const captureRef = useRef<HTMLDivElement>(null);
   const keywordRef = useRef<HTMLParagraphElement>(null);
   const pubRef = useRef<HTMLDivElement>(null);
   const subRef = useRef<Array<HTMLDivElement | null>>([]);
   const videoContainerRef = useRef<HTMLDivElement>(null);
   const loadingRef = useRef<HTMLDivElement>(null);
-
-  // const socket = useRecoilValue(meetingSocketState);
 
   const [avatar, setAvatar] = useRecoilState(avatarState);
   const [isOpenCam, setIsOpenCam] = useState<boolean>(false);
@@ -201,9 +197,6 @@ const Meeting = () => {
 
     const newSession = OV.initSession();
     setSession(newSession);
-    // const { sessionId, token } = JSON.parse(
-    //   sessionStorage.getItem("ovInfo")!,
-    // );
     // Connect to the session
     newSession
       .connect(token, {
@@ -503,9 +496,6 @@ const Meeting = () => {
   };
 
   const openKeyword = (random: number) => {
-    // if (keywordRef.current) {
-    //   keywordRef.current.innerText = keywords[random];
-    // }
     return keywords[random];
   };
 
@@ -668,8 +658,6 @@ const Meeting = () => {
   const meetingEvent = () => {
     socket?.on("keyword", message => {
       try {
-        time.current = 240; // 1분 지남
-        setProgressWidth(`${((totalTime - time.current) / totalTime) * 100}%`);
         console.log("keyword Event: ", message);
         console.log("random user: ", message.getRandomParticipant);
         randomUser(parseInt(message.message), message.getRandomParticipant);
@@ -912,7 +900,8 @@ const Meeting = () => {
             console.log("이거도 없니?", keywordRef.current);
             if (keywordRef.current) {
               console.log("즐거운 시간 보내라고 p 태그 변경");
-              keywordRef.current.innerText = "즐거운 시간 보내세요~";
+              keywordRef.current.innerText =
+                "즐거운 시간 보내세요~ 1:1 대화 소리는 다른 참여자들이 들을 수 없어요.";
             }
             const loverElement = document
               .getElementById(lover)
@@ -962,7 +951,7 @@ const Meeting = () => {
             }
             if (keywordRef.current) {
               keywordRef.current.innerText =
-                "당신은 선택받지 못했습니다. 1분 간 오디오가 차단됩니다.";
+                "당신은 선택받지 못했습니다. 1:1 대화 중인 참여자들의 소리를 들을 수 없어요.";
               console.log("미선택자 p태그 변경", keywordRef.current);
             }
             console.log("====lover 음소거 시작====");
@@ -1001,8 +990,6 @@ const Meeting = () => {
   const meetingCamEvent = () => {
     socket?.on("cam", message => {
       try {
-        time.current = 120; // 3분 지남 -지금 서버 기준 (나중에 시간 서버 시간 바뀌면 같이 바꿔야 함!)
-        setProgressWidth(`${((totalTime - time.current) / totalTime) * 100}%`);
         console.log("cam Event: ", message);
         let countdown = 5;
         const intervalId = setInterval(() => {
@@ -1062,13 +1049,6 @@ const Meeting = () => {
     }
   };
 
-  const [, setMin] = useState(5); // todo: 시작 시간 서버로부터 받기
-  const [sec, setSec] = useState(0);
-  const time = useRef(300);
-  const timerId = useRef<null | NodeJS.Timeout>(null);
-  const totalTime = 300;
-  const [progressWidth, setProgressWidth] = useState("0%");
-
   useEffect(() => {
     const timeOut = setTimeout(() => {
       console.log("지금 방의 상태는..?", isFullRef.current);
@@ -1088,14 +1068,7 @@ const Meeting = () => {
       }
     }, 60000); // 60초 동안 6명 안들어 오면 나가기
 
-    timerId.current = setInterval(() => {
-      setMin(Math.floor(time.current / 60));
-      setSec(time.current % 60);
-      time.current -= 1;
-    }, 1000);
-
     return () => {
-      clearInterval(timerId.current!);
       clearTimeout(timeOut);
     };
   }, []);
@@ -1103,14 +1076,6 @@ const Meeting = () => {
   useEffect(() => {
     isFullRef.current = isFull;
   }, [isFull]);
-
-  useEffect(() => {
-    if (time.current <= 0) {
-      console.log("time out");
-      clearInterval(timerId.current!);
-    }
-    setProgressWidth(`${((totalTime - time.current) / totalTime) * 100}%`);
-  }, [sec]);
 
   useEffect(() => {
     if (!publisher) {
@@ -1246,16 +1211,7 @@ const Meeting = () => {
                 onClick={() => leaveSession()}
                 value="Leave session"
               />
-              <div className="flex items-center">
-                <Image src="/img/egg1.png" alt="" width={50} height={50} />
-                <p
-                  className="bg-orange-300 h-[20px] rounded-lg"
-                  style={{
-                    width: progressWidth,
-                  }}
-                ></p>
-                <Image src="/img/egg2.png" alt="" width={50} height={50} />
-              </div>
+              <EggTimer setTime={5} />
             </div>
             <div className="keyword-wrapper">
               <p className="keyword" ref={keywordRef}></p>
