@@ -315,6 +315,7 @@ const Meeting = () => {
     setPublisher(undefined);
     setSortedSubscribers([]);
     setIsFull(false);
+    setIsLastChoose(false);
     OffSocketEvent();
 
     if (!isSucceedFlag) {
