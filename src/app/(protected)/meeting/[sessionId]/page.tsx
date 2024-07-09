@@ -869,7 +869,8 @@ const Meeting = () => {
             console.log("이거도 없니?", keywordRef.current);
             if (keywordRef.current) {
               console.log("즐거운 시간 보내라고 p 태그 변경");
-              keywordRef.current.innerText = "즐거운 시간 보내세요~";
+              keywordRef.current.innerText =
+                "즐거운 시간 보내세요~ 1:1 대화 소리는 다른 참여자들이 들을 수 없어요.";
             }
             const loverElement = document
               .getElementById(lover)
@@ -919,7 +920,7 @@ const Meeting = () => {
             }
             if (keywordRef.current) {
               keywordRef.current.innerText =
-                "당신은 선택받지 못했습니다. 1분 간 오디오가 차단됩니다.";
+                "당신은 선택받지 못했습니다. 1:1 대화 중인 참여자들의 소리를 들을 수 없어요.";
               console.log("미선택자 p태그 변경", keywordRef.current);
             }
             console.log("====lover 음소거 시작====");
