@@ -68,49 +68,13 @@ const Step: React.FC<StepProps> = ({ title, imgUrl, description }) => {
   );
 };
 
-const Steps = [
+const Steps = data.map(item => (
   <Step
-    key={data[0].title}
-    title={data[0].title}
-    imgUrl={data[0].imgUrl}
-    description={data[0].description}
-  />,
-  <Step
-    key={data[1].title}
-    title={data[1].title}
-    imgUrl={data[1].imgUrl}
-    description={data[1].description}
-  />,
-  <Step
-    key={data[2].title}
-    title={data[2].title}
-    imgUrl={data[2].imgUrl}
-    description={data[2].description}
-  />,
-  <Step
-    key={data[3].title}
-    title={data[3].title}
-    imgUrl={data[3].imgUrl}
-    description={data[3].description}
-  />,
-  <Step
-    key={data[4].title}
-    title={data[4].title}
-    imgUrl={data[4].imgUrl}
-    description={data[4].description}
-  />,
-  <Step
-    key={data[5].title}
-    title={data[5].title}
-    imgUrl={data[5].imgUrl}
-    description={data[5].description}
-  />,
-  <Step
-    key={data[6].title}
-    title={data[6].title}
-    imgUrl={data[6].imgUrl}
-    description={data[6].description}
-  />,
-];
+    key={item.title}
+    title={item.title}
+    imgUrl={item.imgUrl}
+    description={item.description}
+  />
+));
 
 export default Steps;
