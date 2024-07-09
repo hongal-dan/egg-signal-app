@@ -44,7 +44,7 @@ const WinnerChoiceStage: React.FC<WinnerChoiceStageProps> = ({
           </h3>
           <div className="flex flex-col items-end">
             <span>남은 시간: {timeLeft}초</span>
-            <div className="grid grid-cols-3 grid-rows-2 gap-2 mb-5 w-full">
+            <div className="grid grid-cols-3 gap-2 mb-5 w-full">
               <RenderWinnerChoiceOptions
                 capturedPhoto={capturedPhoto}
                 voteResults={voteResults}
