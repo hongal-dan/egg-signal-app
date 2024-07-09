@@ -15,18 +15,18 @@ import {
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useRecoilValue, useRecoilState } from "recoil";
-import { meetingSocketState } from "@/app/store/socket";
+import {
+  isLastChooseState,
+  meetingSocketState,
+  isChosenState,
+} from "@/app/store/socket";
 import { avatarState } from "@/app/store/avatar";
-import { keywords } from "../../../../public/data/keywords.js";
+import { keywords } from "../../../../../public/data/keywords.js";
 import AvatarCollection from "@/containers/main/AvatarCollection";
 import { userState } from "@/app/store/userInfo";
 import CanvasModal from "@/containers/meeting/CanvasModal";
-
-// type Props = {
-//   sessionId: string;
-//   token: string;
-//   participantName: string;
-// };
+import { defaultSessionState, winnerSessionState } from "@/app/store/ovInfo";
+import MatchingResult from "@/containers/meeting/MatchingResult";
 
 type chooseResult = {
   sender: string;
@@ -46,6 +46,8 @@ const Meeting = () => {
     [],
   );
   const [isCanvasModalOpen, setIsCanvasModalOpen] = useState<boolean>(false);
+  const [keywordsIndex, setKeywordsIndex] = useState(0);
+  const [, setIsChosen] = useRecoilState(isChosenState);
 
   // const [isLoveMode, setIsLoveMode] = useState<boolean>(false);
   // const [isChooseMode, setIsChooseMode] = useState<boolean>(false);
@@ -65,8 +67,18 @@ const Meeting = () => {
   const [isFull, setIsFull] = useState<boolean>(false);
   const userInfo = useRecoilValue(userState);
   const isFullRef = useRef(isFull);
+  const [isMatched, setIsMatched] = useState<boolean>(false); // 매칭이 되었는지 여부
+  const [, setIsLastChoose] = useRecoilState(isLastChooseState);
+  const [lover, setLover] = useState<string>("");
+
+  const { sessionId, token, participantName } =
+    useRecoilValue(defaultSessionState);
+  const [, setSessionInfo] = useRecoilState(winnerSessionState);
 
   const router = useRouter();
+
+  const [capturedImage, setCapturedImage] = useState<string>("");
+  const [isFinish, setIsFinish] = useState(false);
 
   // 어떻게든 종료 하면 세션에서 나가게함.
   useEffect(() => {
@@ -78,13 +90,6 @@ const Meeting = () => {
       console.log("메인이 종료되었습니다.");
     };
   }, []);
-
-  // 메인 비디오 스트림을 변경
-  // const handleMainVideoStream = (stream: StreamManager) => {
-  //   if (mainStreamManager !== stream) {
-  //     setMainStreamManager(stream);
-  //   }
-  // };
 
   const deleteSubscriber = (streamManager: StreamManager) => {
     setSubscribers(prevSubscribers =>
@@ -139,28 +144,6 @@ const Meeting = () => {
     }
   };
 
-  // const muteAudio = () => {
-  //   if (publisher) {
-  //     // 오디오 트랙 비활성화
-  //     const audioTracks = publisher.stream.getMediaStream().getAudioTracks();
-  //     audioTracks.forEach(track => {
-  //       track.enabled = false;
-  //       track.stop();
-  //     });
-  //     console.log("Audio tracks disabled");
-  //   }
-  // };
-
-  // const unMuteAudio = () => {
-  //   if (publisher) {
-  //     const audioTracks = publisher.stream.getMediaStream().getAudioTracks();
-  //     audioTracks.forEach(track => {
-  //       track.enabled = true;
-  //     });
-  //     console.log("Audio tracks enabled");
-  //   }
-  // };
-
   // 오디오 차단 관련
   const getKeyById = (id: string) => {
     const element = document.getElementById(id);
@@ -174,14 +157,13 @@ const Meeting = () => {
 
   // 내가 매칭 된 경우, 매칭 안 된 참여자들 소리 안 듣기
   const toggleLoserAudio = (partnerName: string, flag: boolean) => {
-    console.log(partnerName, " 빼고 소리 ", flag ? "듣기" : "차단");
     const partnerStreamId = getKeyById(partnerName);
+
     subscribers.forEach(sub => {
       if (
         sub instanceof Subscriber &&
         sub.stream.streamId !== partnerStreamId
       ) {
-        console.log(sub.stream.streamId, flag ? " 해제" : " 차단");
         sub.subscribeToAudio(flag);
       }
     });
@@ -189,7 +171,6 @@ const Meeting = () => {
 
   // 내가 매칭 안 된 경우, 매칭 된 참여자들 소리 안 듣기
   const toggleLoverAudio = (loser: string[], flag: boolean) => {
-    console.log(loser, " 빼고 소리 ", flag ? "듣기" : "차단");
     const loserStreamIds = loser
       .map(loserName => getKeyById(loserName))
       .filter(id => id !== null);
@@ -200,8 +181,7 @@ const Meeting = () => {
           sub instanceof Subscriber &&
           !loserStreamIds.includes(sub.stream.streamId)
         ) {
-          console.log(sub.stream.streamId, flag ? " 듣기" : " 차단");
-          sub.subscribeToAudio(flag);
+          sub?.subscribeToAudio(flag);
         }
       });
     }
@@ -218,13 +198,14 @@ const Meeting = () => {
 
     const newSession = OV.initSession();
     setSession(newSession);
-    const { sessionId, token, participantName } = JSON.parse(
-      sessionStorage.getItem("ovInfo")!,
-    );
+    // const { sessionId, token } = JSON.parse(
+    //   sessionStorage.getItem("ovInfo")!,
+    // );
     // Connect to the session
     newSession
       .connect(token, {
-        clientData: participantName,
+        // clientData: userInfo?.nickname as string,  // FIXME 배포시엔 저를 써주세요.
+        clientData: participantName, // FIXME 배포 시 랜덤닉네임 말고 유저 아이디로
         gender: userInfo?.gender as string,
       })
       .then(async () => {
@@ -291,7 +272,6 @@ const Meeting = () => {
 
     // 세션에서 발화자 이벤트 리스너 추가
     newSession.on("publisherStartSpeaking", (event: PublisherSpeakingEvent) => {
-      // console.log("Publisher started speaking:", event.connection);
       const streamId = event.connection.stream?.streamId;
       if (streamId !== undefined) {
         setSpeakingPublisherIds(prevIds => [...prevIds, streamId]);
@@ -307,7 +287,6 @@ const Meeting = () => {
           prevIds.filter(id => id !== streamId),
         );
       }
-      console.log("Publisher stopped speaking:", event.connection);
     });
   };
 
@@ -323,7 +302,7 @@ const Meeting = () => {
     });
   };
 
-  const leaveSession = () => {
+  const leaveSession = (isSucceedFlag = false) => {
     if (session) {
       session.disconnect();
     }
@@ -331,13 +310,20 @@ const Meeting = () => {
       socket.disconnect();
       setSocket(null);
     }
-
     setSession(undefined);
     setSubscribers([]);
     setPublisher(undefined);
     setSortedSubscribers([]);
     setIsFull(false);
-    router.push("/main");
+    OffSocketEvent();
+
+    if (!isSucceedFlag) {
+      router.push("/main");
+      return;
+    } else {
+      router.push("/meeting/matching");
+      return;
+    }
   };
 
   // 화살표 출발 도착 좌표 계산
@@ -521,16 +507,19 @@ const Meeting = () => {
   };
 
   const undoChooseMode = () => {
+    setIsChosen(false);
     // 선택 모드 일 때는 마우스 하버시에 선택 가능한 상태로 변경
     // 클릭 시에 선택된 상태로 변경
     if (keywordRef.current) {
       keywordRef.current.innerText = "";
       console.log("선택모드 p태그 삭제");
     }
-    const chooseBtns = document.getElementsByClassName("choose-btn");
-    const btnArray = Array.from(chooseBtns);
-    btnArray.forEach(btn => {
-      btn.classList.add("hidden");
+
+    const oppositeRef = subRef.current.slice(2);
+
+    oppositeRef.forEach(subContainer => {
+      const chooseBtn = subContainer!.getElementsByClassName("choose-btn")[0];
+      chooseBtn.classList.add("hidden");
     });
   };
 
@@ -540,11 +529,13 @@ const Meeting = () => {
     if (keywordRef.current) {
       keywordRef.current.innerText = "대화해보고 싶은 사람을 선택해주세요";
     }
-    console.log("선택 모드로 변경");
-    const chooseBtns = document.getElementsByClassName("choose-btn");
-    const btnArray = Array.from(chooseBtns);
-    btnArray.forEach(btn => {
-      btn.classList.remove("hidden");
+    console.log("선택 모드로 변경 ", publisher);
+    // 이성만 선택 버튼 활성화
+    const oppositeRef = subRef.current.slice(2);
+
+    oppositeRef.forEach(subContainer => {
+      const chooseBtn = subContainer!.getElementsByClassName("choose-btn")[0];
+      chooseBtn.classList.remove("hidden");
     });
   };
 
@@ -587,6 +578,7 @@ const Meeting = () => {
 
   const undoOneToOneMode = (loverElement: HTMLDivElement) => {
     console.log("1:1 모드 해제");
+    setIsChosen(false);
     const streamElements = document.getElementsByClassName("stream-container");
     videoContainerRef.current?.classList.remove("one-one-four");
     streamElements[0].classList.remove("a");
@@ -699,7 +691,11 @@ const Meeting = () => {
             if (keywordRef.current) {
               keywordRef.current.innerText = "";
             }
-            leaveSession();
+            setIsFinish(true);
+            if (session) {
+              session.disconnect();
+            }
+            // leaveSession();
           }
         }, 1000);
       } catch (e: any) {
@@ -729,108 +725,8 @@ const Meeting = () => {
       }
     });
 
-    type cupidResult = {
-      lover: string;
-      loser: Array<string>;
-    };
-
-    // 선택 결과 받고 1:1 모드로 변경
-    socket?.on("cupidResult", response => {
-      try {
-        console.log("cupidResult 도착", response);
-        const { lover, loser } = response as cupidResult;
-        console.log(lover, loser);
-
-        // 매칭 된 사람의 경우
-        setTimeout(() => {
-          console.log("큐피드result로 계산 시작");
-          if (lover != "0") {
-            console.log("이거도 없니?", keywordRef.current);
-            if (keywordRef.current) {
-              console.log("즐거운 시간 보내라고 p 태그 변경");
-              keywordRef.current.innerText = "즐거운 시간 보내세요~";
-            }
-            const loverElement = document
-              .getElementById(lover)
-              ?.closest(".stream-container") as HTMLDivElement;
-
-            loser.forEach(loser => {
-              const loserElement = document.getElementById(
-                loser,
-              ) as HTMLDivElement;
-              console.log("loser:", loser);
-              loserElement.classList.toggle("black-white");
-            });
-
-            setOneToOneMode(loverElement);
-            console.log("====loser 음소거 시작====");
-            toggleLoserAudio(lover, false); // 나머지 오디오 차단
-            setTimeout(() => {
-              // console.log("1:1 모드 해제")
-              if (keywordRef.current) {
-                keywordRef.current.innerText = "";
-                console.log("즐거운시간 삭제");
-              }
-              undoOneToOneMode(loverElement);
-              console.log("====loser 음소거 해제====");
-              toggleLoserAudio(lover, true); // 나머지 오디오 재개
-              loser.forEach(loser => {
-                const loserElement = document.getElementById(
-                  loser,
-                ) as HTMLDivElement;
-                console.log("loser:", loser);
-                loserElement.classList.toggle("black-white");
-              });
-            }, 60000); // 1분 후 원 위치
-          }
-          // 매칭 안된 사람들의 경우
-          else {
-            // const pubElement = document.getElementsByClassName("pub")[0] as HTMLDivElement;
-            // pubElement.classList.toggle("black-white");
-            if (loser.length === 6) {
-              if (keywordRef.current) {
-                keywordRef.current.innerText =
-                  "매칭 된 사람이 없습니다. 사이좋게 대화하세요";
-              }
-              return;
-            }
-            if (keywordRef.current) {
-              keywordRef.current.innerText =
-                "당신은 선택받지 못했습니다. 1분 간 오디오가 차단됩니다.";
-              console.log("미선택자 p태그 변경", keywordRef.current);
-            }
-            console.log("====lover 음소거 시작====");
-            toggleLoverAudio(loser, false); // 매칭된 사람들 오디오 차단
-            loser.forEach(loser => {
-              const loserElement = document.getElementById(
-                loser,
-              ) as HTMLDivElement;
-              console.log("loser:", loser);
-              loserElement.classList.toggle("black-white");
-              setTimeout(() => {
-                // pubElement.classList.toggle("black-white");
-                loserElement.classList.toggle("black-white");
-              }, 60000); // 1분 후 흑백 해제
-            });
-            // muteAudio();
-            setTimeout(() => {
-              if (keywordRef.current) {
-                keywordRef.current.innerText = "";
-                console.log("미선택자 p태그 초기화", keywordRef.current);
-              }
-              // unMuteAudio();
-              console.log("====lover 음소거 해제====");
-              toggleLoverAudio(loser, true); // 오디오 재개
-            }, 60000); // 1분 후 음소거 해제
-          }
-        }, 13000); // 결과 도착 후 13초뒤에 1:1 대화 진행
-      } catch (e: any) {
-        console.error(e);
-      }
-    });
-
     // 선택시간 신호 받고 선택 모드로 변경
-    socket?.on("cupidTime", (response: number) => {
+    socket?.on("cupidTime", (response: string) => {
       try {
         console.log("cupidTime 도착", response);
         setChooseMode();
@@ -839,14 +735,93 @@ const Meeting = () => {
       }
     });
 
-    /**사생대회 모달 */
+    socket?.on("lastCupidTime", (response: any) => {
+      try {
+        console.log("lastCupidTime 도착", response);
+        setChooseMode();
+        setIsLastChoose(true);
+      } catch (e: any) {
+        console.error(e);
+      }
+    });
+
+    socket?.on("lastChooseResult", response => {
+      try {
+        console.log("lastChooseResult 도착");
+        console.log("lastChooseResult = ", response);
+        undoChooseMode(); // 선택모드 해제
+        removeChooseSign(); // 선택된 사람 표시 제거
+        changeLoveStickMode(response as Array<chooseResult>);
+        setTimeout(() => {
+          console.log("원 위치로 변경");
+          undoLoveStickMode();
+          if (keywordRef.current) {
+            console.log("1분 후 세션이 종료됩니다");
+            keywordRef.current.innerText = "1분 후 세션이 종료됩니다";
+          }
+        }, 10000); // 10초 후 원 위치
+      } catch (e: any) {
+        console.error(e);
+      }
+    });
+
+    type lastCupidResult = {
+      lover: string;
+    };
+
+    socket?.on("matching", (response: lastCupidResult) => {
+      try {
+        console.log("matching도착", response);
+        const { lover } = response;
+        if (lover != "0") {
+          // 러버 저장하고 넘겨야해요. 모달로 띄워야되니까
+          console.log("제게는 사랑하는 짝이 있어요. 그게 누구냐면..", lover);
+          setLover(lover);
+          captureVideoFrame(lover);
+          setIsMatched(true); // 이게 성공 모달
+        }
+      } catch (e: any) {
+        console.error(e);
+      }
+    });
+
+    socket?.on("choice", response => {
+      console.log("choice 도착!~~~~~~~~~~~~~~", response);
+      const { sessionId, token } = response;
+      setSessionInfo({ sessionId: sessionId, token: token });
+      leaveSession(true);
+    });
+
+    /**그림대회 모달 */
     socket?.on("drawingContest", response => {
       console.log("drawingContest 도착", response);
-      setIsCanvasModalOpen(true);
+      const index = response.keywordsIndex;
+      setKeywordsIndex(index);
+      if (keywordRef.current)
+        keywordRef.current.innerText = "잠시 후 그림 대회가 시작됩니다";
+
+      setTimeout(() => {
+        if (keywordRef.current)
+          keywordRef.current.innerText =
+            "1등은 원하는사람과 1:1 대화를 할 수 있어요";
+      }, 4500);
+
+      setTimeout(() => {
+        setIsCanvasModalOpen(true);
+        if (keywordRef.current) {
+          keywordRef.current!.innerText = "주제에 맞는 그림을 그려보세요";
+        }
+      }, 8000);
+
+      setTimeout(() => {
+        if (keywordRef.current) {
+          keywordRef.current!.innerText = "";
+        }
+      }, 20000);
     });
 
     // 자기소개 시간
-    socket?.on("Introduce", response => {
+    socket?.on("introduce", response => {
       try {
         if (keywordRef.current) {
           keywordRef.current.innerText =
@@ -887,6 +862,112 @@ const Meeting = () => {
     });
   };
 
+  const meetingCupidResultEvent = () => {
+    type cupidResult = {
+      lover: string;
+      loser: Array<string>;
+    };
+
+    // 선택 결과 받고 1:1 모드로 변경
+    socket?.on("cupidResult", response => {
+      try {
+        console.log("cupidResult 도착", response);
+        const { lover, loser } = response as cupidResult;
+        console.log(lover, loser);
+
+        // 매칭 된 사람의 경우
+        setTimeout(() => {
+          console.log("큐피드result로 계산 시작");
+          if (lover != "0") {
+            console.log("이거도 없니?", keywordRef.current);
+            if (keywordRef.current) {
+              console.log("즐거운 시간 보내라고 p 태그 변경");
+              keywordRef.current.innerText = "즐거운 시간 보내세요~";
+            }
+            const loverElement = document
+              .getElementById(lover)
+              ?.closest(".stream-container") as HTMLDivElement;
+
+            loser.forEach(loser => {
+              const loserElementContainer = document.getElementById(
+                loser,
+              ) as HTMLDivElement;
+              const loserElement = loserElementContainer.querySelector(
+                ".stream-wrapper",
+              ) as HTMLDivElement;
+              loserElement.classList.add("black-white");
+            });
+
+            setOneToOneMode(loverElement);
+            toggleLoserAudio(lover, false); // 나머지 오디오 차단
+            setTimeout(() => {
+              // console.log("1:1 모드 해제")
+              if (keywordRef.current) {
+                keywordRef.current.innerText = "";
+                console.log("즐거운시간 삭제");
+              }
+              undoOneToOneMode(loverElement);
+              toggleLoserAudio(lover, true); // 나머지 오디오 재개
+              loser.forEach(loser => {
+                const loserElementContainer = document.getElementById(
+                  loser,
+                ) as HTMLDivElement;
+                const loserElement = loserElementContainer.querySelector(
+                  ".stream-wrapper",
+                ) as HTMLDivElement;
+                loserElement.classList.remove("black-white");
+              });
+            }, 60000); // 1분 후 원 위치
+          }
+          // 매칭 안된 사람들의 경우
+          else {
+            // const pubElement = document.getElementsByClassName("pub")[0] as HTMLDivElement;
+            // pubElement.classList.toggle("black-white");
+            if (loser.length === 6) {
+              if (keywordRef.current) {
+                keywordRef.current.innerText =
+                  "매칭 된 사람이 없습니다. 사이좋게 대화하세요";
+              }
+              return;
+            }
+            if (keywordRef.current) {
+              keywordRef.current.innerText =
+                "당신은 선택받지 못했습니다. 1분 간 오디오가 차단됩니다.";
+              console.log("미선택자 p태그 변경", keywordRef.current);
+            }
+            console.log("====lover 음소거 시작====");
+            toggleLoverAudio(loser, false); // 매칭된 사람들 오디오 차단
+            loser.forEach(loser => {
+              const loserElementContainer = document.getElementById(
+                loser,
+              ) as HTMLDivElement;
+              const loserElement = loserElementContainer.querySelector(
+                ".stream-wrapper",
+              ) as HTMLDivElement;
+              loserElement.classList.add("black-white");
+              setTimeout(() => {
+                // pubElement.classList.toggle("black-white");
+                loserElement.classList.remove("black-white");
+              }, 60000); // 1분 후 흑백 해제
+            });
+            // muteAudio();
+            setTimeout(() => {
+              if (keywordRef.current) {
+                keywordRef.current.innerText = "";
+                console.log("미선택자 p태그 초기화", keywordRef.current);
+              }
+              // unMuteAudio();
+              console.log("====lover 음소거 해제====");
+              toggleLoverAudio(loser, true); // 오디오 재개
+            }, 60000); // 1분 후 음소거 해제
+          }
+        }, 13000); // 결과 도착 후 13초뒤에 1:1 대화 진행
+      } catch (e: any) {
+        console.error(e);
+      }
+    });
+  };
+
   const meetingCamEvent = () => {
     socket?.on("cam", message => {
       try {
@@ -913,6 +994,43 @@ const Meeting = () => {
       }
     });
   };
+
+  const captureVideoFrame = (lover: string) => {
+    const loverVideoContainer = document.getElementById(
+      lover,
+    ) as HTMLDivElement;
+    const loverVideoElement = loverVideoContainer.querySelector(
+      "video",
+    ) as HTMLVideoElement;
+    const canvas = document.createElement("canvas");
+    if (loverVideoElement) {
+      canvas.width = loverVideoElement.videoWidth;
+      canvas.height = loverVideoElement.videoHeight;
+      const context = canvas.getContext("2d");
+      if (context) {
+        context.drawImage(loverVideoElement, 0, 0, canvas.width, canvas.height);
+        const dataUrl = canvas.toDataURL("image/png");
+        setCapturedImage(dataUrl);
+      }
+    }
+  };
+
+  const OffSocketEvent = () => {
+    if(socket) {
+      socket.off("keyword");
+      socket.off("finish");
+      socket.off("chooseResult");
+      socket.off("cupidTime");
+      socket.off("lastCupidTime");
+      socket.off("lastChooseResult");
+      socket.off("matching");
+      socket.off("choice");
+      socket.off("drawingContest");
+      socket.off("introduce");
+      socket.off("cupidResult");
+      socket.off("cam");
+    }
+  }
 
   const [, setMin] = useState(5); // todo: 시작 시간 서버로부터 받기
   const [sec, setSec] = useState(0);
@@ -1015,6 +1133,11 @@ const Meeting = () => {
 
   useEffect(() => {
     console.log("subscribers", subscribers);
+    if (!subscribers) {
+      return;
+    }
+    meetingCupidResultEvent();
+
     if (subscribers.length === 5) {
       if (getUserGender(publisher!) === "MALE") {
         sortSubscribers("MALE");
@@ -1022,6 +1145,10 @@ const Meeting = () => {
         sortSubscribers("FEMALE");
       }
       setIsFull(true);
+      console.log("startTimer", sessionId, token, participantName);
+      socket?.emit("startTimer", { sessionId: sessionId });
+      console.log(socket, "socket============================================");
+
     }
     if (isFull && subscribers.length !== 5) {
       if (keywordRef.current) {
@@ -1066,7 +1193,7 @@ const Meeting = () => {
 
   return !avatar ? (
     <AvatarCollection />
-  ) : (
+  ) : !isFinish ? (
     <>
       {!isFull ? (
         <div className="w-[100vw] h-[100vh] flex flex-col justify-center items-center gap-24">
@@ -1087,7 +1214,7 @@ const Meeting = () => {
                 className="btn btn-large btn-danger"
                 type="button"
                 id="buttonLeaveSession"
-                onClick={leaveSession}
+                onClick={() => leaveSession()}
                 value="Leave session"
               />
               <div className="flex items-center">
@@ -1124,7 +1251,6 @@ const Meeting = () => {
                 >
                   <UserVideoComponent
                     streamManager={publisher}
-                    socket={socket}
                     className={
                       speakingPublisherIds.includes(publisher.stream.streamId)
                         ? "speaking"
@@ -1148,7 +1274,6 @@ const Meeting = () => {
                   <UserVideoComponent
                     key={sub.stream.streamId}
                     streamManager={sub}
-                    socket={socket}
                     className={
                       speakingPublisherIds.includes(sub.stream.streamId)
                         ? "speaking"
@@ -1162,12 +1287,26 @@ const Meeting = () => {
         </div>
       )}
       {isCanvasModalOpen && (
-        <CanvasModal onClose={() => setIsCanvasModalOpen(false)} />
+        <CanvasModal
+          onClose={() => setIsCanvasModalOpen(false)}
+          keywordsIndex={keywordsIndex}
+        />
       )}
       {!isOpenCam ? (
         <div ref={captureRef} className="hidden">
           <UserVideoComponent2 />
         </div>
+      ) : null}
+    </>
+  ) : (
+    <>
+      {isFinish ? (
+        <MatchingResult
+          capturedImage={capturedImage}
+          lover={lover}
+          isMatched={isMatched}
+          onClose={leaveSession}
+        />
       ) : null}
     </>
   );
