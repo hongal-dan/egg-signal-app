@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useRef } from "react";
+import Image from "next/image";
 import UserVideoComponent from "@/containers/meeting/UserVideoComponent";
 import UserVideoComponent2 from "@/containers/main/UserVideo";
 import {
@@ -28,7 +29,7 @@ import { defaultSessionState, winnerSessionState } from "@/app/store/ovInfo";
 import MatchingResult from "@/containers/meeting/MatchingResult";
 import EggTimer from "@/containers/meeting/EggTimer";
 import "animate.css";
-import Emoji from "@/containers/meeting/Emoji";
+import Emoji from "@/containers/meeting/emoji";
 import { createRoot } from "react-dom/client";
 
 type chooseResult = {
@@ -820,12 +821,7 @@ const Meeting = () => {
         emojiElement.className =
           "emoji absolute text-5xl animate__animated animate__bounceInUp";
         const emojiImage = (
-          <Image
-            src={emojiIndex}
-            alt=""
-            width={56}
-            height={56}
-          />
+          <Image src={emojiIndex} alt="" width={56} height={56} />
         );
         createRoot(emojiElement).render(emojiImage);
 
