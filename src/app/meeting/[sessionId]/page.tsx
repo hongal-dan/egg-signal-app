@@ -1391,6 +1391,7 @@ const Meeting = () => {
                   // onClick={() => handleMainVideoStream(publisher)}
                   id={getUserID(publisher)}
                   ref={pubRef}
+                  data-gender={getUserGender(publisher)}
                 >
                   <UserVideoComponent
                     streamManager={publisher}
@@ -1406,6 +1407,7 @@ const Meeting = () => {
                 <div
                   key={sub.stream.streamId}
                   data-key={sub.stream.streamId}
+                  data-gender={getUserGender(sub)}
                   // className={`stream-container col-md-6 col-xs-6 sub ${sub.stream.streamId === speakingPublisherId ? "speaking" : ""} ${getUserGender(sub)}`}
                   className={`stream-container col-md-6 col-xs-6 sub ${getUserGender(sub)}`}
                   // onClick={() => handleMainVideoStream(sub)}
