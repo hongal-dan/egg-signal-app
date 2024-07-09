@@ -25,7 +25,7 @@ const WinnerChoiceStage: React.FC<WinnerChoiceStageProps> = ({
       {testName !== voteResults && (
         <div>
           <div className="flex flex-col items-center">
-            <div className="mb-4 text-2xl font-bold ">1등 대{voteResults}</div>
+            <div className="mb-4 text-2xl font-bold ">1등 {voteResults}</div>
             <div>
               <img
                 src={drawings[voteResults!]}
@@ -44,12 +44,13 @@ const WinnerChoiceStage: React.FC<WinnerChoiceStageProps> = ({
           </h3>
           <div className="flex flex-col items-end">
             <span>남은 시간: {timeLeft}초</span>
-            <div className="grid grid-cols-3 grid-rows-2 gap-2 mb-5 w-full">
+            <div className="flex gap-2 mb-5 w-full">
               <RenderWinnerChoiceOptions
                 capturedPhoto={capturedPhoto}
                 voteResults={voteResults}
                 selectedUser={selectedUser}
                 handleWinnerPrizeSubmit={handleWinnerPrizeSubmit}
+                winnerName={testName}
               />
             </div>
           </div>
