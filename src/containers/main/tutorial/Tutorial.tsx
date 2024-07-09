@@ -28,12 +28,11 @@ const Tutorial = () => {
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-      <p
-        className="text-lg text-end my-5 pr-1"
-        onClick={() => setShowTutorial(prev => !prev)}
-      >
-        가이드
-      </p>
+      {!showTutorial && (
+        <p className="text-md text-end mr-3 my-2 pr-1">
+          가<br />이<br />드
+        </p>
+      )}
       <div className={`${!showTutorial && "hidden"}`}>
         <div className="h-[550px] p-5">{Steps[currentStep]}</div>
         <div className="absolute bottom-0 w-full flex justify-center">
