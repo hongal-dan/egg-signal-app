@@ -834,7 +834,7 @@ const Meeting = () => {
           "emoji absolute text-5xl animate__animated animate__bounceInUp";
         const emojiImage = (
           <Image
-            src={`/data/emoji/${emojiIndex}`}
+            src={emojiIndex}
             alt=""
             width={56}
             height={56}
