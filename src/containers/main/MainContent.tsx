@@ -24,34 +24,7 @@ import { testState } from "@/app/store/userInfo"; // FIXME 테스트용 랜덤 �
 import { getUserInfo } from "@/services/users";
 import { defaultSessionState } from "@/app/store/ovInfo";
 import MainChat from "./chat/MainChat";
-
 import Tutorial from "./tutorial/Tutorial";
-
-// interface Friend {
-//   friend: string;
-//   chatRoomId: string;
-//   newMessage: boolean;
-// }
-
-// interface MainContentProps {
-//   userInfo: {
-//     id: string;
-//     nickname: string;
-//     gender: "MALE" | "FEMALE";
-//     newNotification: boolean;
-//     notifications: string[];
-//     friends: Friend[];
-//   };
-// }
-
-// interface UserInfo {
-//   id: string;
-//   nickname: string;
-//   gender: "MALE" | "FEMALE";
-//   newNotification: boolean;
-//   notifications: string[];
-//   friends: Friend[];
-// }
 
 interface Notification {
   _id: string;
@@ -95,7 +68,6 @@ const MainContent = () => {
   };
 
   const updateUserInfo = async () => {
-    console.log("updateUserInfo");
     const response = await getUserInfo(
       JSON.parse(localStorage.getItem("token")!),
     );
@@ -139,13 +111,11 @@ const MainContent = () => {
   }, [currentUser]);
 
   useEffect(() => {
-    console.log("MainContent useEffect");
     updateUserInfo();
 
     const newCommonSocket = io(`${url}/common`, {
       transports: ["websocket"],
       auth: { token: JSON.parse(localStorage.getItem("token")!) },
-      // withCredentials: true,
     });
     setCommonSocket(newCommonSocket);
 
@@ -157,7 +127,6 @@ const MainContent = () => {
     newCommonSocket.emit("friendStat");
 
     newCommonSocket.on("newMessageNotification", (res: string) => {
-      console.log(res, "이가 나한테 메시지 보냄");
       const messageSenders = sessionStorage.getItem("messageSenders");
       if (!messageSenders || messageSenders.length === 0) {
         sessionStorage.setItem("messageSenders", JSON.stringify([res]));
@@ -171,7 +140,6 @@ const MainContent = () => {
     });
 
     newCommonSocket.on("friendOnline", (res: string) => {
-      console.log("온라인 유저: ", res);
       const onlineList = sessionStorage.getItem("onlineFriends");
       if (!onlineList || onlineList.length === 0) {
         sessionStorage.setItem("onlineFriends", JSON.stringify([res]));
@@ -179,19 +147,16 @@ const MainContent = () => {
         const prevList = JSON.parse(onlineList);
         prevList.push(res);
         const newList = Array.from(new Set(prevList)) as string[];
-        console.log(newList);
         sessionStorage.setItem("onlineFriends", JSON.stringify(newList));
         setOnlineList(newList);
       }
     });
 
     newCommonSocket.on("friendOffline", (res: string) => {
-      console.log(res, "접속 종료");
       const onlineList = sessionStorage.getItem("onlineFriends");
       if (onlineList) {
         const prevList = JSON.parse(onlineList);
         const newList = prevList.filter((el: string) => el !== res);
-        console.log(newList);
         sessionStorage.setItem("onlineFriends", JSON.stringify(newList));
         setOnlineList(newList);
       }
@@ -200,7 +165,6 @@ const MainContent = () => {
     newCommonSocket.emit("reqGetNotifications");
 
     newCommonSocket.on("resGetNotifications", (res: Notification[]) => {
-      console.log("내 알람?", res);
       const newNotiList = res.map((r: Notification) => {
         return {
           _id: r._id,
@@ -211,7 +175,6 @@ const MainContent = () => {
     });
 
     newCommonSocket.on("newFriendRequest", res => {
-      console.log("새로운 친구 요청", res);
       const newNoti = { _id: res._id, from: res.userNickname }; // 나한테 요청 보낸 친구
       setNotiList(prev => [...prev, newNoti]);
     });
@@ -219,26 +182,11 @@ const MainContent = () => {
     newCommonSocket.on("resAcceptFriend", res => {
       console.log("내가 상대방 요청 수락!! ", res);
       updateUserInfo();
-      // const updateCurrentUser = {
-      //   id: res.id,
-      //   nickname: res.nickname,
-      //   gender: res.gender,
-      //   newNotification: res.newNotification,
-      //   notifications: res.notifications,
-      //   friends: res.friends,
-      // };
-      // console.log(updateCurrentUser);
-      // setCurrentUser(updateCurrentUser);
-      // window.location.reload();
     });
 
     newCommonSocket.on("friendRequestAccepted", res => {
       console.log("상대방이 내 요청 수락!! ", res);
       updateUserInfo();
-      // setCurrentUser(prevState => ({
-      //   ...prevState,
-      //   friends: [...prevState.friends, ...res.friends],
-      // }));
     });
 
     // 내가 접속하기 전부터 접속한 친구 확인용
@@ -275,7 +223,6 @@ const MainContent = () => {
     return new Promise(resolve => {
       const newSocket = io(`${url}/meeting`, {
         transports: ["websocket"],
-        // withCredentials: true,
         auth: { token: JSON.parse(localStorage.getItem("token")!) },
       });
       newSocket.on("connect", () => {
@@ -358,7 +305,6 @@ const MainContent = () => {
 
   const handleLogout = async () => {
     try {
-      // await logoutUser();
       localStorage.removeItem("token");
       sessionStorage.removeItem("onlineFriends");
       OffCommonSocketEvent();
