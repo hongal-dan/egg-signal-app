@@ -362,7 +362,6 @@ const MainContent = () => {
       OffCommonSocketEvent();
       commonSocket?.disconnect();
       window.location.reload();
-
     } catch (error) {
       console.error("Log out Error: ", error);
     }
@@ -377,7 +376,7 @@ const MainContent = () => {
     commonSocket?.off("resAcceptFriend");
     commonSocket?.off("friendRequestAccepted");
     commonSocket?.off("friendStat");
-  }
+  };
 
   useEffect(() => {
     startWebCam();
@@ -400,76 +399,82 @@ const MainContent = () => {
     }
   }, [isFriendListVisible]);
 
+  const handleMainContentClick = () => {
+    setIsFriendListVisible(false);
+  };
+
   return (
-    <div>
-      <button
-        className="fixed top-4 right-4 z-10 border-b border-gray-500 text-gray-500"
-        onClick={handleLogout}
-      >
-        Log out
-      </button>
-      <div className="grid grid-cols-3 md:h-screen">
-        <div className="flex justify-center items-center">
-          <Tutorial />
-          <MainChat />
-        </div>
-        <div className="grid grid-rows-3 justify-center md:h-screen">
-          <div className="w-full flex items-end justify-end gap-[10px] mb-5">
-            <div className="w-10 h-10 relative flex items-center justify-center text-xl bg-white rounded-2xl shadow">
-              {notiList.length !== 0 && (
-                <div className="absolute left-[-5px] top-[-5px] w-4 h-4 rounded-full bg-rose-500" />
-              )}
-              <button onClick={toggleNotiList}>🔔</button>
-              {isNotiVisible && (
-                <div className="w-[340px] h-[500px] absolute top-0 left-[50px] bg-zinc-200 shadow-md rounded-lg p-4 z-10">
-                  <Notifications />
-                </div>
-              )}
-            </div>
+    <>
+      <div onClick={handleMainContentClick}>
+        <button
+          className="fixed top-4 right-4 z-10 border-b border-gray-500 text-gray-500"
+          onClick={handleLogout}
+        >
+          Log out
+        </button>
+        <div className="grid grid-cols-3 md:h-screen">
+          <div className="flex justify-center items-center">
+            <Tutorial />
+            <MainChat />
           </div>
-          <video
-            id="myCam"
-            className="mx-auto w-[320px] h-[240px]"
-            autoPlay
-            playsInline
-          ></video>
-          <div className="grid grid-rows-2">
-            <div>
-              <button
-                className="w-full h-12 bg-amber-400 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mb-1 z-10 relative"
-                ref={startButton}
-                onClick={handleLoadingOn}
-              >
-                {isLoading ? (
-                  <svg
-                    className="animate-spin h-5 w-5 mr-3 text-white inline-block"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    ></circle>
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 2.42.936 4.635 2.464 6.291l1.536-1.536z"
-                    ></path>
-                  </svg>
-                ) : (
-                  <p className="w-full text-2xl font-bold" ref={enterBtnRef}>
-                    입장하기
-                  </p>
+          <div className="grid grid-rows-3 justify-center md:h-screen">
+            <div className="w-full flex items-end justify-end gap-[10px] mb-5">
+              <div className="w-10 h-10 relative flex items-center justify-center text-xl bg-white rounded-2xl shadow">
+                {notiList.length !== 0 && (
+                  <div className="absolute left-[-5px] top-[-5px] w-4 h-4 rounded-full bg-rose-500" />
                 )}
-              </button>
-              {isLoading && (
-                <div className="flex justify-end underline text-sm text-gray-900">
-                  <button onClick={handleLoadingCancel}>매칭 취소</button>
-                </div>
-              )}
+                <button onClick={toggleNotiList}>🔔</button>
+                {isNotiVisible && (
+                  <div className="w-[340px] h-[500px] absolute top-0 left-[50px] bg-zinc-200 shadow-md rounded-lg p-4 z-10">
+                    <Notifications />
+                  </div>
+                )}
+              </div>
+            </div>
+            <video
+              id="myCam"
+              className="mx-auto w-[320px] h-[240px]"
+              autoPlay
+              playsInline
+            ></video>
+            <div className="grid grid-rows-2">
+              <div>
+                <button
+                  className="w-full h-12 bg-amber-400 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mb-1 z-10 relative"
+                  ref={startButton}
+                  onClick={handleLoadingOn}
+                >
+                  {isLoading ? (
+                    <svg
+                      className="animate-spin h-5 w-5 mr-3 text-white inline-block"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 2.42.936 4.635 2.464 6.291l1.536-1.536z"
+                      ></path>
+                    </svg>
+                  ) : (
+                    <p className="w-full text-2xl font-bold" ref={enterBtnRef}>
+                      입장하기
+                    </p>
+                  )}
+                </button>
+                {isLoading && (
+                  <div className="flex justify-end underline text-sm text-gray-900">
+                    <button onClick={handleLoadingCancel}>매칭 취소</button>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -491,7 +496,7 @@ const MainContent = () => {
           </div>
         )}
       </div>
-    </div>
+    </>
   );
 };
 
