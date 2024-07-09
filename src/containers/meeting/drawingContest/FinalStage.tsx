@@ -33,7 +33,7 @@ const FinalResultsStage: React.FC<FinalResultsStageProps> = ({
               </div>
               {index === 0 && (
                 <div className="absolute top-0 left-0 p-2">
-                  <PiCrownSimpleDuotone className="text-yellow-500 text-2xl" />
+                  <PiCrownSimpleDuotone className="text-yellow-400 text-3xl" />
                 </div>
               )}
             </div>

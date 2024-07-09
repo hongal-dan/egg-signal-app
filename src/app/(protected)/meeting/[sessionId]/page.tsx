@@ -27,6 +27,9 @@ import CanvasModal from "@/containers/meeting/CanvasModal";
 import { defaultSessionState, winnerSessionState } from "@/app/store/ovInfo";
 import MatchingResult from "@/containers/meeting/MatchingResult";
 import EggTimer from "@/containers/meeting/EggTimer";
+import "animate.css";
+import Emoji from "@/containers/meeting/Emoji";
+import { createRoot } from "react-dom/client";
 
 type chooseResult = {
   sender: string;
@@ -807,6 +810,38 @@ const Meeting = () => {
       }, 20000);
     });
 
+    /**이모티콘 */
+    socket?.on("emojiBroadcast", ({ nickname, emojiIndex }) => {
+      const targetVideo = document.getElementById(nickname);
+      const emojiContainer = targetVideo?.querySelector(".emoji-container");
+
+      if (emojiContainer) {
+        const emojiElement = document.createElement("div");
+        emojiElement.className =
+          "emoji absolute text-5xl animate__animated animate__bounceInUp";
+        const emojiImage = (
+          <Image
+            src={emojiIndex}
+            alt=""
+            width={56}
+            height={56}
+          />
+        );
+        createRoot(emojiElement).render(emojiImage);
+
+        emojiContainer.appendChild(emojiElement);
+
+        emojiElement.onanimationend = () => {
+          emojiElement.classList.replace(
+            "animate__bounceInUp",
+            "animate__bounceOutUp",
+          );
+          emojiElement.onanimationend = () =>
+            emojiContainer.removeChild(emojiElement);
+        };
+      }
+    });
+
     // 자기소개 시간
     socket?.on("introduce", response => {
       try {
@@ -1194,7 +1229,10 @@ const Meeting = () => {
             {/* <div ref={captureRef} className="hidden">
           <UserVideoComponent2 />
         </div> */}
-            <div className="col-md-6 video-container" ref={videoContainerRef}>
+            <div
+              className="relative col-md-6 video-container overflow-hidden"
+              ref={videoContainerRef}
+            >
               {publisher !== undefined ? (
                 <div
                   // className={`stream-container col-md-6 col-xs-6 pub ${publisher.stream.streamId === speakingPublisherId ? "speaking" : ""} ${getUserGender(publisher)}`}
@@ -1237,20 +1275,21 @@ const Meeting = () => {
                 </div>
               ))}
             </div>
+            <Emoji />
           </div>
+          {isCanvasModalOpen && (
+            <CanvasModal
+              onClose={() => setIsCanvasModalOpen(false)}
+              keywordsIndex={keywordsIndex}
+            />
+          )}
+          {!isOpenCam ? (
+            <div ref={captureRef} className="hidden">
+              <UserVideoComponent2 />
+            </div>
+          ) : null}
         </div>
       )}
-      {isCanvasModalOpen && (
-        <CanvasModal
-          onClose={() => setIsCanvasModalOpen(false)}
-          keywordsIndex={keywordsIndex}
-        />
-      )}
-      {!isOpenCam ? (
-        <div ref={captureRef} className="hidden">
-          <UserVideoComponent2 />
-        </div>
-      ) : null}
     </>
   ) : (
     <>
