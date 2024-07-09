@@ -24,13 +24,15 @@ export default function UserVideoComponent(props: {
           className={`relative streamcomponent ${props.className}`}
           ref={streamComponentRef}
         >
+          <div className="emoji-container absolute w-full h-full pointer-events-none flex items-center justify-center">
+            {" "}
+          </div>
           <div className="arrow-container hidden" id="arrow">
             <div className="arrow-body">
               <div className="arrow-head"></div>
             </div>
           </div>
           <OpenViduVideoComponent streamManager={props.streamManager} />
-          <div className="emoji-container absolute w-full h-full top-0 left-0 pointer-events-none"></div>
           <div>
             <p className="nickname">{nickname}</p>
           </div>
