@@ -5,6 +5,7 @@ interface RenderWinnerChoiceOptionsProps {
   voteResults: string | null;
   selectedUser: string | null;
   handleWinnerPrizeSubmit: (user: string, otherUsers: string[]) => void;
+  winnerName: string;
 }
 
 const RenderWinnerChoiceOptions: React.FC<RenderWinnerChoiceOptionsProps> = ({
@@ -12,14 +13,28 @@ const RenderWinnerChoiceOptions: React.FC<RenderWinnerChoiceOptionsProps> = ({
   voteResults,
   selectedUser,
   handleWinnerPrizeSubmit,
+  winnerName,
 }) => {
   const otherUsers = Object.keys(capturedPhoto).filter(
     user => user !== voteResults,
   );
 
+  const getUserGender = (user: string): string | null => {
+    const userStream = document.getElementById(user);
+    return userStream ? userStream.dataset.gender! : null;
+  };
+
+  const winnerGender = getUserGender(winnerName);
+
+  const filteredUsers = otherUsers.filter(user => {
+    const gender = getUserGender(user);
+    console.log(gender, winnerGender, "성별", user, winnerName);
+    return gender !== winnerGender;
+  });
+
   return (
     <>
-      {otherUsers.map((user, index) => (
+      {filteredUsers.map((user, index) => (
         <div
           key={index}
           className={`${
