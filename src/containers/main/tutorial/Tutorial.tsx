@@ -24,7 +24,7 @@ const Tutorial = () => {
   };
   return (
     <div
-      className="fixed top-10 left-[-350px] w-[400px] bg-amber-100 rounded-3xl shadow-md transition-all duration-300 hover:left-5"
+      className="fixed top-10 left-[-350px] w-[400px] bg-amber-100 rounded-3xl shadow-xl transition-all duration-300 hover:left-5"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
