@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Friend from "./Friend";
 import Chat from "./Chat";
 import { commonSocketState, onlineListState } from "@/app/store/commonSocket";
@@ -17,7 +17,7 @@ interface FriendListPros {
 
 const FriendList: React.FC<FriendListPros> = ({ friendsList }) => {
   const commonSocket = useRecoilValue(commonSocketState);
-  const onlineList = useRecoilValue(onlineListState);
+  const [onlineList, setOnlineList] = useRecoilState(onlineListState);
   const [newMessageSenders, setNewMessageSenders] = useRecoilState(
     newMessageSenderState,
   );
@@ -70,6 +70,43 @@ const FriendList: React.FC<FriendListPros> = ({ friendsList }) => {
     }
     return false;
   };
+
+  useEffect(() => {
+    if (commonSocket) {
+      commonSocket.emit("friendStat");
+      commonSocket.on("friendStat", res => {
+        const onlineList = sessionStorage.getItem("onlineFriends");
+        if (!onlineList || onlineList.length === 0) {
+          const newList: string[] = [];
+          res.forEach((el: any) => {
+            const key = Object.keys(el)[0];
+            if (el[key]) {
+              newList.push(key);
+            }
+          });
+          console.log("friend state new List!!", newList);
+          setOnlineList(newList);
+          sessionStorage.setItem("onlineFriends", JSON.stringify(newList));
+        } else {
+          const prevList = JSON.parse(onlineList);
+          res.forEach((el: any) => {
+            const key = Object.keys(el)[0];
+            if (el[key]) {
+              prevList.push(key);
+            }
+          });
+          const newList = Array.from(new Set(prevList)) as string[];
+          console.log("update online list: ", newList);
+          sessionStorage.setItem("onlineFriends", JSON.stringify(newList));
+          setOnlineList(newList);
+        }
+      });
+    }
+
+    return () => {
+      commonSocket?.off("friendStat");
+    };
+  }, []);
 
   return (
     <div
