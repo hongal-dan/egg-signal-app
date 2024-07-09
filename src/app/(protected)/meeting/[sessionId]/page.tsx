@@ -833,12 +833,7 @@ const Meeting = () => {
         emojiElement.className =
           "emoji absolute text-5xl animate__animated animate__bounceInUp";
         const emojiImage = (
-          <Image
-            src={emojiIndex}
-            alt=""
-            width={56}
-            height={56}
-          />
+          <Image src={emojiIndex} alt="" width={56} height={56} />
         );
         createRoot(emojiElement).render(emojiImage);
 
@@ -1051,7 +1046,7 @@ const Meeting = () => {
   };
 
   const OffSocketEvent = () => {
-    if(socket) {
+    if (socket) {
       socket.off("keyword");
       socket.off("finish");
       socket.off("chooseResult");
@@ -1065,7 +1060,7 @@ const Meeting = () => {
       socket.off("cupidResult");
       socket.off("cam");
     }
-  }
+  };
 
   const [, setMin] = useState(5); // todo: 시작 시간 서버로부터 받기
   const [sec, setSec] = useState(0);
@@ -1183,7 +1178,6 @@ const Meeting = () => {
       console.log("startTimer", sessionId, token, participantName);
       socket?.emit("startTimer", { sessionId: sessionId });
       console.log(socket, "socket============================================");
-
     }
     if (isFull && subscribers.length !== 5) {
       if (keywordRef.current) {
@@ -1323,19 +1317,19 @@ const Meeting = () => {
             </div>
             <Emoji />
           </div>
-          {isCanvasModalOpen && (
-            <CanvasModal
-              onClose={() => setIsCanvasModalOpen(false)}
-              keywordsIndex={keywordsIndex}
-            />
-          )}
-          {!isOpenCam ? (
-            <div ref={captureRef} className="hidden">
-              <UserVideoComponent2 />
-            </div>
-          ) : null}
         </div>
       )}
+      {isCanvasModalOpen && (
+        <CanvasModal
+          onClose={() => setIsCanvasModalOpen(false)}
+          keywordsIndex={keywordsIndex}
+        />
+      )}
+      {!isOpenCam ? (
+        <div ref={captureRef} className="hidden">
+          <UserVideoComponent2 />
+        </div>
+      ) : null}
     </>
   ) : (
     <>
