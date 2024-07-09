@@ -10,6 +10,8 @@
   "rules": {
     "semi": [1, "always"],
     "quotes": [1, "double"],
+    "no-unused-vars": "warn",
+    "@typescript-eslint/no-unused-vars": "warn",
     "@typescript-eslint/no-explicit-any": 1
   }
 }
