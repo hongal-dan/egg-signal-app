@@ -687,6 +687,7 @@ const Meeting = () => {
             setIsFinish(true);
             if (session) {
               session.disconnect();
+              setSession(undefined);
             }
             // leaveSession();
           }
