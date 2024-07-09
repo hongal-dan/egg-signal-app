@@ -161,3 +161,7 @@ background-position: right center , 17px center , 0px center;
   cursor: not-allowed;
 }
 
+
+.custom-shadow {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}
