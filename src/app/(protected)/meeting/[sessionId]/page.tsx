@@ -1152,7 +1152,7 @@ const Meeting = () => {
       console.log(socket, "socket============================================");
 
     }
-    if (isFull && subscribers.length !== 5) {
+    if (isFull && subscribers.length !== 5  && !isFinish) {
       if (keywordRef.current) {
         keywordRef.current.innerText =
           "누군가가 연결을 해제하여 10초 후 메인으로 이동합니다.";
