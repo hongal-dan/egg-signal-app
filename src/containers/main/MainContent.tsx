@@ -84,6 +84,7 @@ const MainContent = () => {
 
   const [, setDefaultUserInfo] = useRecoilState(defaultSessionState);
   const [chatExpanded, setChatExpanded] = useState(false);
+  const notiRef = useRef<HTMLDivElement>(null);
 
   const checkOnlineFriends = () => {
     const onlineList = sessionStorage.getItem("onlineFriends");
@@ -407,6 +408,23 @@ const MainContent = () => {
     }
   };
 
+  const handleClickOutside = (event: MouseEvent) => {
+    if (notiRef.current && !notiRef.current.contains(event.target as Node)) {
+      setIsNotiVisible(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isNotiVisible) {
+      document.addEventListener("mousedown", handleClickOutside);
+    } else {
+      document.removeEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isNotiVisible]);
+
   return (
     <>
       <div onClick={handleMainContentClick}>
@@ -428,7 +446,10 @@ const MainContent = () => {
                 )}
                 <button onClick={toggleNotiList}>🔔</button>
                 {isNotiVisible && (
-                  <div className="w-[340px] h-[500px] absolute top-0 left-[50px] bg-zinc-200 shadow-md rounded-lg p-4 z-10">
+                  <div
+                    ref={notiRef}
+                    className="w-[340px] h-[500px] absolute top-0 left-[50px] bg-zinc-200 shadow-md rounded-lg p-4 z-10"
+                  >
                     <Notifications />
                   </div>
                 )}
