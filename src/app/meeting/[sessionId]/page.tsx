@@ -29,6 +29,7 @@ import { defaultSessionState, winnerSessionState } from "@/app/store/ovInfo";
 import MatchingResult from "@/containers/meeting/MatchingResult";
 import "animate.css";
 import Emoji from "@/containers/meeting/Emoji";
+import { createRoot } from "react-dom/client";
 
 type chooseResult = {
   sender: string;
@@ -958,13 +959,18 @@ const Meeting = () => {
       if (targetUserVideo) {
         const emojiElement = document.createElement("div");
         emojiElement.className =
-          "absolute text-5xl animate__animated animate__bounceInUp";
-        emojiElement.innerText = emojiIndex;
+          "emoji absolute text-5xl animate__animated animate__bounceInUp";
+        const emojiImage = (
+          <Image
+            src={`/data/emoji/${emojiIndex}`}
+            alt=""
+            width={56}
+            height={56}
+          />
+        );
+        createRoot(emojiElement).render(emojiImage);
 
-        const emojiContainer =
-          targetUserVideo.querySelector(".emoji-container");
-        if (emojiContainer) {
-          emojiContainer.appendChild(emojiElement);
+        emojiContainer.appendChild(emojiElement);
 
           setTimeout(() => {
             emojiContainer.removeChild(emojiElement);
