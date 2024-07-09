@@ -50,6 +50,7 @@ const WinnerChoiceStage: React.FC<WinnerChoiceStageProps> = ({
                 voteResults={voteResults}
                 selectedUser={selectedUser}
                 handleWinnerPrizeSubmit={handleWinnerPrizeSubmit}
+                winnerName={testName}
               />
             </div>
           </div>
