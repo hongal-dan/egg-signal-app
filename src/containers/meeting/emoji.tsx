@@ -11,11 +11,19 @@ function Emoji() {
   const userInfo = useRecoilValue(userState);
   const testName = useRecoilValue(testState); //FIXME 테스트용 랜덤 닉네임 저장, 배포 전에 삭제해야함
 
-  const handleEmojiClick = (emojiIndex: string) => {
-    console.log(testName, emojiIndex, "이모티콘 보냅니다");
+  const emojiNames = [
+    "smile.png",
+    "loudLaugh.png",
+    "party.png",
+    "scream.png",
+    "sad.png",
+    "cry.png",
+  ];
+
+  const handleEmojiClick = (emojiIndex: number) => {
     socket?.emit("emoji", {
       nickname: testName,
-      emojiIndex: emojiIndex,
+      emojiIndex: emojiNames[emojiIndex],
     });
   };
 
@@ -25,7 +33,7 @@ function Emoji() {
         {["😊", "🤣", "🥳", "😱", "😢", "😭"].map((emoji, index) => (
           <button
             key={index}
-            onClick={() => handleEmojiClick(emoji)}
+            onClick={() => handleEmojiClick(index)}
             className="m-1 p-1"
           >
             <span className="text-2xl">{emoji}</span>
