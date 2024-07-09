@@ -83,6 +83,10 @@ const MainContent = () => {
   const [notiList, setNotiList] = useRecoilState(notiListState);
 
   const [, setDefaultUserInfo] = useRecoilState(defaultSessionState);
+  const [isVideoOn, setIsVideoOn] = useState<boolean>(true);
+  const [isVideoLoading, setIsVideoLoading] = useState<boolean>(true);
+  const loadingVideoRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   const checkOnlineFriends = () => {
     const onlineList = sessionStorage.getItem("onlineFriends");
@@ -345,10 +349,11 @@ const MainContent = () => {
       };
 
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
-      const video = document.getElementById("myCam");
+      const video = videoRef.current!;
       if (video && video instanceof HTMLVideoElement) {
         video.srcObject = stream;
       }
+      setIsVideoLoading(false);
     } catch (error) {
       console.error("Error accessing the webcam: ", error);
     }
@@ -362,7 +367,6 @@ const MainContent = () => {
       OffCommonSocketEvent();
       commonSocket?.disconnect();
       window.location.reload();
-
     } catch (error) {
       console.error("Log out Error: ", error);
     }
@@ -377,12 +381,25 @@ const MainContent = () => {
     commonSocket?.off("resAcceptFriend");
     commonSocket?.off("friendRequestAccepted");
     commonSocket?.off("friendStat");
-  }
+  };
+
+  const toggleCam = () => {
+    videoRef.current?.classList.toggle("hidden");
+    isVideoOn ? setIsVideoOn(false) : setIsVideoOn(true);
+  };
 
   useEffect(() => {
     startWebCam();
     checkOnlineFriends();
+
+    return setIsVideoLoading(true);
   }, []);
+
+  useEffect(() => {
+    if (!isVideoLoading) {
+      loadingVideoRef.current?.classList.add("bg-[url('/img/camoff.png')]");
+    }
+  }, [isVideoLoading]);
 
   useEffect(() => {
     if (isEnterLoading && enterBtnRef.current) {
@@ -401,42 +418,54 @@ const MainContent = () => {
   }, [isFriendListVisible]);
 
   return (
-    <div>
-      <button
-        className="fixed top-4 right-4 z-10 border-b border-gray-500 text-gray-500"
-        onClick={handleLogout}
-      >
-        Log out
-      </button>
-      <div className="grid grid-cols-3 md:h-screen">
-        <div className="flex justify-center items-center">
-          <Tutorial />
-          <MainChat />
-        </div>
-        <div className="grid grid-rows-3 justify-center md:h-screen">
-          <div className="w-full flex items-end justify-end gap-[10px] mb-5">
-            <div className="w-10 h-10 relative flex items-center justify-center text-xl bg-white rounded-2xl shadow">
-              {notiList.length !== 0 && (
-                <div className="absolute left-[-5px] top-[-5px] w-4 h-4 rounded-full bg-rose-500" />
-              )}
-              <button onClick={toggleNotiList}>🔔</button>
-              {isNotiVisible && (
-                <div className="w-[340px] h-[500px] absolute top-0 left-[50px] bg-zinc-200 shadow-md rounded-lg p-4 z-10">
-                  <Notifications />
-                </div>
-              )}
+    <>
+        <Tutorial />
+        <MainChat />
+      <div className="h-full flex items-center justify-center">
+        <button
+          className="fixed top-4 right-4 z-10 border-b border-gray-500 text-gray-500"
+          onClick={handleLogout}
+        >
+          Log out
+        </button>
+        <div className="w-full flex justify-center items-center">
+          <div className="flex flex-col items-center">
+            <div className="flex justify-end w-full mb-2">
+              <div className="w-10 h-10 relative flex items-center justify-center text-xl bg-white rounded-2xl custom-shadow">
+                {notiList.length !== 0 && (
+                  <div className="absolute left-[-5px] top-[-5px] w-4 h-4 rounded-full bg-rose-500" />
+                )}
+                <button onClick={toggleNotiList}>🔔</button>
+                {isNotiVisible && (
+                  <div className="w-[340px] h-[500px] absolute top-0 left-[50px] bg-zinc-200 shadow-md rounded-lg p-4 z-10">
+                    <Notifications />
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-          <video
-            id="myCam"
-            className="mx-auto w-[320px] h-[240px]"
-            autoPlay
-            playsInline
-          ></video>
-          <div className="grid grid-rows-2">
-            <div>
+            <div className="w-[320px] h-[240px] rounded-xl bg-contain bg-no-repeat bg-center border-4 border-[#FAE4C9] custom-shadow" ref={loadingVideoRef}>
+              <video
+                id="myCam"
+                className="mx-auto rounded-xl"
+                autoPlay
+                playsInline
+                ref={videoRef}
+              ></video>
+            </div>
+            <div className="m-4">
+              <label className="inline-flex items-center gap-2 cursor-pointer">
+                <input
+                  role="switch"
+                  type="checkbox"
+                  className="cam-input custom-shadow"
+                  onClick={toggleCam}
+                  defaultChecked={isVideoOn}
+                />
+              </label>
+            </div>
+            <div className="w-full mt-4">
               <button
-                className="w-full h-12 bg-amber-400 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mb-1 z-10 relative"
+                className="w-full h-12 bg-amber-400 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mb-1 z-10 relative custom-shadow"
                 ref={startButton}
                 onClick={handleLoadingOn}
               >
@@ -473,25 +502,25 @@ const MainContent = () => {
             </div>
           </div>
         </div>
-      </div>
-      <div className="z-10 absolute bottom-10 right-10">
-        <button
-          className="relative w-48 h-10 flex items-center justify-center bg-amber-100 rounded-2xl shadow"
-          onClick={toggleFriendList}
-        >
-          {(messageAlarm ||
-            (newMessageSenders && newMessageSenders.length !== 0)) && (
-            <div className="absolute left-[-5px] top-[-5px] w-4 h-4 rounded-full bg-rose-500" />
+        <div className="z-10 absolute bottom-10 right-10">
+          <button
+            className="relative w-48 h-10 flex items-center justify-center bg-amber-100 rounded-2xl custom-shadow"
+            onClick={toggleFriendList}
+          >
+            {(messageAlarm ||
+              (newMessageSenders && newMessageSenders.length !== 0)) && (
+              <div className="absolute left-[-5px] top-[-5px] w-4 h-4 rounded-full bg-rose-500" />
+            )}
+            <p className="text-xl font-bold">친구</p>
+          </button>
+          {isFriendListVisible && (
+            <div className="absolute bottom-[50px] right-1 bg-white shadow-md rounded-lg p-4 z-10">
+              <FriendList friendsList={currentUser.friends} />
+            </div>
           )}
-          <p className="text-xl font-bold">친구</p>
-        </button>
-        {isFriendListVisible && (
-          <div className="absolute bottom-[50px] right-1 bg-white shadow-md rounded-lg p-4 z-10">
-            <FriendList friendsList={currentUser.friends} />
-          </div>
-        )}
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 
