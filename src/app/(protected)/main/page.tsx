@@ -31,7 +31,7 @@ const Main = () => {
   }, []);
 
   return isMounted ? (
-    <div>{isError ? <ServerError /> : <MainContent />}</div>
+    <>{isError ? <ServerError /> : <MainContent />}</>
   ) : (
     <div className="w-[100vw] h-[100vh] flex flex-col justify-center items-center gap-24">
       <div className="flex flex-col items-center gap-4 text-3xl">
