@@ -180,12 +180,10 @@ const MainContent = () => {
     });
 
     newCommonSocket.on("resAcceptFriend", res => {
-      console.log("내가 상대방 요청 수락!! ", res);
       updateUserInfo();
     });
 
     newCommonSocket.on("friendRequestAccepted", res => {
-      console.log("상대방이 내 요청 수락!! ", res);
       updateUserInfo();
     });
 
