@@ -49,17 +49,12 @@ const Meeting = () => {
   const [keywordsIndex, setKeywordsIndex] = useState(0);
   const [, setIsChosen] = useRecoilState(isChosenState);
 
-  // const [isLoveMode, setIsLoveMode] = useState<boolean>(false);
-  // const [isChooseMode, setIsChooseMode] = useState<boolean>(false);
-  // const [isOneToOneMode, setIsOneToOneMode] = useState<boolean>(false);
   const captureRef = useRef<HTMLDivElement>(null);
   const keywordRef = useRef<HTMLParagraphElement>(null);
   const pubRef = useRef<HTMLDivElement>(null);
   const subRef = useRef<Array<HTMLDivElement | null>>([]);
   const videoContainerRef = useRef<HTMLDivElement>(null);
   const loadingRef = useRef<HTMLDivElement>(null);
-
-  // const socket = useRecoilValue(meetingSocketState);
 
   const [avatar, setAvatar] = useRecoilState(avatarState);
   const [isOpenCam, setIsOpenCam] = useState<boolean>(false);
@@ -198,9 +193,6 @@ const Meeting = () => {
 
     const newSession = OV.initSession();
     setSession(newSession);
-    // const { sessionId, token } = JSON.parse(
-    //   sessionStorage.getItem("ovInfo")!,
-    // );
     // Connect to the session
     newSession
       .connect(token, {
@@ -500,9 +492,6 @@ const Meeting = () => {
   };
 
   const openKeyword = (random: number) => {
-    // if (keywordRef.current) {
-    //   keywordRef.current.innerText = keywords[random];
-    // }
     return keywords[random];
   };
 
@@ -665,8 +654,6 @@ const Meeting = () => {
   const meetingEvent = () => {
     socket?.on("keyword", message => {
       try {
-        // time.current = 240; // 1분 지남
-        // setProgressWidth(`${((totalTime - time.current) / totalTime) * 100}%`);
         console.log("keyword Event: ", message);
         console.log("random user: ", message.getRandomParticipant);
         randomUser(parseInt(message.message), message.getRandomParticipant);
@@ -971,8 +958,6 @@ const Meeting = () => {
   const meetingCamEvent = () => {
     socket?.on("cam", message => {
       try {
-        // time.current = 120; // 3분 지남 -지금 서버 기준 (나중에 시간 서버 시간 바뀌면 같이 바꿔야 함!)
-        // setProgressWidth(`${((totalTime - time.current) / totalTime) * 100}%`);
         console.log("cam Event: ", message);
         let countdown = 5;
         const intervalId = setInterval(() => {
@@ -1032,13 +1017,6 @@ const Meeting = () => {
     }
   };
 
-  // const [, setMin] = useState(5); // todo: 시작 시간 서버로부터 받기
-  // const [sec, setSec] = useState(0);
-  // const time = useRef(300);
-  // const timerId = useRef<null | NodeJS.Timeout>(null);
-  // const totalTime = 300;
-  // const [progressWidth, setProgressWidth] = useState("0%");
-
   useEffect(() => {
     const timeOut = setTimeout(() => {
       console.log("지금 방의 상태는..?", isFullRef.current);
@@ -1058,14 +1036,7 @@ const Meeting = () => {
       }
     }, 60000); // 60초 동안 6명 안들어 오면 나가기
 
-    // timerId.current = setInterval(() => {
-    //   setMin(Math.floor(time.current / 60));
-    //   setSec(time.current % 60);
-    //   time.current -= 1;
-    // }, 1000);
-
     return () => {
-      // clearInterval(timerId.current!);
       clearTimeout(timeOut);
     };
   }, []);
@@ -1073,14 +1044,6 @@ const Meeting = () => {
   useEffect(() => {
     isFullRef.current = isFull;
   }, [isFull]);
-
-  // useEffect(() => {
-  //   if (time.current <= 0) {
-  //     console.log("time out");
-  //     clearInterval(timerId.current!);
-  //   }
-  //   setProgressWidth(`${((totalTime - time.current) / totalTime) * 100}%`);
-  // }, [sec]);
 
   useEffect(() => {
     if (!publisher) {
@@ -1216,16 +1179,6 @@ const Meeting = () => {
                 onClick={() => leaveSession()}
                 value="Leave session"
               />
-              {/* <div className="flex items-center">
-                <Image src="/img/egg1.png" alt="" width={50} height={50} />
-                <p
-                  className="bg-orange-300 h-[20px] rounded-lg"
-                  style={{
-                    width: progressWidth,
-                  }}
-                ></p>
-                <Image src="/img/egg2.png" alt="" width={50} height={50} />
-              </div> */}
               <EggTimer setTime={5} />
             </div>
             <div className="keyword-wrapper">
