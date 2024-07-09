@@ -73,6 +73,7 @@ const FriendList: React.FC<FriendListPros> = ({ friendsList }) => {
 
   useEffect(() => {
     if (commonSocket) {
+      commonSocket.emit("friendStat");
       commonSocket.on("friendStat", res => {
         const onlineList = sessionStorage.getItem("onlineFriends");
         if (!onlineList || onlineList.length === 0) {
