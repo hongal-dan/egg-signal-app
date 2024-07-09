@@ -19,9 +19,10 @@ const RenderWinnerChoiceOptions: React.FC<RenderWinnerChoiceOptionsProps> = ({
     user => user !== voteResults,
   );
 
-  const getUserGender = (user: string): string | null => {
-    const userStream = document.getElementById(user);
-    return userStream ? userStream.dataset.gender! : null;
+  const getUserGender = (user: string): string => {
+    const userStream = document.getElementById(user)!;
+    if (userStream.classList.contains("MALE")) return "MALE";
+    return "FEMALE";
   };
 
   const winnerGender = getUserGender(winnerName);
