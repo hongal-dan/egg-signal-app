@@ -98,7 +98,6 @@ const CanvasModal: React.FC<CanvasModalProps> = ({
           if (t > 1) return t - 1;
           else {
             if (!hasSubmittedRef.current) {
-              console.log(users);
               handleVoteSubmit(users[0]);
               setHasSubmitted(true);
             }
@@ -253,7 +252,6 @@ const CanvasModal: React.FC<CanvasModalProps> = ({
     const blob = await new Promise<Blob | null>(resolve =>
       canvas?.toBlob(resolve, "image/webp"),
     );
-    console.log(testName); //FIXME 테스트용 랜덤 닉네임 저장, 배포 전에 삭제해야함
     const capturedPhoto = captureVideoFrame();
     setHasSubmitted(true);
     if (blob) {

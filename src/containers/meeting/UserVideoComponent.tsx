@@ -16,23 +16,23 @@ export default function UserVideoComponent(props: {
   // JSON 문자열을 파싱
   let nickname = "";
   nickname = JSON.parse(jsonString).clientData;
-  // console.log(rawData)
 
   return (
-    <div className="stream-wrapper">
+    <div className="stream-wrapper relative w-full h-full">
       {props.streamManager !== undefined ? (
         <div
-          className={`streamcomponent ${props.className}`}
+          className={`relative streamcomponent ${props.className}`}
           ref={streamComponentRef}
         >
+          <div className="emoji-container absolute w-full h-full pointer-events-none flex items-center justify-center">
+            {" "}
+          </div>
           <div className="arrow-container hidden" id="arrow">
             <div className="arrow-body">
               <div className="arrow-head"></div>
             </div>
           </div>
-          <OpenViduVideoComponent
-            streamManager={props.streamManager}
-          />
+          <OpenViduVideoComponent streamManager={props.streamManager} />
           <div>
             <p className="nickname">{nickname}</p>
           </div>
