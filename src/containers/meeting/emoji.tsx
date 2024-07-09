@@ -7,10 +7,12 @@ import { testState } from "@/app/store/userInfo"; //FIXME 테스트용 랜덤 �
 
 function Emoji() {
   const socket = useRecoilValue(meetingSocketState);
-  const userInfo = useRecoilValue(userState);
+  // const userInfo = useRecoilValue(userState);
   const testName = useRecoilValue(testState); //FIXME 테스트용 랜덤 닉네임 저장, 배포 전에 삭제해야함
 
   const emojiNames = [
+    "/data/emoji/thumbsUp.png",
+    "/data/emoji/thumbsDown.png",
     "/data/emoji/smile.png",
     "/data/emoji/loudLaugh.png",
     "/data/emoji/party.png",
