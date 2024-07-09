@@ -29,7 +29,7 @@ import { defaultSessionState, winnerSessionState } from "@/app/store/ovInfo";
 import MatchingResult from "@/containers/meeting/MatchingResult";
 import EggTimer from "@/containers/meeting/EggTimer";
 import "animate.css";
-import Emoji from "@/containers/meeting/emoji";
+import Emoji from "@/containers/meeting/Emoji";
 import { createRoot } from "react-dom/client";
 
 type chooseResult = {
@@ -1273,19 +1273,19 @@ const Meeting = () => {
             </div>
             <Emoji />
           </div>
-          {isCanvasModalOpen && (
-            <CanvasModal
-              onClose={() => setIsCanvasModalOpen(false)}
-              keywordsIndex={keywordsIndex}
-            />
-          )}
-          {!isOpenCam ? (
-            <div ref={captureRef} className="hidden">
-              <UserVideoComponent2 />
-            </div>
-          ) : null}
         </div>
       )}
+      {isCanvasModalOpen && (
+        <CanvasModal
+          onClose={() => setIsCanvasModalOpen(false)}
+          keywordsIndex={keywordsIndex}
+        />
+      )}
+      {!isOpenCam ? (
+        <div ref={captureRef} className="hidden">
+          <UserVideoComponent2 />
+        </div>
+      ) : null}
     </>
   ) : (
     <>
