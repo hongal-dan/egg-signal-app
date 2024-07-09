@@ -21,7 +21,7 @@ const data = [
   },
   {
     title: "4. 1차 선택과 1:1 대화",
-    imgUrl: "cupid01",
+    imgUrl: "cupid",
     description:
       "더 알아가고 싶은 사람을 선택하세요. 서로 선택한 경우, 잠시 둘만의 대화를 나눌 수 있어요.",
   },
