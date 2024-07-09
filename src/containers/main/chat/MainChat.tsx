@@ -18,7 +18,6 @@ const MainChat: React.FC<MainChatProps> = ({
     { message: string; nickname: string }[]
   >([]);
   const messagesEndRef = useRef<HTMLUListElement>(null);
-  const [, setIsSending] = useState(false); // 메시지 전송 상태 추가
 
   useEffect(() => {
     const handleHomeChat = (data: { message: string; nickname: string }) => {
@@ -43,13 +42,9 @@ const MainChat: React.FC<MainChatProps> = ({
     e.preventDefault();
     if (messageInput.trim() === "") {
       return;
-    } // isSending 확인 추가
-    // isSending 확인 추가
-    setIsSending(true);
-    console.log(messageInput);
+    }
     commonSocket?.emit("homeChat", { message: messageInput });
     setMessageInput("");
-    setIsSending(false); // 메시지 전송 후 상태 초기화
   };
 
   const handleChatHeaderClick = (event: React.MouseEvent) => {
