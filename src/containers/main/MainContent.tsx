@@ -280,12 +280,12 @@ const MainContent = () => {
     setIsLoading(false);
   };
 
-  const toggleFriendList = (e:(React.MouseEvent<HTMLButtonElement>)) => {
+  const toggleFriendList = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
     setIsFriendListVisible(prev => !prev);
   };
 
-  const toggleNotiList = (e:(React.MouseEvent<HTMLButtonElement>)) => {
+  const toggleNotiList = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
     setIsNotiVisible(prev => !prev);
   };
@@ -375,11 +375,12 @@ const MainContent = () => {
 
   return (
     <>
-        <Tutorial />
-        <MainChat 
-        chatExpanded={chatExpanded}
-        setChatExpanded={setChatExpanded}/>
-      <div onClick={handleMainContentClick} className="h-full flex items-center justify-center">
+      <Tutorial />
+      <MainChat chatExpanded={chatExpanded} setChatExpanded={setChatExpanded} />
+      <div
+        onClick={handleMainContentClick}
+        className="h-full flex items-center justify-center"
+      >
         <button
           className="fixed top-4 right-4 z-10 border-b border-gray-500 text-gray-500"
           onClick={handleLogout}
@@ -395,13 +396,20 @@ const MainContent = () => {
                 )}
                 <button onClick={toggleNotiList}>🔔</button>
                 {isNotiVisible && (
-                  <div ref={notiRef} onClick={(e) => e.stopPropagation()} className="w-[340px] h-[500px] absolute top-0 left-[50px] bg-zinc-200 shadow-md rounded-lg p-4 z-10">
+                  <div
+                    ref={notiRef}
+                    onClick={e => e.stopPropagation()}
+                    className="w-[340px] h-[500px] absolute top-0 left-[50px] bg-zinc-200 shadow-md rounded-lg p-4 z-10"
+                  >
                     <Notifications />
                   </div>
                 )}
               </div>
             </div>
-            <div className="w-[320px] h-[240px] rounded-xl bg-contain bg-no-repeat bg-center border-4 border-[#FAE4C9] custom-shadow" ref={loadingVideoRef}>
+            <div
+              className="w-[320px] h-[240px] rounded-xl bg-contain bg-no-repeat bg-center border-4 border-[#FAE4C9] custom-shadow"
+              ref={loadingVideoRef}
+            >
               <video
                 id="myCam"
                 className="mx-auto rounded-xl"
@@ -472,7 +480,10 @@ const MainContent = () => {
             <p className="text-xl font-bold">친구</p>
           </button>
           {isFriendListVisible && (
-            <div onClick={(e) => e.stopPropagation()} className="absolute bottom-[50px] right-1 bg-white shadow-md rounded-lg p-4 z-10 custom-shadow">
+            <div
+              onClick={e => e.stopPropagation()}
+              className="absolute bottom-[50px] right-1 bg-white shadow-md rounded-lg p-4 z-10 custom-shadow"
+            >
               <FriendList friendsList={currentUser.friends} />
             </div>
           )}
