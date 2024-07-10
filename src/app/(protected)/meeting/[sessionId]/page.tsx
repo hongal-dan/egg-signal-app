@@ -29,7 +29,7 @@ import { defaultSessionState, winnerSessionState } from "@/app/store/ovInfo";
 import MatchingResult from "@/containers/meeting/MatchingResult";
 import EggTimer from "@/containers/meeting/EggTimer";
 import "animate.css";
-import Emoji from "@/containers/meeting/Emoji";
+import Emoji from "@/containers/meeting/emoji";
 import { createRoot } from "react-dom/client";
 import Swal from "sweetalert2";
 
@@ -1147,7 +1147,7 @@ const Meeting = () => {
       socket?.emit("startTimer", { sessionId: sessionId });
       console.log(socket, "socket============================================");
     }
-    if (isFull && subscribers.length !== 5  && !isFinish) {
+    if (isFull && subscribers.length !== 5 && !isFinish) {
       if (keywordRef.current) {
         keywordRef.current.innerText =
           "누군가가 연결을 해제하여 10초 후 메인으로 이동합니다.";
@@ -1201,12 +1201,12 @@ const Meeting = () => {
       cancelButtonColor: "#d33",
       confirmButtonText: "나갈게요",
       cancelButtonText: "취소",
-    }).then((result) => {
+    }).then(result => {
       if (result.isConfirmed) {
         leaveSession();
       }
     });
-  }
+  };
 
   return !avatar ? (
     <AvatarCollection />
