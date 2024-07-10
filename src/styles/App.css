@@ -8,7 +8,7 @@ html {
   padding: 0;
 }
 
-.streamcomponent.speaking {
+.speaking {
   @apply w-full h-full shadow-lg shadow-lime-500;
 }
 
