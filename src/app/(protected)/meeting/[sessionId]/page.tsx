@@ -1028,7 +1028,6 @@ const Meeting = () => {
               keywordRef.current.innerText =
                 "당신은 선택받지 못했습니다. 1:1 대화 중인 참여자들의 소리를 들을 수 없어요.";
             }
-            console.log("====lover 음소거 시작====");
             toggleLoverAudio(loser, false); // 매칭된 사람들 오디오 차단
             loser.forEach(loser => {
               const loserElementContainer = document.getElementById(
@@ -1048,10 +1047,8 @@ const Meeting = () => {
             setTimeout(() => {
               if (keywordRef.current) {
                 keywordRef.current.innerText = "";
-                console.log("미선택자 p태그 초기화", keywordRef.current);
               }
               // unMuteAudio();
-              console.log("====lover 음소거 해제====");
               toggleLoverAudio(loser, true); // 오디오 재개
               // }, 60000); // 1분 후 음소거 해제
             }, 20000); //FIXME 시연용 20초 후 원 위치
