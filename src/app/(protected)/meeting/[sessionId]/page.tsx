@@ -924,10 +924,12 @@ const Meeting = () => {
           const participantsArray: Array<string> = response;
           console.log("Introduce 도착", participantsArray);
           // let idx = 0;
-          const idx = 0; //FIXME 시연용
+          // const participantElement = document.getElementById(
+          //   participantsArray[idx],
+          // ) as HTMLDivElement;
           const participantElement = document.getElementById(
-            participantsArray[idx],
-          ) as HTMLDivElement;
+            userInfo.nickname,
+          ) as HTMLDivElement; //FIXME 시연용 -publisher만 1번 뜸
           changePresentationMode(
             participantElement,
             // 10,
@@ -1212,7 +1214,7 @@ const Meeting = () => {
     }
     meetingCupidResultEvent();
 
-    if (subscribers.length === 5) {
+    if (subscribers.length === 1) {
       if (getUserGender(publisher!) === "MALE") {
         sortSubscribers("MALE");
       } else {
@@ -1223,7 +1225,7 @@ const Meeting = () => {
       socket?.emit("startTimer", { sessionId: sessionId });
       console.log(socket, "socket============================================");
     }
-    if (isFull && subscribers.length !== 5 && !isFinish) {
+    if (isFull && subscribers.length !== 1 && !isFinish) {
       if (keywordRef.current) {
         keywordRef.current.innerText =
           "누군가가 연결을 해제하여 10초 후 메인으로 이동합니다.";
