@@ -31,6 +31,7 @@ import EggTimer from "@/containers/meeting/EggTimer";
 import "animate.css";
 import Emoji from "@/containers/meeting/Emoji";
 import { createRoot } from "react-dom/client";
+import Swal from "sweetalert2";
 
 type chooseResult = {
   sender: string;
@@ -311,6 +312,7 @@ const Meeting = () => {
     setPublisher(undefined);
     setSortedSubscribers([]);
     setIsFull(false);
+    setIsLastChoose(false);
     OffSocketEvent();
 
     if (!isSucceedFlag) {
@@ -685,6 +687,7 @@ const Meeting = () => {
             setIsFinish(true);
             if (session) {
               session.disconnect();
+              setSession(undefined);
             }
             // leaveSession();
           }
@@ -1144,7 +1147,7 @@ const Meeting = () => {
       socket?.emit("startTimer", { sessionId: sessionId });
       console.log(socket, "socket============================================");
     }
-    if (isFull && subscribers.length !== 5) {
+    if (isFull && subscribers.length !== 5  && !isFinish) {
       if (keywordRef.current) {
         keywordRef.current.innerText =
           "누군가가 연결을 해제하여 10초 후 메인으로 이동합니다.";
@@ -1185,6 +1188,26 @@ const Meeting = () => {
     };
   }, [avatar]);
 
+  const leaveHandler = () => {
+    Swal.fire({
+      title: "정말 나가시겠습니까?",
+      text: "지금 나가면 현재 미팅 방이 종료됩니다!",
+      imageUrl: "/img/500.png",
+      imageWidth: 200,
+      imageHeight: 200,
+      imageAlt: "crying eggs",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "나갈게요",
+      cancelButtonText: "취소",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        leaveSession();
+      }
+    });
+  }
+
   return !avatar ? (
     <AvatarCollection />
   ) : !isFinish ? (
@@ -1205,11 +1228,11 @@ const Meeting = () => {
           <div id="session">
             <div id="session-header">
               <input
-                className="btn btn-large btn-danger"
+                className="border-b border-gray-500 text-gray-500 cursor-pointer"
                 type="button"
                 id="buttonLeaveSession"
-                onClick={() => leaveSession()}
-                value="Leave session"
+                onClick={() => leaveHandler()}
+                value="종료하기"
               />
               <EggTimer setTime={5} />
             </div>
@@ -1226,13 +1249,13 @@ const Meeting = () => {
           <UserVideoComponent2 />
         </div> */}
             <div
-              className="relative col-md-6 video-container overflow-hidden"
+              className="relative col-md-6 video-container"
               ref={videoContainerRef}
             >
               {publisher !== undefined ? (
                 <div
                   // className={`stream-container col-md-6 col-xs-6 pub ${publisher.stream.streamId === speakingPublisherId ? "speaking" : ""} ${getUserGender(publisher)}`}
-                  className={`stream-container col-md-6 col-xs-6 pub ${getUserGender(publisher)}`}
+                  className={`stream-container col-md-6 col-xs-6 pub custom-shadow ${getUserGender(publisher)}`}
                   // onClick={() => handleMainVideoStream(publisher)}
                   id={getUserID(publisher)}
                   ref={pubRef}
@@ -1252,7 +1275,7 @@ const Meeting = () => {
                   key={sub.stream.streamId}
                   data-key={sub.stream.streamId}
                   // className={`stream-container col-md-6 col-xs-6 sub ${sub.stream.streamId === speakingPublisherId ? "speaking" : ""} ${getUserGender(sub)}`}
-                  className={`stream-container col-md-6 col-xs-6 sub ${getUserGender(sub)}`}
+                  className={`stream-container col-md-6 col-xs-6 sub custom-shadow ${getUserGender(sub)}`}
                   // onClick={() => handleMainVideoStream(sub)}
                   id={getUserID(sub)}
                   ref={el => {

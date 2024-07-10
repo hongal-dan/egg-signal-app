@@ -14,6 +14,7 @@ import { useRecoilValue } from "recoil";
 import { winnerSessionState } from "@/app/store/ovInfo";
 import { testState, userState } from "@/app/store/userInfo";
 import { useRouter } from "next/navigation";
+import Swal from "sweetalert2";
 
 const Matching = () => {
   const [session, setSession] = useState<Session | undefined>(undefined);
@@ -40,6 +41,22 @@ const Matching = () => {
     setPublisher(undefined);
     router.push("/main");
   };
+  
+  const leaveHandler = () => {
+    Swal.fire({
+      title: "정말 통화를 종료하시겠습니까?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "종료할게요",
+      cancelButtonText: "취소",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        leaveSession();
+      }
+    });
+   };
 
   const joinSession = () => {
     const OV = new OpenVidu();
@@ -180,7 +197,7 @@ const Matching = () => {
       </div>
       <div className="flex justify-center py-10">
         <button
-          onClick={leaveSession}
+          onClick={leaveHandler}
           className="bg-red-500 text-white rounded-xl font-bold py-2 px-5 text-3xl"
         >
           통화 종료

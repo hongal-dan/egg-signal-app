@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import Swal from "sweetalert2";
 import { meetingSocketState } from "@/app/store/socket";
 import { useRecoilValue } from "recoil";
 import { userState, testState } from "@/app/store/userInfo";
@@ -25,9 +26,9 @@ const MatchingResult: React.FC<MatchingResultProps> = ({
   const myInfo = useRecoilValue(userState);
   const sessionInfo = useRecoilValue(defaultSessionState);
   const [isLoading, setIsLoading] = useState(false);
-  const [isSend, setIsSend] = useState(false);
   const leaveSession = () => onClose();
-
+  const [isRequestedFriend, setIsRequestedFriend] = useState(false);
+  const requestBtnRef = useRef<HTMLButtonElement>(null);
   const testName = useRecoilValue(testState);
 
   const moveToPrivateRoom = () => {
@@ -41,12 +42,25 @@ const MatchingResult: React.FC<MatchingResultProps> = ({
   };
 
   const requestAddFriend = () => {
+    if(isRequestedFriend) {
+      Swal.fire({
+       title: "이미 친구 요청을 보냈습니다.",
+       confirmButtonText: "확인",
+      });
+      return;
+    }
+    Swal.fire({
+      icon: "success",
+      title: "친구 요청을 보냈습니다",
+      showConfirmButton: false,
+      timer: 1500
+    });
     commonSocket?.emit("reqRequestFriend", {
       userNickname: myInfo.nickname,
       // userNickname: testName, // FIXME 배포시엔 위에거로 바꿔야함
       friendNickname: lover.split("-")[0],
     });
-    setIsSend(true);
+    setIsRequestedFriend(true);
   };
 
   useEffect(() => {
@@ -56,9 +70,10 @@ const MatchingResult: React.FC<MatchingResultProps> = ({
     return () => clearTimeout(timeOut);
   }, []);
 
+
   return (
-    <div className="absolute w-[100vw] h-[100vh] flex items-center justify-center">
-      <div className="relative w-[600px] h-[700px] bg-white rounded-3xl">
+    <div className="absolute w-full h-full flex items-center justify-center min-w-[600px]">
+      <div className="relative w-[600px] h-[700px] bg-white rounded-3xl custom-shadow">
         <p className="text-end text-3xl pt-5 pr-5">
           <button onClick={leaveSession}>✕</button>
         </p>
@@ -66,10 +81,10 @@ const MatchingResult: React.FC<MatchingResultProps> = ({
         <div className="p-5">
           {capturedImage && (
             <div className="relative">
-              <p className="absolute w-full top-[-1px] h-[40px] pt-1 rounded-t-3xl bg-slate-300 text-center font-bold text-2xl">
+              <p className="absolute w-full top-[-1px] h-[40px] pt-1 rounded-t-3xl bg-slate-300 text-center font-bold text-2xl custom-shadow">
                 {lover}
               </p>
-              <img src={capturedImage} alt="Captured" className="rounded-3xl" />
+              <img src={capturedImage} alt="Captured" className="rounded-3xl custom-shadow" />
             </div>
           )}
         </div>
@@ -78,7 +93,7 @@ const MatchingResult: React.FC<MatchingResultProps> = ({
             <div className="flex justify-center">
               <button
                 onClick={moveToPrivateRoom}
-                className="bg-amber-300 w-3/5 h-[70px] text-4xl font-bold shadow-md rounded-3xl"
+                className="bg-amber-300 w-3/5 h-[70px] text-4xl font-bold shadow-md rounded-3xl custom-shadow"
               >
                 {isLoading ? (
                   <svg
@@ -109,16 +124,15 @@ const MatchingResult: React.FC<MatchingResultProps> = ({
             {isMatched && (
               <button
                 onClick={requestAddFriend}
-                className="p-4 px-6 border border-green-700 rounded-3xl text-green-700 font-bold hover:bg-green-700 hover:text-white"
-                disabled={isSend}
+                className="p-4 px-6 border border-green-700 rounded-3xl text-green-700 font-bold hover:bg-green-700 hover:text-white custom-shadow"
+                ref={requestBtnRef}
               >
                 친구 추가
               </button>
             )}
-            ()
             <button
               onClick={leaveSession}
-              className="p-4 px-6 border border-red-500 rounded-3xl text-red-500 font-bold hover:bg-red-500 hover:text-white"
+              className="p-4 px-6 border border-red-500 rounded-3xl text-red-500 font-bold hover:bg-red-500 hover:text-white custom-shadow"
             >
               홈으로
             </button>

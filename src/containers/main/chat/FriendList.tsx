@@ -118,7 +118,7 @@ const FriendList: React.FC<FriendListPros> = ({ friendsList }) => {
         </div>
       ) : (
         friendsList.map((friend, index) => (
-          <div key={index} className="relative">
+          <div key={index} className="relative cursor-pointer">
             <Friend
               friend={friend}
               onChat={() => toggleChat(friend)}
