@@ -110,3 +110,58 @@ background-position: right center , 17px center , 0px center;
 .loader {
   display: none;
 }
+
+.cam-input {
+  cursor: pointer;
+  appearance: none;
+  position: relative;
+  border: max(2px, 0.1em) solid gray;
+  border-radius: 1.25em;
+  width: 5em;
+  height: 2.25em;
+}
+
+.cam-input::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  width: 2em;
+  height: 2em;
+  border-radius: 50%;
+  transform: scale(0.8);
+  background-color: gray;
+  transition: left 250ms linear;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}
+
+.cam-input:checked::before {
+  content: "";
+  color: tomato;
+  background-color: white;
+  left: 2.6em;
+}
+
+.cam-input:checked {
+  background-color: tomato;
+  border-color: tomato;
+}
+
+.cam-input:disabled {
+  border-color: lightgray;
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.cam-input:disabled:before {
+  background-color: lightgray;
+}
+
+.cam-input:disabled + span {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+
+.custom-shadow {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}

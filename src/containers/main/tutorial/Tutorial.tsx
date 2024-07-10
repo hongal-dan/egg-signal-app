@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from "react";
-import { GrFormPreviousLink, GrFormNextLink } from "react-icons/gr";
+import { BsArrowLeftCircle, BsArrowRightCircle } from "react-icons/bs";
 import Steps from "./Steps";
 
 const Tutorial = () => {
@@ -24,24 +24,23 @@ const Tutorial = () => {
   };
   return (
     <div
-      className="fixed top-10 left-[-350px] w-[400px] bg-amber-100 rounded-3xl shadow-md transition-all duration-300 hover:left-5"
+      className="fixed top-10 left-[-350px] w-[400px] bg-amber-100 rounded-3xl transition-all duration-300 hover:left-4 custom-shadow"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-      <p
-        className="text-lg text-end my-5 pr-1"
-        onClick={() => setShowTutorial(prev => !prev)}
-      >
-        가이드
-      </p>
+      {!showTutorial && (
+        <p className="text-md text-end mr-3 my-2 pr-1">
+          가<br />이<br />드
+        </p>
+      )}
       <div className={`${!showTutorial && "hidden"}`}>
         <div className="h-[550px] p-5">{Steps[currentStep]}</div>
-        <div className="absolute bottom-0 w-full flex justify-center">
-          <button onClick={handlePrev}>
-            <GrFormPreviousLink className="w-[50px] h-[50px]" />
+        <div className="absolute bottom-5 w-full flex justify-evenly">
+          <button onClick={handlePrev} className="hover:text-gray-500">
+            <BsArrowLeftCircle className="w-[40px] h-[40px]" />
           </button>
-          <button onClick={handleNext}>
-            <GrFormNextLink className="w-[50px] h-[50px]" />
+          <button onClick={handleNext} className="hover:text-gray-500">
+            <BsArrowRightCircle className="w-[40px] h-[40px] " />
           </button>
         </div>
       </div>

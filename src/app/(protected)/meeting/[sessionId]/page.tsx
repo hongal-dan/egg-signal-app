@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useRef } from "react";
+import Image from "next/image";
 import UserVideoComponent from "@/containers/meeting/UserVideoComponent";
 import UserVideoComponent2 from "@/containers/main/UserVideo";
 import {
@@ -13,7 +14,6 @@ import {
   Subscriber,
 } from "openvidu-browser";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import { useRecoilValue, useRecoilState } from "recoil";
 import {
   isLastChooseState,
@@ -27,6 +27,11 @@ import { userState } from "@/app/store/userInfo";
 import CanvasModal from "@/containers/meeting/CanvasModal";
 import { defaultSessionState, winnerSessionState } from "@/app/store/ovInfo";
 import MatchingResult from "@/containers/meeting/MatchingResult";
+import EggTimer from "@/containers/meeting/EggTimer";
+import "animate.css";
+import Emoji from "@/containers/meeting/Emoji";
+import { createRoot } from "react-dom/client";
+import Swal from "sweetalert2";
 
 type chooseResult = {
   sender: string;
@@ -49,17 +54,12 @@ const Meeting = () => {
   const [keywordsIndex, setKeywordsIndex] = useState(0);
   const [, setIsChosen] = useRecoilState(isChosenState);
 
-  // const [isLoveMode, setIsLoveMode] = useState<boolean>(false);
-  // const [isChooseMode, setIsChooseMode] = useState<boolean>(false);
-  // const [isOneToOneMode, setIsOneToOneMode] = useState<boolean>(false);
   const captureRef = useRef<HTMLDivElement>(null);
   const keywordRef = useRef<HTMLParagraphElement>(null);
   const pubRef = useRef<HTMLDivElement>(null);
   const subRef = useRef<Array<HTMLDivElement | null>>([]);
   const videoContainerRef = useRef<HTMLDivElement>(null);
   const loadingRef = useRef<HTMLDivElement>(null);
-
-  // const socket = useRecoilValue(meetingSocketState);
 
   const [avatar, setAvatar] = useRecoilState(avatarState);
   const [isOpenCam, setIsOpenCam] = useState<boolean>(false);
@@ -198,9 +198,6 @@ const Meeting = () => {
 
     const newSession = OV.initSession();
     setSession(newSession);
-    // const { sessionId, token } = JSON.parse(
-    //   sessionStorage.getItem("ovInfo")!,
-    // );
     // Connect to the session
     newSession
       .connect(token, {
@@ -315,6 +312,7 @@ const Meeting = () => {
     setPublisher(undefined);
     setSortedSubscribers([]);
     setIsFull(false);
+    setIsLastChoose(false);
     OffSocketEvent();
 
     if (!isSucceedFlag) {
@@ -500,9 +498,6 @@ const Meeting = () => {
   };
 
   const openKeyword = (random: number) => {
-    // if (keywordRef.current) {
-    //   keywordRef.current.innerText = keywords[random];
-    // }
     return keywords[random];
   };
 
@@ -665,8 +660,6 @@ const Meeting = () => {
   const meetingEvent = () => {
     socket?.on("keyword", message => {
       try {
-        time.current = 240; // 1분 지남
-        setProgressWidth(`${((totalTime - time.current) / totalTime) * 100}%`);
         console.log("keyword Event: ", message);
         console.log("random user: ", message.getRandomParticipant);
         randomUser(parseInt(message.message), message.getRandomParticipant);
@@ -694,6 +687,7 @@ const Meeting = () => {
             setIsFinish(true);
             if (session) {
               session.disconnect();
+              setSession(undefined);
             }
             // leaveSession();
           }
@@ -820,6 +814,33 @@ const Meeting = () => {
       }, 20000);
     });
 
+    /**이모티콘 */
+    socket?.on("emojiBroadcast", ({ nickname, emojiIndex }) => {
+      const targetVideo = document.getElementById(nickname);
+      const emojiContainer = targetVideo?.querySelector(".emoji-container");
+
+      if (emojiContainer) {
+        const emojiElement = document.createElement("div");
+        emojiElement.className =
+          "emoji absolute text-5xl animate__animated animate__bounceInUp";
+        const emojiImage = (
+          <Image src={emojiIndex} alt="" width={56} height={56} />
+        );
+        createRoot(emojiElement).render(emojiImage);
+
+        emojiContainer.appendChild(emojiElement);
+
+        emojiElement.onanimationend = () => {
+          emojiElement.classList.replace(
+            "animate__bounceInUp",
+            "animate__bounceOutUp",
+          );
+          emojiElement.onanimationend = () =>
+            emojiContainer.removeChild(emojiElement);
+        };
+      }
+    });
+
     // 자기소개 시간
     socket?.on("introduce", response => {
       try {
@@ -882,7 +903,8 @@ const Meeting = () => {
             console.log("이거도 없니?", keywordRef.current);
             if (keywordRef.current) {
               console.log("즐거운 시간 보내라고 p 태그 변경");
-              keywordRef.current.innerText = "즐거운 시간 보내세요~";
+              keywordRef.current.innerText =
+                "즐거운 시간 보내세요~ 1:1 대화 소리는 다른 참여자들이 들을 수 없어요.";
             }
             const loverElement = document
               .getElementById(lover)
@@ -932,7 +954,7 @@ const Meeting = () => {
             }
             if (keywordRef.current) {
               keywordRef.current.innerText =
-                "당신은 선택받지 못했습니다. 1분 간 오디오가 차단됩니다.";
+                "당신은 선택받지 못했습니다. 1:1 대화 중인 참여자들의 소리를 들을 수 없어요.";
               console.log("미선택자 p태그 변경", keywordRef.current);
             }
             console.log("====lover 음소거 시작====");
@@ -971,8 +993,6 @@ const Meeting = () => {
   const meetingCamEvent = () => {
     socket?.on("cam", message => {
       try {
-        time.current = 120; // 3분 지남 -지금 서버 기준 (나중에 시간 서버 시간 바뀌면 같이 바꿔야 함!)
-        setProgressWidth(`${((totalTime - time.current) / totalTime) * 100}%`);
         console.log("cam Event: ", message);
         let countdown = 5;
         const intervalId = setInterval(() => {
@@ -1016,7 +1036,7 @@ const Meeting = () => {
   };
 
   const OffSocketEvent = () => {
-    if(socket) {
+    if (socket) {
       socket.off("keyword");
       socket.off("finish");
       socket.off("chooseResult");
@@ -1030,14 +1050,7 @@ const Meeting = () => {
       socket.off("cupidResult");
       socket.off("cam");
     }
-  }
-
-  const [, setMin] = useState(5); // todo: 시작 시간 서버로부터 받기
-  const [sec, setSec] = useState(0);
-  const time = useRef(300);
-  const timerId = useRef<null | NodeJS.Timeout>(null);
-  const totalTime = 300;
-  const [progressWidth, setProgressWidth] = useState("0%");
+  };
 
   useEffect(() => {
     const timeOut = setTimeout(() => {
@@ -1058,14 +1071,7 @@ const Meeting = () => {
       }
     }, 60000); // 60초 동안 6명 안들어 오면 나가기
 
-    timerId.current = setInterval(() => {
-      setMin(Math.floor(time.current / 60));
-      setSec(time.current % 60);
-      time.current -= 1;
-    }, 1000);
-
     return () => {
-      clearInterval(timerId.current!);
       clearTimeout(timeOut);
     };
   }, []);
@@ -1073,14 +1079,6 @@ const Meeting = () => {
   useEffect(() => {
     isFullRef.current = isFull;
   }, [isFull]);
-
-  useEffect(() => {
-    if (time.current <= 0) {
-      console.log("time out");
-      clearInterval(timerId.current!);
-    }
-    setProgressWidth(`${((totalTime - time.current) / totalTime) * 100}%`);
-  }, [sec]);
 
   useEffect(() => {
     if (!publisher) {
@@ -1148,9 +1146,8 @@ const Meeting = () => {
       console.log("startTimer", sessionId, token, participantName);
       socket?.emit("startTimer", { sessionId: sessionId });
       console.log(socket, "socket============================================");
-
     }
-    if (isFull && subscribers.length !== 5) {
+    if (isFull && subscribers.length !== 5  && !isFinish) {
       if (keywordRef.current) {
         keywordRef.current.innerText =
           "누군가가 연결을 해제하여 10초 후 메인으로 이동합니다.";
@@ -1191,6 +1188,26 @@ const Meeting = () => {
     };
   }, [avatar]);
 
+  const leaveHandler = () => {
+    Swal.fire({
+      title: "정말 나가시겠습니까?",
+      text: "지금 나가면 현재 미팅 방이 종료됩니다!",
+      imageUrl: "/img/500.png",
+      imageWidth: 200,
+      imageHeight: 200,
+      imageAlt: "crying eggs",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "나갈게요",
+      cancelButtonText: "취소",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        leaveSession();
+      }
+    });
+  }
+
   return !avatar ? (
     <AvatarCollection />
   ) : !isFinish ? (
@@ -1211,22 +1228,13 @@ const Meeting = () => {
           <div id="session">
             <div id="session-header">
               <input
-                className="btn btn-large btn-danger"
+                className="border-b border-gray-500 text-gray-500 cursor-pointer"
                 type="button"
                 id="buttonLeaveSession"
-                onClick={() => leaveSession()}
-                value="Leave session"
+                onClick={() => leaveHandler()}
+                value="종료하기"
               />
-              <div className="flex items-center">
-                <Image src="/img/egg1.png" alt="" width={50} height={50} />
-                <p
-                  className="bg-orange-300 h-[20px] rounded-lg"
-                  style={{
-                    width: progressWidth,
-                  }}
-                ></p>
-                <Image src="/img/egg2.png" alt="" width={50} height={50} />
-              </div>
+              <EggTimer setTime={5} />
             </div>
             <div className="keyword-wrapper">
               <p className="keyword" ref={keywordRef}></p>
@@ -1240,11 +1248,14 @@ const Meeting = () => {
             {/* <div ref={captureRef} className="hidden">
           <UserVideoComponent2 />
         </div> */}
-            <div className="col-md-6 video-container" ref={videoContainerRef}>
+            <div
+              className="relative col-md-6 video-container"
+              ref={videoContainerRef}
+            >
               {publisher !== undefined ? (
                 <div
                   // className={`stream-container col-md-6 col-xs-6 pub ${publisher.stream.streamId === speakingPublisherId ? "speaking" : ""} ${getUserGender(publisher)}`}
-                  className={`stream-container col-md-6 col-xs-6 pub ${getUserGender(publisher)}`}
+                  className={`stream-container col-md-6 col-xs-6 pub custom-shadow ${getUserGender(publisher)}`}
                   // onClick={() => handleMainVideoStream(publisher)}
                   id={getUserID(publisher)}
                   ref={pubRef}
@@ -1264,7 +1275,7 @@ const Meeting = () => {
                   key={sub.stream.streamId}
                   data-key={sub.stream.streamId}
                   // className={`stream-container col-md-6 col-xs-6 sub ${sub.stream.streamId === speakingPublisherId ? "speaking" : ""} ${getUserGender(sub)}`}
-                  className={`stream-container col-md-6 col-xs-6 sub ${getUserGender(sub)}`}
+                  className={`stream-container col-md-6 col-xs-6 sub custom-shadow ${getUserGender(sub)}`}
                   // onClick={() => handleMainVideoStream(sub)}
                   id={getUserID(sub)}
                   ref={el => {
@@ -1283,6 +1294,7 @@ const Meeting = () => {
                 </div>
               ))}
             </div>
+            <Emoji />
           </div>
         </div>
       )}

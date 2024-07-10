@@ -29,13 +29,13 @@ const Friend: React.FC<Props> = ({
         <div className="relative">
           <AiOutlineMessage className="w-7 h-7" />
           {isNewMessageSender && (
-            <div className="absolute left-[-5px] top-[-5px] w-2 h-2 rounded-full bg-rose-500" />
+            <div className="absolute left-[-5px] top-[-5px] w-2 h-2 rounded-full bg-rose-500 shadow-md" />
           )}
         </div>
         {isOnline ? (
-          <div className="w-5 h-5 rounded-full bg-green-300" />
+          <div className="w-5 h-5 rounded-full bg-green-300 shadow-md" />
         ) : (
-          <div className="w-5 h-5 rounded-full bg-slate-300" />
+          <div className="w-5 h-5 rounded-full bg-slate-300 shadow-md" />
         )}
       </div>
     </div>
