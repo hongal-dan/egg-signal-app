@@ -111,7 +111,7 @@ const Chat: React.FC<Props> = ({ friend, onClose }) => {
                 key={index}
                 className={`flex ${msg.sender === currentUser?.nickname ? "justify-end" : "justify-start"}`}
               >
-                <span className="border border-gray-400 p-2 rounded-lg shadow-sm">
+                <span className="border border-gray-400 p-2 rounded-lg shadow-sm break-all">
                   {msg.message}
                 </span>
               </div>
@@ -128,7 +128,10 @@ const Chat: React.FC<Props> = ({ friend, onClose }) => {
             onChange={e => setMessage(e.target.value)}
             className="w-full h-[30px] relative bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:outline-black p-2"
           />
-          <FaCircleArrowUp onClick={handleSubmit} className="h-[20px] absolute flex right-[25px] mt-1 cursor-pointer" />
+          <FaCircleArrowUp
+            onClick={handleSubmit}
+            className="h-[20px] absolute flex right-[25px] mt-1 cursor-pointer"
+          />
         </form>
       </div>
     </div>
