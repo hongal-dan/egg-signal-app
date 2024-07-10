@@ -35,7 +35,7 @@ const EggTimer: React.FC<Props> = ({ setTime }) => {
   }, [sec]);
 
   return (
-    <div className="flex items-center">
+    <div className="flex items-center w-full px-[10vw]">
       <Image src="/img/egg1.png" alt="" width={50} height={50} />
       <p
         className="bg-orange-300 h-[20px] rounded-lg"

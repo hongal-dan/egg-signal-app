@@ -16,7 +16,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko">
-      <body className={noto_sans_kr.className}>
+      <body className={`${noto_sans_kr.className} font-Jalnan`}>
         <RecoilRootWrapper>{children}</RecoilRootWrapper>
       </body>
     </html>
