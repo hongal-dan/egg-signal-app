@@ -1306,7 +1306,7 @@ const Meeting = () => {
               />
             </div>
             <EggTimer setTime={5} />
-            <div className="w-full h-6">
+            <div className="w-full h-6 mt-4">
               <p
                 className="flex justify-center items-center font-bold h-full text-3xl"
                 ref={keywordRef}
