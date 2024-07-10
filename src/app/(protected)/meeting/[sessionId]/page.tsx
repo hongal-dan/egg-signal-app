@@ -256,6 +256,7 @@ const Meeting = () => {
       // 새로운 스트림이 생성될 때, 해당 스트림을 구독
       const subscriber = newSession.subscribe(event.stream, undefined);
       // 구독한 스트림을 구독자 목록에 추가
+      console.log("지금 들어온 사람", subscriber.stream.connection.data);
       setSubscribers(prevSubscribers => [...prevSubscribers, subscriber]);
     });
 
@@ -412,10 +413,6 @@ const Meeting = () => {
   };
 
   const changeLoveStickMode = (datas: Array<chooseResult>) => {
-    if (keywordRef.current) {
-      keywordRef.current.innerText = "에그 시그널 결과";
-      console.log("에그시그널 결과라고 p태그 변경했음");
-    }
     const videoElements = document.querySelectorAll("video");
     const canvasElements = document.querySelectorAll("canvas");
     videoElements.forEach(video => {
@@ -524,7 +521,6 @@ const Meeting = () => {
     if (keywordRef.current) {
       keywordRef.current.innerText = "대화해보고 싶은 사람을 선택해주세요";
     }
-    console.log("선택 모드로 변경 ", publisher);
     // 이성만 선택 버튼 활성화
     const oppositeRef = subRef.current.slice(2);
 
@@ -676,7 +672,7 @@ const Meeting = () => {
         const intervalId = setInterval(() => {
           if (countdown > 0) {
             if (keywordRef.current) {
-              keywordRef.current.innerText = `${countdown}초 뒤 세션이 종료됩니다.`;
+              keywordRef.current.innerText = `${countdown}초 뒤 미팅이 종료됩니다.`;
             }
             countdown -= 1;
           } else {
@@ -1143,9 +1139,7 @@ const Meeting = () => {
         sortSubscribers("FEMALE");
       }
       setIsFull(true);
-      console.log("startTimer", sessionId, token, participantName);
       socket?.emit("startTimer", { sessionId: sessionId });
-      console.log(socket, "socket============================================");
     }
     if (isFull && subscribers.length !== 5 && !isFinish) {
       if (keywordRef.current) {
@@ -1224,9 +1218,9 @@ const Meeting = () => {
           <span className="pan"></span>
         </div>
       ) : (
-        <div className="container mx-auto">
-          <div id="session">
-            <div id="session-header">
+        <div className="h-full">
+            <div id="session-header" className="fixed flex flex-col justify-center items-center w-full">
+              <div className="flex w-full mb-2 px-[10vw]">
               <input
                 className="border-b border-gray-500 text-gray-500 cursor-pointer"
                 type="button"
@@ -1234,17 +1228,18 @@ const Meeting = () => {
                 onClick={() => leaveHandler()}
                 value="종료하기"
               />
+              </div>
               <EggTimer setTime={5} />
-            </div>
-            <div className="keyword-wrapper">
-              <p className="keyword" ref={keywordRef}></p>
+            <div className="w-full h-24">
+              <p className="flex justify-center items-center font-bold h-full text-3xl" ref={keywordRef}></p>
               <audio
                 id="tickSound"
                 src="/sound/tick.mp3"
                 className="hidden"
               ></audio>
             </div>
-
+            </div>
+          <div id="session" className="h-full flex justify-center items-center">
             {/* <div ref={captureRef} className="hidden">
           <UserVideoComponent2 />
         </div> */}
