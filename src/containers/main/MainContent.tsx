@@ -283,11 +283,17 @@ const MainContent = () => {
   const toggleFriendList = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
     setIsFriendListVisible(prev => !prev);
+    if(isNotiVisible) {
+      setIsNotiVisible(false);
+    }
   };
 
   const toggleNotiList = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
     setIsNotiVisible(prev => !prev);
+    if(isFriendListVisible) {
+      setIsFriendListVisible(false);
+    }
   };
 
   const startWebCam = async () => {
@@ -379,7 +385,7 @@ const MainContent = () => {
       <MainChat chatExpanded={chatExpanded} setChatExpanded={setChatExpanded} />
       <div
         onClick={handleMainContentClick}
-        className="h-full flex items-center justify-center"
+        className="h-full flex items-center justify-center min-w-[368px]"
       >
         <button
           className="fixed top-4 right-4 z-10 border-b border-gray-500 text-gray-500"
@@ -407,7 +413,7 @@ const MainContent = () => {
               </div>
             </div>
             <div
-              className="w-[320px] h-[240px] rounded-xl bg-contain bg-no-repeat bg-center border-4 border-[#FAE4C9] custom-shadow"
+              className="w-[320px] h-[240px] rounded-xl bg-contain bg-no-repeat bg-center border-4 border-[#FAE4C9] custom-shadow md:w-[400px] md:h-[300px]"
               ref={loadingVideoRef}
             >
               <video
@@ -429,7 +435,7 @@ const MainContent = () => {
                 />
               </label>
             </div>
-            <div className="w-full mt-4">
+            <div className="w-full mt-4 relative">
               <button
                 className="w-full h-12 bg-amber-400 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mb-1 z-10 relative custom-shadow"
                 ref={startButton}
@@ -461,7 +467,7 @@ const MainContent = () => {
                 )}
               </button>
               {isLoading && (
-                <div className="flex justify-end underline text-sm text-gray-900">
+                <div className="absolute border-b-2 right-0 mt-2 border-black text-sm text-gray-900">
                   <button onClick={handleLoadingCancel}>매칭 취소</button>
                 </div>
               )}
