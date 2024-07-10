@@ -153,7 +153,8 @@ const CanvasModal: React.FC<CanvasModalProps> = ({
       }, 7000);
 
       socket.emit("drawingOneToOne", {
-        userName: testName,
+        userName: userInfo.nickname,
+        // userName: testName, //FIXME 테스트용
         winners,
         losers,
       });
@@ -230,7 +231,8 @@ const CanvasModal: React.FC<CanvasModalProps> = ({
   };
 
   const captureVideoFrame = () => {
-    const publisherContainer = document.getElementById(testName);
+    // const publisherContainer = document.getElementById(testName); //FIXME 테스트용
+    const publisherContainer = document.getElementById(userInfo.nickname);
     const video = publisherContainer?.querySelector("video");
     const canvas = document.createElement("canvas");
 
@@ -301,7 +303,12 @@ const CanvasModal: React.FC<CanvasModalProps> = ({
       winners = [voteResultsRef.current!, selectedUser!];
     else winners = [voteResultsRef.current!];
     losers = losers.filter(loser => !winners.includes(loser));
-    socket.emit("winnerPrize", { userName: testName, winners, losers });
+    // socket.emit("winnerPrize", { userName: testName, winners, losers }); //FIXME 테스트용
+    socket.emit("winnerPrize", {
+      userName: userInfo.nickname,
+      winners,
+      losers,
+    });
   };
 
   return (
@@ -333,7 +340,8 @@ const CanvasModal: React.FC<CanvasModalProps> = ({
 
         {currentStage === "winnerChoice" && voteResults && (
           <WinnerChoiceStage
-            testName={testName}
+            // testName={testName} //FIXME 테스트용
+            testName={userInfo.nickname}
             voteResults={voteResults}
             drawings={drawings}
             capturedPhoto={capturedPhoto}
