@@ -171,26 +171,30 @@ const Matching = () => {
     <div className="flex flex-col h-[100vh] justify-center items-center gap-20">
       <div className="col-md-6 flex w-[60vw] gap-20">
         {publisher !== undefined ? (
-          <div className={`stream-container col-md-6 col-xs-6`}>
+          <div
+            className={`stream-container col-md-6 col-xs-6 ${
+              speakingPublisherIds.includes(publisher.stream.streamId)
+                ? "speaking"
+                : ""
+            }`}
+          >
             <UserVideoComponent
               streamManager={publisher}
-              className={
-                speakingPublisherIds.includes(publisher.stream.streamId)
-                  ? "speaking"
-                  : ""
-              }
+              // className=
             />
           </div>
         ) : null}
         {subscriber !== undefined ? (
-          <div className={`stream-container col-md-6 col-xs-6`}>
+          <div
+            className={`stream-container col-md-6 col-xs-6 ${
+              speakingPublisherIds.includes(subscriber!.stream.streamId)
+                ? "speaking"
+                : ""
+            }`}
+          >
             <UserVideoComponent
               streamManager={subscriber!}
-              className={
-                speakingPublisherIds.includes(subscriber!.stream.streamId)
-                  ? "speaking"
-                  : ""
-              }
+              // className=
             />
           </div>
         ) : null}
