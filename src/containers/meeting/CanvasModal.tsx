@@ -3,7 +3,7 @@
 import React, { useRef, useEffect, useState } from "react";
 import imageCompression from "browser-image-compression";
 import { useRecoilValue } from "recoil";
-// import { userState } from "@/app/store/userInfo";
+import { userState } from "@/app/store/userInfo";
 import { meetingSocketState } from "@/app/store/socket";
 import { testState } from "@/app/store/userInfo"; //FIXME 테스트용 랜덤 닉네임 저장, 배포 전에 삭제해야함
 import { drawingKeywords } from "../../../public/data/drawingKeywords";
@@ -45,7 +45,7 @@ const CanvasModal: React.FC<CanvasModalProps> = ({
   const [currentStage, setCurrentStage] = useState("drawing");
   const drawingKeywordRef = useRef<HTMLParagraphElement>(null);
   const socket = useRecoilValue(meetingSocketState)!;
-  // const userInfo = useRecoilValue(userState);
+  const userInfo = useRecoilValue(userState);
   const testName = useRecoilValue(testState); //FIXME 테스트용 랜덤 닉네임 저장, 배포 전에 삭제해야함
 
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -153,7 +153,8 @@ const CanvasModal: React.FC<CanvasModalProps> = ({
       }, 7000);
 
       socket.emit("drawingOneToOne", {
-        userName: testName,
+        userName: userInfo.nickname,
+        // userName: testName, //FIXME 테스트용
         winners,
         losers,
       });
@@ -230,7 +231,8 @@ const CanvasModal: React.FC<CanvasModalProps> = ({
   };
 
   const captureVideoFrame = () => {
-    const publisherContainer = document.getElementById(testName);
+    // const publisherContainer = document.getElementById(testName); //FIXME 테스트용
+    const publisherContainer = document.getElementById(userInfo.nickname);
     const video = publisherContainer?.querySelector("video");
     const canvas = document.createElement("canvas");
 
@@ -258,8 +260,8 @@ const CanvasModal: React.FC<CanvasModalProps> = ({
       const resizedBlob = await resizeAndCompressImage(blob, canvas.width);
       const arrayBuffer = await resizedBlob.arrayBuffer();
       socket.emit("forwardDrawing", {
-        // userName: userInfo?.nickname,
-        userName: testName, // FIXME 테스트용 랜덤 닉네임 저장, 배포 전에 삭제해야함
+        userName: userInfo?.nickname,
+        // userName: testName, // FIXME 테스트용 랜덤 닉네임 저장, 배포 전에 삭제해야함
         drawing: arrayBuffer,
         photo: capturedPhoto,
       });
@@ -283,8 +285,8 @@ const CanvasModal: React.FC<CanvasModalProps> = ({
     setHasSubmitted(true);
     setSelectedUser(votedUser);
     socket.emit("submitVote", {
-      // userName: userInfo?.nickname,
-      userName: testName, // FIXME 테스트용 랜덤 닉네임 저장, 배포 전에 삭제해야함
+      userName: userInfo?.nickname,
+      // userName: testName, // FIXME 테스트용 랜덤 닉네임 저장, 배포 전에 삭제해야함
       votedUser: votedUser,
     });
   };
@@ -301,7 +303,12 @@ const CanvasModal: React.FC<CanvasModalProps> = ({
       winners = [voteResultsRef.current!, selectedUser!];
     else winners = [voteResultsRef.current!];
     losers = losers.filter(loser => !winners.includes(loser));
-    socket.emit("winnerPrize", { userName: testName, winners, losers });
+    // socket.emit("winnerPrize", { userName: testName, winners, losers }); //FIXME 테스트용
+    socket.emit("winnerPrize", {
+      userName: userInfo.nickname,
+      winners,
+      losers,
+    });
   };
 
   return (
@@ -333,7 +340,8 @@ const CanvasModal: React.FC<CanvasModalProps> = ({
 
         {currentStage === "winnerChoice" && voteResults && (
           <WinnerChoiceStage
-            testName={testName}
+            // testName={testName} //FIXME 테스트용
+            testName={userInfo.nickname}
             voteResults={voteResults}
             drawings={drawings}
             capturedPhoto={capturedPhoto}

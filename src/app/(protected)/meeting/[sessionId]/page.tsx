@@ -201,8 +201,8 @@ const Meeting = () => {
     // Connect to the session
     newSession
       .connect(token, {
-        // clientData: userInfo?.nickname as string,  // FIXME 배포시엔 저를 써주세요.
-        clientData: participantName, // FIXME 배포 시 랜덤닉네임 말고 유저 아이디로
+        clientData: userInfo?.nickname as string, // FIXME 배포시엔 저를 써주세요.
+        // clientData: participantName, // FIXME 배포 시 랜덤닉네임 말고 유저 아이디로
         gender: userInfo?.gender as string,
       })
       .then(async () => {
@@ -314,6 +314,7 @@ const Meeting = () => {
     setSortedSubscribers([]);
     setIsFull(false);
     setIsLastChoose(false);
+    setIsChosen(false);
     OffSocketEvent();
 
     if (!isSucceedFlag) {
@@ -587,6 +588,73 @@ const Meeting = () => {
     console.log("상대방: ", loverElement);
   };
 
+  // const randomUser = (keywordIdx: number, pickUser: string) => {
+  //   const streamElements = document.getElementsByClassName("streamcomponent");
+  //   const tickSound = document.getElementById("tickSound") as HTMLAudioElement;
+
+  //   if (keywordRef.current) {
+  //     keywordRef.current.innerText =
+  //       "곧 한 참가자가 선택됩니다. 선택된 사람은 질문에 답변해주세요";
+  //   }
+
+  //   const animationDuration = 10000;
+  //   const currentIndex = 0;
+  //   let currentDuration = 50;
+  //   let isAnimating = true;
+
+  //   // speaking 클래스 제거
+  //   for (let i = 0; i < streamElements.length; i++) {
+  //     streamElements[i].classList.remove("speaking");
+  //   }
+
+  //   const highlightUser = (index: number) => {
+  //     if (!isAnimating) return;
+  //     // 현재 인덱스의 참여자를 강조 (빨간색 border 추가)
+  //     streamElements[index].classList.add("highlighted");
+
+  //     // 룰렛 소리 재생
+  //     tickSound.currentTime = 0; // 오디오를 처음부터 재생
+  //     tickSound.play();
+
+  //     // 일정 시간 후에 border 초기화 (빨간색 border 제거)
+  //     setTimeout(() => {
+  //       streamElements[index].classList.remove("highlighted");
+  //       streamElements[(index + 1) % streamElements.length].classList.add(
+  //         "highlighted",
+  //       );
+
+  //       // 다음 참여자 강조 시작 (재귀 호출)
+  //       setTimeout(() => {
+  //         currentDuration += 10;
+  //         highlightUser((index + 1) % streamElements.length);
+  //       }, currentDuration - 10);
+
+  //       setTimeout(() => {
+  //         isAnimating = false;
+  //         for (let i = 0; i < streamElements.length; i++) {
+  //           streamElements[i].classList.remove("highlighted");
+  //         }
+  //         const randomKeyword = openKeyword(keywordIdx);
+
+  //         if (pubRef.current?.id === pickUser) {
+  //           changePresentationMode(pubRef.current, 30, randomKeyword);
+  //         } else {
+  //           const presenterElement = subRef.current?.filter(
+  //             sub => sub?.id === pickUser,
+  //           )[0];
+  //           console.log(presenterElement);
+  //           if (presenterElement) {
+  //             changePresentationMode(presenterElement, 30, randomKeyword);
+  //           }
+  //         }
+  //       }, animationDuration);
+  //     }, currentDuration - 10);
+  //   };
+  //   // 초기 강조 시작
+  //   highlightUser(currentIndex);
+  // };
+
+  //FIXME 시연용 룰렛 함수
   const randomUser = (keywordIdx: number, pickUser: string) => {
     const streamElements = document.getElementsByClassName("streamcomponent");
     const tickSound = document.getElementById("tickSound") as HTMLAudioElement;
@@ -596,60 +664,62 @@ const Meeting = () => {
         "곧 한 참가자가 선택됩니다. 선택된 사람은 질문에 답변해주세요";
     }
 
-    const animationDuration = 10000; // 초기 강조 애니메이션 기본 지속 시간
+    const animationDuration = 5000; // 초기 강조 애니메이션 기본 지속 시간
     const currentIndex = 0;
     let currentDuration = 50;
-    let isAnimating = true;
+    let isAnimating = true; // speaking 클래스 제거
 
-    // speaking 클래스 제거
     for (let i = 0; i < streamElements.length; i++) {
       streamElements[i].classList.remove("speaking");
     }
 
     const highlightUser = (index: number) => {
-      if (!isAnimating) return;
-      // 현재 인덱스의 참여자를 강조 (빨간색 border 추가)
-      streamElements[index].classList.add("highlighted");
+      if (!isAnimating) return; // 현재 인덱스의 참여자를 강조 (빨간색 border 추가)
+      streamElements[index].classList.add("highlighted"); // 룰렛 소리 재생
 
-      // 룰렛 소리 재생
       tickSound.currentTime = 0; // 오디오를 처음부터 재생
-      tickSound.play();
+      tickSound.play(); // 일정 시간 후에 border 초기화 (빨간색 border 제거)
 
-      // 일정 시간 후에 border 초기화 (빨간색 border 제거)
       setTimeout(() => {
         streamElements[index].classList.remove("highlighted");
-        streamElements[(index + 1) % streamElements.length].classList.add(
-          "highlighted",
-        );
+        if (currentDuration >= animationDuration) {
+          // 애니메이션이 끝나는 시점에 streamElements[0](publisher) 강조
+          streamElements[0].classList.add("highlighted");
+          isAnimating = false;
+        } else {
+          streamElements[(index + 1) % streamElements.length].classList.add(
+            "highlighted",
+          ); // 다음 참여자 강조 시작 (재귀 호출)
 
-        // 다음 참여자 강조 시작 (재귀 호출)
-        setTimeout(() => {
-          currentDuration += 10;
-          highlightUser((index + 1) % streamElements.length);
-        }, currentDuration - 10);
+          setTimeout(() => {
+            currentDuration += 10;
+            highlightUser((index + 1) % streamElements.length);
+          }, currentDuration - 10);
+        }
 
         setTimeout(() => {
           isAnimating = false;
           for (let i = 0; i < streamElements.length; i++) {
             streamElements[i].classList.remove("highlighted");
           }
+
           const randomKeyword = openKeyword(keywordIdx);
 
           if (pubRef.current?.id === pickUser) {
-            changePresentationMode(pubRef.current, 30, randomKeyword);
+            changePresentationMode(pubRef.current, 12, randomKeyword);
           } else {
             const presenterElement = subRef.current?.filter(
               sub => sub?.id === pickUser,
             )[0];
             console.log(presenterElement);
             if (presenterElement) {
-              changePresentationMode(presenterElement, 30, randomKeyword);
+              changePresentationMode(presenterElement, 12, randomKeyword);
             }
           }
         }, animationDuration);
       }, currentDuration - 10);
-    };
-    // 초기 강조 시작
+    }; // 초기 강조 시작
+
     highlightUser(currentIndex);
   };
 
@@ -746,8 +816,8 @@ const Meeting = () => {
           console.log("원 위치로 변경");
           undoLoveStickMode();
           if (keywordRef.current) {
-            console.log("1분 후 세션이 종료됩니다");
-            keywordRef.current.innerText = "1분 후 세션이 종료됩니다";
+            console.log("1분 후 미팅이 종료됩니다");
+            keywordRef.current.innerText = "1분 후 미팅이 종료됩니다";
           }
         }, 10000); // 10초 후 원 위치
       } catch (e: any) {
@@ -849,29 +919,34 @@ const Meeting = () => {
         setTimeout(() => {
           const participantsArray: Array<string> = response;
           console.log("Introduce 도착", participantsArray);
-          let idx = 0;
+          // let idx = 0;
+          // const participantElement = document.getElementById(
+          //   participantsArray[idx],
+          // ) as HTMLDivElement;
           const participantElement = document.getElementById(
-            participantsArray[idx],
-          ) as HTMLDivElement;
+            userInfo.nickname,
+          ) as HTMLDivElement; //FIXME 시연용 -publisher만 1번 뜸
           changePresentationMode(
             participantElement,
-            10,
-            "20초간 자기소개 해주세요",
+            // 10,
+            // "20초간 자기소개 해주세요",
+            5, //FIXME 시연용
+            "자기소개 해주세요", //FIXME 시연용
           ); // FIXME 테스트용 10초 나중에 원래대로 돌리기
-          const timeInterval = setInterval(() => {
-            idx += 1;
-            const participantElement = document.getElementById(
-              participantsArray[idx],
-            ) as HTMLDivElement;
-            changePresentationMode(
-              participantElement,
-              10,
-              "20초간 자기소개 해주세요",
-            ); // FIXME 테스트용 10초 나중에 원래대로 돌리기
-            if (idx == 5) {
-              clearInterval(timeInterval);
-            }
-          }, 10100); // FIXME 테스트용 10초 나중에 원래대로 돌리기
+          // const timeInterval = setInterval(() => {
+          //   idx += 1;
+          //   const participantElement = document.getElementById(
+          //     participantsArray[idx],
+          //   ) as HTMLDivElement;
+          //   changePresentationMode(
+          //     participantElement,
+          //     10,
+          //     "20초간 자기소개 해주세요",
+          //   ); // FIXME 테스트용 10초 나중에 원래대로 돌리기
+          //   if (idx == 5) {
+          //     clearInterval(timeInterval);
+          //   }
+          // }, 10100); // FIXME 테스트용 10초 나중에 원래대로 돌리기
         }, 5000);
       } catch (e: any) {
         console.error(e);
@@ -935,7 +1010,8 @@ const Meeting = () => {
                 ) as HTMLDivElement;
                 loserElement.classList.remove("black-white");
               });
-            }, 60000); // 1분 후 원 위치
+              // }, 60000); // 1분 후 원 위치
+            }, 20000); //FIXME 시연용 20초 후 원 위치
           }
           // 매칭 안된 사람들의 경우
           else {
@@ -966,7 +1042,8 @@ const Meeting = () => {
               setTimeout(() => {
                 // pubElement.classList.toggle("black-white");
                 loserElement.classList.remove("black-white");
-              }, 60000); // 1분 후 흑백 해제
+                // }, 60000); // 1분 후 흑백 해제
+              }, 20000); //FIXME 시연용 20초 후 원 위치
             });
             // muteAudio();
             setTimeout(() => {
@@ -977,7 +1054,8 @@ const Meeting = () => {
               // unMuteAudio();
               console.log("====lover 음소거 해제====");
               toggleLoverAudio(loser, true); // 오디오 재개
-            }, 60000); // 1분 후 음소거 해제
+              // }, 60000); // 1분 후 음소거 해제
+            }, 20000); //FIXME 시연용 20초 후 원 위치
           }
         }, 13000); // 결과 도착 후 13초뒤에 1:1 대화 진행
       } catch (e: any) {
@@ -1132,7 +1210,7 @@ const Meeting = () => {
     }
     meetingCupidResultEvent();
 
-    if (subscribers.length === 5) {
+    if (subscribers.length === 1) {
       if (getUserGender(publisher!) === "MALE") {
         sortSubscribers("MALE");
       } else {
@@ -1141,7 +1219,7 @@ const Meeting = () => {
       setIsFull(true);
       socket?.emit("startTimer", { sessionId: sessionId });
     }
-    if (isFull && subscribers.length !== 5 && !isFinish) {
+    if (isFull && subscribers.length !== 1 && !isFinish) {
       if (keywordRef.current) {
         keywordRef.current.innerText =
           "누군가가 연결을 해제하여 10초 후 메인으로 이동합니다.";

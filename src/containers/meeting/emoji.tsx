@@ -7,7 +7,7 @@ import { testState } from "@/app/store/userInfo"; //FIXME 테스트용 랜덤 �
 
 function Emoji() {
   const socket = useRecoilValue(meetingSocketState);
-  // const userInfo = useRecoilValue(userState);
+  const userInfo = useRecoilValue(userState);
   const testName = useRecoilValue(testState); //FIXME 테스트용 랜덤 닉네임 저장, 배포 전에 삭제해야함
 
   const emojiNames = [
@@ -23,7 +23,8 @@ function Emoji() {
 
   const handleEmojiClick = (emojiIndex: number) => {
     socket?.emit("emoji", {
-      nickname: testName,
+      nickname: userInfo.nickname,
+      // nickname: testName, //FIXME 테스트용 랜덤 닉네임 배포 시엔 위에 거로
       emojiIndex: emojiNames[emojiIndex],
     });
   };
