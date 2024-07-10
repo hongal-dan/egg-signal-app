@@ -53,7 +53,7 @@ const MainChat: React.FC<MainChatProps> = ({
   };
 
   return (
-    <div className="fixed bottom-10 left-10 z-20 w-[400px] bg-white border rounded-md shadow-md">
+    <div className="fixed bottom-10 left-10 z-20 w-96 bg-white border rounded-md shadow-md">
       {/* 채팅창 높이 조절 */}
       <div
         className={`transition-all duration-300 ease-in-out ${
@@ -113,7 +113,7 @@ const MainChat: React.FC<MainChatProps> = ({
           <form onSubmit={handleSendMessage}>
             <input
               type="text"
-              className="w-full border rounded-md p-2"
+              className="w-full border rounded-md p-2 focus:outline-black"
               placeholder="메시지를 입력하세요"
               value={messageInput}
               onChange={e => setMessageInput(e.target.value)}

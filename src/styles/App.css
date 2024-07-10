@@ -55,7 +55,7 @@ video {
   grid-template-columns: repeat(3, 1fr);
   row-gap: 20px;
   column-gap: 20px;
-  margin: 0 10vw;
+  margin: 0 20vw;
 }
 
 .love-stick {
@@ -67,7 +67,8 @@ video {
     "b e"
     "c f";
   gap: 20px 20vw;
-  margin: 0 20vw;
+  padding-top: 20vh;
+  margin: 0 25vw;
   min-width: 40vw;
   margin-bottom: 10vh;
   bottom: 20px;
@@ -126,20 +127,6 @@ video {
   transform: rotate(90deg);
 }
 
-.keyword-wrapper {
-  width: 100%;
-  height: 100px;
-}
-
-.keyword {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 50px;
-  font-weight: bold;
-  height: 100%;
-}
-
 .cam-wrapper {
   height: 100%;
   width: 100%;
@@ -175,7 +162,7 @@ video {
 }
 
 .streamcomponent .nickname {
-  @apply px-[5px] absolute bg-transparent text-[#777777] rounded-[4px] font-bold;
+  @apply px-[4px] absolute bg-transparent text-[#777777] rounded-[4px] font-bold;
 }
 p {
   margin: 0;

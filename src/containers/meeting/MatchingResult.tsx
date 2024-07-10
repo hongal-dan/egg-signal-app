@@ -72,12 +72,12 @@ const MatchingResult: React.FC<MatchingResultProps> = ({
 
 
   return (
-    <div className="absolute w-full h-full flex items-center justify-center min-w-[600px]">
-      <div className="relative w-[600px] h-[700px] bg-white rounded-3xl custom-shadow">
+    <div className="w-full h-full flex items-center justify-center min-w-[600px]">
+      <div className="relative w-[600px] bg-white rounded-3xl custom-shadow">
         <p className="text-end text-3xl pt-5 pr-5">
-          <button onClick={leaveSession}>✕</button>
+          <button className="cursor-pointer" onClick={leaveSession}>✕</button>
         </p>
-        <p className="text-center text-3xl font-bold">통화가 종료되었습니다.</p>
+        <p className="text-center text-3xl font-bold">미팅이 종료되었습니다.</p>
         <div className="p-5">
           {capturedImage && (
             <div className="relative">
@@ -88,9 +88,9 @@ const MatchingResult: React.FC<MatchingResultProps> = ({
             </div>
           )}
         </div>
-        <div className="bottom-0 absolute w-full">
+        <div className="flex flex-col justify-center items-center w-full">
           {isMatched && (
-            <div className="flex justify-center">
+            <div className="flex justify-center w-full">
               <button
                 onClick={moveToPrivateRoom}
                 className="bg-amber-300 w-3/5 h-[70px] text-4xl font-bold shadow-md rounded-3xl custom-shadow"
@@ -115,7 +115,7 @@ const MatchingResult: React.FC<MatchingResultProps> = ({
                     ></path>
                   </svg>
                 ) : (
-                  <p className="w-full text-2xl font-bold">1:1 대화로 이동</p>
+                  <p className="text-2xl font-bold">1:1 대화로 이동</p>
                 )}
               </button>
             </div>
