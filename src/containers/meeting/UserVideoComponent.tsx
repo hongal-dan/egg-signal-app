@@ -17,7 +17,6 @@ export default function UserVideoComponent(props: {
   let nickname = "";
   nickname = JSON.parse(jsonString).clientData;
 
-  // /!--emoji container 추가함--/
   return (
     <div className="stream-wrapper relative w-full h-full">
       {props.streamManager !== undefined ? (
@@ -25,7 +24,7 @@ export default function UserVideoComponent(props: {
           className={`relative streamcomponent ${props.className}`}
           ref={streamComponentRef}
         >
-          <div className="emoji-container overflow-hidden absolute w-full h-full pointer-events-none flex items-center justify-center">
+          <div className="emoji-container absolute w-full h-full pointer-events-none flex items-center justify-center">
             {" "}
           </div>
           <div className="arrow-container hidden" id="arrow">
