@@ -1214,7 +1214,7 @@ const Meeting = () => {
     }
     meetingCupidResultEvent();
 
-    if (subscribers.length === 1) {
+    if (subscribers.length === 5) {
       if (getUserGender(publisher!) === "MALE") {
         sortSubscribers("MALE");
       } else {
@@ -1225,7 +1225,7 @@ const Meeting = () => {
       socket?.emit("startTimer", { sessionId: sessionId });
       console.log(socket, "socket============================================");
     }
-    if (isFull && subscribers.length !== 1 && !isFinish) {
+    if (isFull && subscribers.length !== 5 && !isFinish) {
       if (keywordRef.current) {
         keywordRef.current.innerText =
           "누군가가 연결을 해제하여 10초 후 메인으로 이동합니다.";
