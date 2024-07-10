@@ -48,22 +48,9 @@ video {
   opacity: 0.5;
 }
 
-.one-one-four {
-  margin: 0 25vw;
-  padding-top: 20vh;
-  grid-template-columns: repeat(8, 1fr);
-  grid-template-rows: 1fr 1fr 1fr;
-  grid-template-areas:
-    "a a a a b b b b"
-    "a a a a b b b b"
-    "a a a a b b b b"
-    "a a a a b b b b"
-    ". . c d e f . .";
-}
-
 .video-container {
   display: grid;
-  padding-top: 30px;
+  padding-top: 2vh;
   grid-template-rows: repeat(2, 1fr);
   grid-template-columns: repeat(3, 1fr);
   row-gap: 20px;
@@ -85,6 +72,17 @@ video {
   min-width: 40vw;
   margin-bottom: 10vh;
   bottom: 20px;
+}
+
+.one-one-four {
+  grid-template-columns: repeat(8, 1fr);
+  grid-template-rows: 1fr 1fr 1fr;
+  grid-template-areas:
+    "a a a a b b b b"
+    "a a a a b b b b"
+    "a a a a b b b b"
+    "a a a a b b b b"
+    ". . c d e f . .";
 }
 
 .a {

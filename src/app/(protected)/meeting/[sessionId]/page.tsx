@@ -1306,7 +1306,7 @@ const Meeting = () => {
               />
             </div>
             <EggTimer setTime={5} />
-            <div className="w-full h-24">
+            <div className="w-full h-6">
               <p
                 className="flex justify-center items-center font-bold h-full text-3xl"
                 ref={keywordRef}
@@ -1329,22 +1329,18 @@ const Meeting = () => {
               {publisher !== undefined ? (
                 <div
                   // className={`stream-container col-md-6 col-xs-6 pub ${publisher.stream.streamId === speakingPublisherId ? "speaking" : ""} ${getUserGender(publisher)}`}
-                  className={`stream-container col-md-6 col-xs-6 pub custom-shadow ${getUserGender(publisher)} ${
-                    speakingPublisherIds.includes(publisher.stream.streamId)
-                      ? "speaking"
-                      : ""
-                  }`}
+                  className={`stream-container col-md-6 col-xs-6 pub custom-shadow ${getUserGender(publisher)}`}
                   // onClick={() => handleMainVideoStream(publisher)}
                   id={getUserID(publisher)}
                   ref={pubRef}
                 >
                   <UserVideoComponent
                     streamManager={publisher}
-                    // className={
-                    //   speakingPublisherIds.includes(publisher.stream.streamId)
-                    //     ? "speaking"
-                    //     : ""
-                    // }
+                    className={
+                      speakingPublisherIds.includes(publisher.stream.streamId)
+                        ? "speaking"
+                        : ""
+                    }
                   />
                 </div>
               ) : null}
@@ -1353,11 +1349,7 @@ const Meeting = () => {
                   key={sub.stream.streamId}
                   data-key={sub.stream.streamId}
                   // className={`stream-container col-md-6 col-xs-6 sub ${sub.stream.streamId === speakingPublisherId ? "speaking" : ""} ${getUserGender(sub)}`}
-                  className={`stream-container col-md-6 col-xs-6 sub custom-shadow ${getUserGender(sub)} ${
-                    speakingPublisherIds.includes(sub.stream.streamId)
-                      ? "speaking"
-                      : ""
-                  }`}
+                  className={`stream-container col-md-6 col-xs-6 sub custom-shadow ${getUserGender(sub)}`}
                   // onClick={() => handleMainVideoStream(sub)}
                   id={getUserID(sub)}
                   ref={el => {
@@ -1367,11 +1359,11 @@ const Meeting = () => {
                   <UserVideoComponent
                     key={sub.stream.streamId}
                     streamManager={sub}
-                    // className={
-                    //   speakingPublisherIds.includes(sub.stream.streamId)
-                    //     ? "speaking"
-                    //     : ""
-                    // }
+                    className={
+                      speakingPublisherIds.includes(sub.stream.streamId)
+                        ? "speaking"
+                        : ""
+                    }
                   />
                 </div>
               ))}
