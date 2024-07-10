@@ -34,18 +34,18 @@ const MatchingResult: React.FC<MatchingResultProps> = ({
   const moveToPrivateRoom = () => {
     meetingSocket?.emit("moveToPrivateRoom", {
       sessionId: sessionInfo.sessionId,
-      // myName: myInfo.nickname,
-      myName: testName, // FIXME 배포시엔 위에거로 바꿔야함
+      myName: myInfo.nickname,
+      // myName: testName, // FIXME 배포시엔 위에거로 바꿔야함
       partnerName: lover,
     });
     setIsLoading(true);
   };
 
   const requestAddFriend = () => {
-    if(isRequestedFriend) {
+    if (isRequestedFriend) {
       Swal.fire({
-       title: "이미 친구 요청을 보냈습니다.",
-       confirmButtonText: "확인",
+        title: "이미 친구 요청을 보냈습니다.",
+        confirmButtonText: "확인",
       });
       return;
     }
@@ -53,7 +53,7 @@ const MatchingResult: React.FC<MatchingResultProps> = ({
       icon: "success",
       title: "친구 요청을 보냈습니다",
       showConfirmButton: false,
-      timer: 1500
+      timer: 1500,
     });
     commonSocket?.emit("reqRequestFriend", {
       userNickname: myInfo.nickname,
@@ -70,7 +70,6 @@ const MatchingResult: React.FC<MatchingResultProps> = ({
     return () => clearTimeout(timeOut);
   }, []);
 
-
   return (
     <div className="absolute w-full h-full flex items-center justify-center min-w-[600px]">
       <div className="relative w-[600px] h-[700px] bg-white rounded-3xl custom-shadow">
@@ -84,7 +83,11 @@ const MatchingResult: React.FC<MatchingResultProps> = ({
               <p className="absolute w-full top-[-1px] h-[40px] pt-1 rounded-t-3xl bg-slate-300 text-center font-bold text-2xl custom-shadow">
                 {lover}
               </p>
-              <img src={capturedImage} alt="Captured" className="rounded-3xl custom-shadow" />
+              <img
+                src={capturedImage}
+                alt="Captured"
+                className="rounded-3xl custom-shadow"
+              />
             </div>
           )}
         </div>

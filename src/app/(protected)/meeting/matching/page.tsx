@@ -41,7 +41,7 @@ const Matching = () => {
     setPublisher(undefined);
     router.push("/main");
   };
-  
+
   const leaveHandler = () => {
     Swal.fire({
       title: "정말 통화를 종료하시겠습니까?",
@@ -51,12 +51,12 @@ const Matching = () => {
       cancelButtonColor: "#d33",
       confirmButtonText: "종료할게요",
       cancelButtonText: "취소",
-    }).then((result) => {
+    }).then(result => {
       if (result.isConfirmed) {
         leaveSession();
       }
     });
-   };
+  };
 
   const joinSession = () => {
     const OV = new OpenVidu();
@@ -73,8 +73,8 @@ const Matching = () => {
     // Connect to the session
     newSession
       .connect(ovInfo.token, {
-        // clientData: userInfo.nickname, // FIXME 이놈으로 바꿔야합니다. .. 테스트네임말고
-        clientData: testName,
+        clientData: userInfo.nickname, // FIXME 이놈으로 바꿔야합니다. .. 테스트네임말고
+        // clientData: testName,
       })
       .then(async () => {
         const publisher = await OV.initPublisherAsync(undefined, {

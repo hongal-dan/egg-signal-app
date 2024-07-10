@@ -201,8 +201,8 @@ const Meeting = () => {
     // Connect to the session
     newSession
       .connect(token, {
-        // clientData: userInfo?.nickname as string,  // FIXME 배포시엔 저를 써주세요.
-        clientData: participantName, // FIXME 배포 시 랜덤닉네임 말고 유저 아이디로
+        clientData: userInfo?.nickname as string, // FIXME 배포시엔 저를 써주세요.
+        // clientData: participantName, // FIXME 배포 시 랜덤닉네임 말고 유저 아이디로
         gender: userInfo?.gender as string,
       })
       .then(async () => {
