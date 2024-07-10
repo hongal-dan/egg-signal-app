@@ -111,7 +111,9 @@ const Chat: React.FC<Props> = ({ friend, onClose }) => {
                 key={index}
                 className={`flex ${msg.sender === currentUser?.nickname ? "justify-end" : "justify-start"}`}
               >
-                <span className="border border-gray-400 p-2 rounded-lg shadow-sm break-all">
+                <span
+                  className={`p-2 rounded-lg shadow-sm break-all ${msg.sender === currentUser?.nickname ? "bg-amber-200" : "bg-slate-200"}`}
+                >
                   {msg.message}
                 </span>
               </div>
