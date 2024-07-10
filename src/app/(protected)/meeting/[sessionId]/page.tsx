@@ -816,10 +816,9 @@ const Meeting = () => {
           console.log("원 위치로 변경");
           undoLoveStickMode();
           if (keywordRef.current) {
-            console.log("1분 후 미팅이 종료됩니다");
-            keywordRef.current.innerText = "1분 후 미팅이 종료됩니다";
+            keywordRef.current.innerText = "잠시 후 미팅이 종료됩니다";
           }
-        }, 10000); // 10초 후 원 위치
+        }, 5000); // 5초 후 원 위치 (시연용)
       } catch (e: any) {
         console.error(e);
       }

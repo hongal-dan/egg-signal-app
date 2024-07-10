@@ -129,7 +129,7 @@ const FriendList: React.FC<FriendListPros> = ({ friendsList }) => {
         ))
       )}
       {isChatVisible && selectedFriend && (
-        <div className="w-full absolute top-[250px] left-[-330px] bottom-0 bg-white shadow-md rounded-lg z-11">
+        <div className="w-full absolute top-[150px] left-[-330px] bottom-0 bg-white shadow-md rounded-lg z-11">
           <Chat friend={selectedFriend} onClose={closeChat} />
         </div>
       )}
