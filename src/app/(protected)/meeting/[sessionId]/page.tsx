@@ -313,6 +313,7 @@ const Meeting = () => {
     setSortedSubscribers([]);
     setIsFull(false);
     setIsLastChoose(false);
+    setIsChosen(false);
     OffSocketEvent();
 
     if (!isSucceedFlag) {
