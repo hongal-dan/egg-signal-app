@@ -20,21 +20,20 @@ export default function UserVideoComponent(props: {
   return (
     <div className="stream-wrapper relative w-full h-full">
       {props.streamManager !== undefined ? (
-        <div
-          className={`relative streamcomponent ${props.className}`}
-          ref={streamComponentRef}
-        >
-          <div className="emoji-container overflow-hidden absolute w-full h-full pointer-events-none flex items-center justify-center">
-            {" "}
-          </div>
-          <div className="arrow-container hidden" id="arrow">
-            <div className="arrow-body">
-              <div className="arrow-head"></div>
+        <div className={props.className}>
+          <div className="relative streamcomponent" ref={streamComponentRef}>
+            <div className="emoji-container overflow-hidden absolute w-full h-full pointer-events-none flex items-center justify-center">
+              {" "}
             </div>
-          </div>
-          <OpenViduVideoComponent streamManager={props.streamManager} />
-          <div>
-            <p className="nickname">{nickname}</p>
+            <div className="arrow-container hidden" id="arrow">
+              <div className="arrow-body">
+                <div className="arrow-head"></div>
+              </div>
+            </div>
+            <OpenViduVideoComponent streamManager={props.streamManager} />
+            <div>
+              <p className="nickname">{nickname}</p>
+            </div>
           </div>
         </div>
       ) : null}
