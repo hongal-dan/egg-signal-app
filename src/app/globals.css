@@ -2,6 +2,25 @@
 @tailwind components;
 @tailwind utilities;
 
+@font-face {
+  font-family: 'Jalnan';
+  font-weight: normal;
+  font-style: normal;
+  src: url('https://cdn.jsdelivr.net/gh/webfontworld/goodchoice/Jalnan.eot');
+  src: url('https://cdn.jsdelivr.net/gh/webfontworld/goodchoice/Jalnan.eot?#iefix') format('embedded-opentype'),
+      url('https://cdn.jsdelivr.net/gh/webfontworld/goodchoice/Jalnan.woff2') format('woff2'),
+      url('https://cdn.jsdelivr.net/gh/webfontworld/goodchoice/Jalnan.woff') format('woff'),
+      url('https://cdn.jsdelivr.net/gh/webfontworld/goodchoice/Jalnan.ttf') format("truetype");
+  font-display: swap;
+}
+
+@media (max-width: 800px) {
+  html {
+      font-size: 62.5%;
+  }
+}
+
+
 body {
   background-color: #fae4c9;
   background-image: url("/img/background_img.png");
@@ -9,6 +28,7 @@ body {
   background-size: contain;
   background-position: center;
   width: 100vw;
+  min-width: 368px;
   height: 100vh;
 }
 

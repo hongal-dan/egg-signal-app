@@ -102,7 +102,7 @@ const Chat: React.FC<Props> = ({ friend, onClose }) => {
       </div>
       <div className="h-full">
         <div
-          className={`flex-grow overflow-y-scroll p-4 h-[75%] ${chat.length > 0 ? "scrollbar-custom" : "scrollbar-hide"}`}
+          className={`overflow-y-scroll p-4 h-[75%] ${chat.length > 0 ? "scrollbar-custom" : "scrollbar-hide"}`}
           ref={chatContainerRef}
         >
           <div className="space-y-4">

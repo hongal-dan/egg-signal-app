@@ -110,7 +110,7 @@ const FriendList: React.FC<FriendListPros> = ({ friendsList }) => {
 
   return (
     <div
-      className={`w-72 h-[700px] overflow-auto ${friendsList && friendsList.length > 0 ? "scrollbar-custom" : "scrollbar-hide"}`}
+      className={`w-72 h-[35rem] overflow-auto ${friendsList && friendsList.length > 0 ? "scrollbar-custom" : "scrollbar-hide"}`}
     >
       {friendsList.length === 0 ? (
         <div className="flex justify-center items-center h-full">

@@ -3,6 +3,7 @@ import { useRouter } from "next/navigation";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import { createUser } from "@/services/auth";
+import { IoMdArrowRoundBack } from "react-icons/io";
 
 interface FormValues {
   id: string;
@@ -72,10 +73,16 @@ const Signup = () => {
   };
 
   return (
-    <div className="flex items-center justify-center px-6 py-8 mx-auto md:h-screen">
-      <div className="w-1/2 p-5 px-[120px] bg-amber-50 rounded-2xl shadow">
+    <div className="flex items-center justify-center px-6 py-8 mx-auto h-full max-w-[1200px]">
+      <div className="relative w-1/2 p-5 px-[80px] bg-amber-50 rounded-2xl custom-shadow min-w-[500px]">
+        <button
+          className="text-4xl absolute left-8"
+          onClick={() => router.push("/login")}
+        >
+          <IoMdArrowRoundBack />
+        </button>
         <div className="p-6 space-y-4 md:space-y-6 sm:p-8">
-          <p className="text-4xl text-center font-bold">Sign up</p>
+          <p className="text-4xl text-center font-bold">회원 가입</p>
         </div>
         <Formik
           initialValues={initialValues}
@@ -88,7 +95,7 @@ const Signup = () => {
           {({ isSubmitting }) => (
             <Form className="space-y-4 md:space-y-6">
               <div>
-                <label>사용할 ID</label>
+                <label>아이디</label>
                 <Field
                   name="id"
                   className="border border-gray-300 text-gray-900 rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
@@ -100,7 +107,7 @@ const Signup = () => {
                 />
               </div>
               <div>
-                <label>Username</label>
+                <label>닉네임</label>
                 <Field
                   name="userName"
                   className="border border-gray-300 text-gray-900 rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
@@ -112,14 +119,18 @@ const Signup = () => {
                 />
               </div>
               <div>
-                <label>Gender</label>
-                <Field name="gender" as="select" className="ml-5">
-                  <option value="MALE">남성</option>
+                <label>성별</label>
+                <Field
+                  name="gender"
+                  as="select"
+                  className="border ml-5 p-2 rounded-lg border-gray-300"
+                >
+                  <option value="MALE">남성</option>;
                   <option value="FEMALE">여성</option>
                 </Field>
               </div>
               <div>
-                <label>Password</label>
+                <label>비밀번호</label>
                 <Field
                   name="password"
                   type="password"
@@ -132,7 +143,7 @@ const Signup = () => {
                 />
               </div>
               <div>
-                <label>Password Confirm</label>
+                <label>비밀번호 확인</label>
                 <Field
                   name="confirmPassword"
                   type="password"
@@ -149,9 +160,9 @@ const Signup = () => {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-64 text-white bg-amber-400 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center"
+                  className="w-64  bg-amber-400 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-lg px-5 py-2.5 text-center custom-shadow"
                 >
-                  Sign up
+                  회원 가입
                 </button>
               </div>
             </Form>
@@ -160,6 +171,6 @@ const Signup = () => {
       </div>
     </div>
   );
-}
+};
 
 export default Signup;
