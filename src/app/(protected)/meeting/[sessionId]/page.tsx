@@ -696,31 +696,31 @@ const Meeting = () => {
             highlightUser((index + 1) % streamElements.length);
           }, currentDuration - 10);
         }
-
-        setTimeout(() => {
-          isAnimating = false;
-          for (let i = 0; i < streamElements.length; i++) {
-            streamElements[i].classList.remove("highlighted");
-          }
-
-          const randomKeyword = openKeyword(keywordIdx);
-
-          if (pubRef.current?.id === pickUser) {
-            changePresentationMode(pubRef.current, 12, randomKeyword);
-          } else {
-            const presenterElement = subRef.current?.filter(
-              sub => sub?.id === pickUser,
-            )[0];
-            console.log(presenterElement);
-            if (presenterElement) {
-              changePresentationMode(presenterElement, 12, randomKeyword);
-            }
-          }
-        }, animationDuration);
       }, currentDuration - 10);
     }; // 초기 강조 시작
 
     highlightUser(currentIndex);
+
+    setTimeout(() => {
+      isAnimating = false;
+      for (let i = 0; i < streamElements.length; i++) {
+        streamElements[i].classList.remove("highlighted");
+      }
+
+      const randomKeyword = openKeyword(keywordIdx);
+
+      if (pubRef.current?.id === pickUser) {
+        changePresentationMode(pubRef.current, 12, randomKeyword);
+      } else {
+        const presenterElement = subRef.current?.filter(
+          sub => sub?.id === pickUser,
+        )[0];
+        console.log(presenterElement);
+        if (presenterElement) {
+          changePresentationMode(presenterElement, 12, randomKeyword);
+        }
+      }
+    }, animationDuration);
   };
 
   const meetingEvent = () => {
