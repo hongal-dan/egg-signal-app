@@ -84,9 +84,7 @@ const CanvasModal: React.FC<CanvasModalProps> = ({
       clearInterval(intervalRef.current!);
       const updatedDrawings: Record<string, string> = {};
       Object.entries(drawings).forEach(([userName, drawingBuffer]) => {
-        const blob = new Blob([drawingBuffer], { type: "image/webp" });
-        const url = URL.createObjectURL(blob);
-        updatedDrawings[userName] = url;
+        updatedDrawings[userName] = drawingBuffer;
       });
 
       setDrawings(updatedDrawings);
@@ -251,20 +249,30 @@ const CanvasModal: React.FC<CanvasModalProps> = ({
 
   const handleForwardDrawing = async () => {
     const canvas = canvasRef.current!;
-    const blob = await new Promise<Blob | null>(resolve =>
-      canvas?.toBlob(resolve, "image/webp"),
-    );
-    const capturedPhoto = captureVideoFrame();
+    const context = canvas.getContext("2d");
     setHasSubmitted(true);
-    if (blob) {
-      const resizedBlob = await resizeAndCompressImage(blob, canvas.width);
-      const arrayBuffer = await resizedBlob.arrayBuffer();
-      socket.emit("forwardDrawing", {
-        userName: userInfo?.nickname,
-        // userName: testName, // FIXME 테스트용 랜덤 닉네임 저장, 배포 전에 삭제해야함
-        drawing: arrayBuffer,
-        photo: capturedPhoto,
+    const capturedPhoto = captureVideoFrame();
+
+    if (context) {
+      context.drawImage(canvas, 0, 0, canvas.width, canvas.height);
+      const blob = await new Promise<Blob | null>(resolve => {
+        canvas.toBlob(resolve, "image/webp");
       });
+
+      if (!blob) return;
+
+      const compressedImageUrl = await resizeAndCompressImage(
+        blob,
+        canvas.width,
+      );
+
+      if (compressedImageUrl) {
+        socket.emit("forwardDrawing", {
+          userName: userInfo?.nickname,
+          drawing: compressedImageUrl,
+          photo: capturedPhoto,
+        });
+      }
     }
   };
 
@@ -273,12 +281,17 @@ const CanvasModal: React.FC<CanvasModalProps> = ({
       type: "image/webp",
     });
 
-    return await imageCompression(file, {
+    const options = {
       maxSizeMB: 0.1,
       maxWidthOrHeight: width * 0.5,
       useWebWorker: true,
       fileType: "image/webp",
-    });
+    };
+
+    const compressedFile = await imageCompression(file, options);
+    const compressedDataUrl =
+      await imageCompression.getDataUrlFromFile(compressedFile);
+    return compressedDataUrl;
   };
 
   const handleVoteSubmit = (votedUser: string) => {
