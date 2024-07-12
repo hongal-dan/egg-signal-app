@@ -4,6 +4,7 @@ import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import { createUser } from "@/services/auth";
 import { IoMdArrowRoundBack } from "react-icons/io";
+import Swal from "sweetalert2";
 
 interface FormValues {
   id: string;
@@ -17,7 +18,11 @@ const validationSchema = Yup.object().shape({
   id: Yup.string()
     .min(4, "아이디는 최소 4자여야 합니다")
     .max(10, "아이디는 10자를 넘을 수 없습니다.")
-    .required("아이디는 필수 항목입니다"),
+    .required("아이디는 필수 항목입니다")
+    .matches(
+      /^[^\p{Emoji_Presentation}\p{Extended_Pictographic}\uFE0F]*$/u,
+      "아이디에 이모지를 사용할 수 없습니다.",
+    ),
   userName: Yup.string()
     .min(2, "닉네임은 최소 2자여야 합니다")
     .max(10, "닉네임은 10자를 넘을 수 없습니다.")
@@ -25,6 +30,10 @@ const validationSchema = Yup.object().shape({
     .notOneOf(
       ["MALE", "FEMALE", "male", "female"],
       "사용할 수 없는 닉네임입니다.",
+    )
+    .matches(
+      /^[^\p{Emoji_Presentation}\p{Extended_Pictographic}\uFE0F]*$/u,
+      "닉네임에 이모지를 사용할 수 없습니다.",
     ),
   password: Yup.string()
     .matches(
@@ -61,11 +70,13 @@ const Signup = () => {
     };
     try {
       const response = (await createUser(request)) as Response;
-      console.log(response);
-      if (response.status) {
+      if (response.status == 201) {
         router.push("/login");
-      } else if (response.status === 500) {
-        alert("중복된 아이디 입니다.");
+      } else if ((response as any).response.data.statusCode === 500) {
+        Swal.fire({
+          icon: "warning",
+          title: "이미 사용 중인 아이디입니다",
+        });
       }
     } catch (error) {
       console.error("Error fetching data: ", error);
