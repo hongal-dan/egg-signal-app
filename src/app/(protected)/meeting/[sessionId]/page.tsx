@@ -916,15 +916,14 @@ const Meeting = () => {
         console.log(response);
 
         setTimeout(() => {
-          const participantsArray: Array<string> = response;
+          // const participantsArray: Array<string> = response;
+          const participantsArray: string = response;
           console.log("Introduce 도착", participantsArray);
           // let idx = 0;
-          // const participantElement = document.getElementById(
-          //   participantsArray[idx],
-          // ) as HTMLDivElement;
           const participantElement = document.getElementById(
-            userInfo.nickname,
-          ) as HTMLDivElement; //FIXME 시연용 -publisher만 1번 뜸
+            // participantsArray[idx],
+            participantsArray, //FIXME 시연용
+          ) as HTMLDivElement;
           changePresentationMode(
             participantElement,
             // 10,
