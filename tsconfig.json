@@ -4,7 +4,8 @@
       "./node_modules/@types",
       "egg-signal-app/src/containers/main"
     ],
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "target": "ES6",
+    "lib": ["es6", "dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
