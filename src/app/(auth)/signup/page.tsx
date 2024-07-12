@@ -72,10 +72,7 @@ const Signup = () => {
       const response = (await createUser(request)) as Response;
       if (response.status == 201) {
         router.push("/login");
-      } else if (
-        (response as any).response &&
-        (response as any).response.data.statusCode === 500
-      ) {
+      } else if ((response as any).response.data.statusCode === 500) {
         Swal.fire({
           icon: "warning",
           title: "이미 사용 중인 아이디입니다",
