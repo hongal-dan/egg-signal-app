@@ -3,6 +3,7 @@ import { useRouter } from "next/navigation";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import { loginUserHeader } from "@/services/auth";
+import Swal from "sweetalert2";
 
 interface FormValues {
   id: string;
@@ -26,10 +27,14 @@ const Login = () => {
 
   const handleLogIn = async (values: FormValues) => {
     try {
-      const response = await loginUserHeader(values) as Response;
-      console.log(response);
+      const response = (await loginUserHeader(values)) as Response;
       if (response.status == 200) {
         router.replace("/main");
+      } else if ((response as any).response.data.statusCode === 401) {
+        Swal.fire({
+          icon: "warning",
+          title: "아이디 또는 비밀번호가 틀립니다",
+        });
       }
     } catch (error) {
       console.error("Error fetching data: ", error);
@@ -58,7 +63,11 @@ const Login = () => {
                   name="id"
                   className="border border-gray-300 text-gray-900 rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
                 />
-                <ErrorMessage className={`error ${errorStyle}`} component="p" name="id" />
+                <ErrorMessage
+                  className={`error ${errorStyle}`}
+                  component="p"
+                  name="id"
+                />
               </div>
               <div>
                 <label>비밀번호</label>
@@ -67,7 +76,11 @@ const Login = () => {
                   type="password"
                   className="border border-gray-300 text-gray-900 rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
                 />
-                <ErrorMessage className={`error ${errorStyle}`} component="p" name="password" />
+                <ErrorMessage
+                  className={`error ${errorStyle}`}
+                  component="p"
+                  name="password"
+                />
               </div>
 
               <div className="w-full flex justify-center">
@@ -93,6 +106,6 @@ const Login = () => {
       </div>
     </div>
   );
-}
+};
 
 export default Login;
