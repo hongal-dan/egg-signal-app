@@ -620,7 +620,7 @@ const Meeting = () => {
 
     let currentIndex = 0;
     let iteration = 0;
-    let isAnimating = true;
+    const isAnimating = true;
 
     for (let i = 0; i < rouletteElements.length; i++) {
       rouletteElements[i].classList.remove("speaking");
