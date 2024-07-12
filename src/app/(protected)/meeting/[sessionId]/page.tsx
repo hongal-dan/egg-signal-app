@@ -395,14 +395,30 @@ const Meeting = () => {
       const deltaY = endY2 - startY1;
       const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
       setArrowColor(fromUser, [arrowHead, arrowBody]);
-      arrowContainer.style.paddingTop = "20px";
-      arrowBody.style.width = distance - 20 + "px";
+      arrowContainer.style.paddingTop = "1rem";
+      // arrowBody.style.width = distance - 20 + "px";
       arrowContainer.style.top = startY1 - rect1.top + "px";
       arrowContainer.style.left = startX1 - rect1.left + "px";
+
+      arrowBody.style.setProperty('--arrow-width', `${distance - 20}px`);
+
       arrowContainer.style.transform = `rotate(${
         (Math.atan2(deltaY, deltaX) * 180) / Math.PI
       }deg)`;
-      arrowContainer.classList.remove("hidden");
+
+      if(fromUser.classList.contains("a") || fromUser.classList.contains("b") || fromUser.classList.contains("c")) {
+        arrowContainer.classList.remove("hidden");
+        arrowBody.style.animation = 'none';
+        arrowBody.offsetHeight;
+        arrowBody.style.animation = 'growArrow 2s ease-out forwards';
+        return;
+      }
+      setTimeout(() => {
+        arrowContainer.classList.remove("hidden");
+        arrowBody.style.animation = 'none';
+        arrowBody.offsetHeight;
+        arrowBody.style.animation = 'growArrow 2s ease-out forwards';
+      }, 3000);
     });
   };
 
