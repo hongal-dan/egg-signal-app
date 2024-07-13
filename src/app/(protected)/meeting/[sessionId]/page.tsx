@@ -52,7 +52,7 @@ const Meeting = () => {
   );
   const [isCanvasModalOpen, setIsCanvasModalOpen] = useState<boolean>(false);
   const [keywordsIndex, setKeywordsIndex] = useState(0);
-  const [, setIsChosen] = useRecoilState(isChosenState);
+  const [isChosen, setIsChosen] = useRecoilState(isChosenState);
 
   const captureRef = useRef<HTMLDivElement>(null);
   const keywordRef = useRef<HTMLParagraphElement>(null);
@@ -60,6 +60,7 @@ const Meeting = () => {
   const subRef = useRef<Array<HTMLDivElement | null>>([]);
   const videoContainerRef = useRef<HTMLDivElement>(null);
   const loadingRef = useRef<HTMLDivElement>(null);
+  const sessionRef = useRef<HTMLDivElement>(null);
 
   const [avatar, setAvatar] = useRecoilState(avatarState);
   const [isOpenCam, setIsOpenCam] = useState<boolean>(false);
@@ -70,6 +71,7 @@ const Meeting = () => {
   const [isMatched, setIsMatched] = useState<boolean>(false); // 매칭이 되었는지 여부
   const [, setIsLastChoose] = useRecoilState(isLastChooseState);
   const [lover, setLover] = useState<string>("");
+  const isLastChoose = useRecoilValue(isLastChooseState);
 
   const { sessionId, token, participantName } =
     useRecoilValue(defaultSessionState);
@@ -79,6 +81,8 @@ const Meeting = () => {
 
   const [capturedImage, setCapturedImage] = useState<string>("");
   const [isFinish, setIsFinish] = useState(false);
+
+  const chooseTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // 어떻게든 종료 하면 세션에서 나가게함.
   useEffect(() => {
@@ -164,7 +168,7 @@ const Meeting = () => {
         sub instanceof Subscriber &&
         sub.stream.streamId !== partnerStreamId
       ) {
-        sub.subscribeToAudio(flag);
+        sub?.subscribeToAudio(flag);
       }
     });
   };
@@ -395,14 +399,30 @@ const Meeting = () => {
       const deltaY = endY2 - startY1;
       const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
       setArrowColor(fromUser, [arrowHead, arrowBody]);
-      arrowContainer.style.paddingTop = "20px";
-      arrowBody.style.width = distance - 20 + "px";
+      arrowContainer.style.paddingTop = "1rem";
+      // arrowBody.style.width = distance - 20 + "px";
       arrowContainer.style.top = startY1 - rect1.top + "px";
       arrowContainer.style.left = startX1 - rect1.left + "px";
+
+      arrowBody.style.setProperty('--arrow-width', `${distance - 20}px`);
+
       arrowContainer.style.transform = `rotate(${
         (Math.atan2(deltaY, deltaX) * 180) / Math.PI
       }deg)`;
-      arrowContainer.classList.remove("hidden");
+
+      if(fromUser.classList.contains("a") || fromUser.classList.contains("b") || fromUser.classList.contains("c")) {
+        arrowContainer.classList.remove("hidden");
+        arrowBody.style.animation = 'none';
+        arrowBody.offsetHeight;
+        arrowBody.style.animation = 'growArrow 2s ease-out forwards';
+        return;
+      }
+      setTimeout(() => {
+        arrowContainer.classList.remove("hidden");
+        arrowBody.style.animation = 'none';
+        arrowBody.offsetHeight;
+        arrowBody.style.animation = 'growArrow 2s ease-out forwards';
+      }, 3000);
     });
   };
 
@@ -529,6 +549,20 @@ const Meeting = () => {
       const chooseBtn = subContainer!.getElementsByClassName("choose-btn")[0];
       chooseBtn.classList.remove("hidden");
     });
+    setIsChosen(false);
+    chooseTimerRef.current = setTimeout(() => {
+      const emitChoose = (eventName: string) => {
+        socket?.emit(eventName, {
+          sender: userInfo?.nickname,
+          receiver: subRef.current[subRef.current.length - 1]?.id,
+        });
+      };
+      if (!isLastChoose) {
+        emitChoose("choose");
+      } else {
+        emitChoose("lastChoose");
+      }
+    }, 5000);
   };
 
   const setOneToOneMode = (loverElement: HTMLDivElement) => {
@@ -588,139 +622,70 @@ const Meeting = () => {
     console.log("상대방: ", loverElement);
   };
 
-  // const randomUser = (keywordIdx: number, pickUser: string) => {
-  //   const streamElements = document.getElementsByClassName("streamcomponent");
-  //   const tickSound = document.getElementById("tickSound") as HTMLAudioElement;
-
-  //   if (keywordRef.current) {
-  //     keywordRef.current.innerText =
-  //       "곧 한 참가자가 선택됩니다. 선택된 사람은 질문에 답변해주세요";
-  //   }
-
-  //   const animationDuration = 10000;
-  //   const currentIndex = 0;
-  //   let currentDuration = 50;
-  //   let isAnimating = true;
-
-  //   // speaking 클래스 제거
-  //   for (let i = 0; i < streamElements.length; i++) {
-  //     streamElements[i].classList.remove("speaking");
-  //   }
-
-  //   const highlightUser = (index: number) => {
-  //     if (!isAnimating) return;
-  //     // 현재 인덱스의 참여자를 강조 (빨간색 border 추가)
-  //     streamElements[index].classList.add("highlighted");
-
-  //     // 룰렛 소리 재생
-  //     tickSound.currentTime = 0; // 오디오를 처음부터 재생
-  //     tickSound.play();
-
-  //     // 일정 시간 후에 border 초기화 (빨간색 border 제거)
-  //     setTimeout(() => {
-  //       streamElements[index].classList.remove("highlighted");
-  //       streamElements[(index + 1) % streamElements.length].classList.add(
-  //         "highlighted",
-  //       );
-
-  //       // 다음 참여자 강조 시작 (재귀 호출)
-  //       setTimeout(() => {
-  //         currentDuration += 10;
-  //         highlightUser((index + 1) % streamElements.length);
-  //       }, currentDuration - 10);
-
-  //       setTimeout(() => {
-  //         isAnimating = false;
-  //         for (let i = 0; i < streamElements.length; i++) {
-  //           streamElements[i].classList.remove("highlighted");
-  //         }
-  //         const randomKeyword = openKeyword(keywordIdx);
-
-  //         if (pubRef.current?.id === pickUser) {
-  //           changePresentationMode(pubRef.current, 30, randomKeyword);
-  //         } else {
-  //           const presenterElement = subRef.current?.filter(
-  //             sub => sub?.id === pickUser,
-  //           )[0];
-  //           console.log(presenterElement);
-  //           if (presenterElement) {
-  //             changePresentationMode(presenterElement, 30, randomKeyword);
-  //           }
-  //         }
-  //       }, animationDuration);
-  //     }, currentDuration - 10);
-  //   };
-  //   // 초기 강조 시작
-  //   highlightUser(currentIndex);
-  // };
 
   //FIXME 시연용 룰렛 함수
   const randomUser = (keywordIdx: number, pickUser: string) => {
-    const streamElements = document.getElementsByClassName("streamcomponent");
+    const streamElements = document.getElementsByClassName("stream-container");
+    const streamArray = Array.from(streamElements);
     const tickSound = document.getElementById("tickSound") as HTMLAudioElement;
 
-    if (keywordRef.current) {
-      keywordRef.current.innerText =
-        "곧 한 참가자가 선택됩니다. 선택된 사람은 질문에 답변해주세요";
+    const rouletteElements = streamArray.slice(0, streamArray.length / 2).concat(streamArray.slice(streamArray.length / 2).reverse()) as HTMLDivElement[];
+
+    const totalIterations = 36; // 원하는 총 반복 횟수
+    const minDuration = 10; // 초기 강조 시간 간격
+    const maxDuration = 200; // 마지막 강조 시간 간격
+
+    let currentIndex = 0;
+    let iteration = 0;
+    const isAnimating = true;
+
+    for (let i = 0; i < rouletteElements.length; i++) {
+      rouletteElements[i].classList.remove("speaking");
+      if (rouletteElements[i].id === pickUser) {
+        currentIndex += i % 6;
+      }
     }
 
-    const animationDuration = 5000; // 초기 강조 애니메이션 기본 지속 시간
-    const currentIndex = 0;
-    let currentDuration = 50;
-    let isAnimating = true; // speaking 클래스 제거
-
-    for (let i = 0; i < streamElements.length; i++) {
-      streamElements[i].classList.remove("speaking");
-    }
-
-    const highlightUser = (index: number) => {
-      if (!isAnimating) return; // 현재 인덱스의 참여자를 강조 (빨간색 border 추가)
-      streamElements[index].classList.add("highlighted"); // 룰렛 소리 재생
-
-      tickSound.currentTime = 0; // 오디오를 처음부터 재생
-      tickSound.play(); // 일정 시간 후에 border 초기화 (빨간색 border 제거)
-
-      setTimeout(() => {
-        streamElements[index].classList.remove("highlighted");
-        if (currentDuration >= animationDuration) {
-          // 애니메이션이 끝나는 시점에 streamElements[0](publisher) 강조
-          streamElements[0].classList.add("highlighted");
-          isAnimating = false;
+    const highlightUser = () => {
+      if (!isAnimating || iteration >= totalIterations) {
+        clearInterval(intervalId);
+        rouletteElements[currentIndex].classList.add("highlighted");
+        tickSound.currentTime = 0;
+        tickSound.play();
+        const randomKeyword = openKeyword(keywordIdx);
+        if (pubRef.current?.id === pickUser) {
+          changePresentationMode(pubRef.current, 11, randomKeyword);
         } else {
-          streamElements[(index + 1) % streamElements.length].classList.add(
-            "highlighted",
-          ); // 다음 참여자 강조 시작 (재귀 호출)
-
-          setTimeout(() => {
-            currentDuration += 10;
-            highlightUser((index + 1) % streamElements.length);
-          }, currentDuration - 10);
+          const presenterElement = subRef.current?.filter(sub => sub?.id === pickUser)[0];
+          if (presenterElement) {
+            changePresentationMode(presenterElement, 11, randomKeyword);
+          }
         }
-      }, currentDuration - 10);
-    }; // 초기 강조 시작
-
-    highlightUser(currentIndex);
-
-    setTimeout(() => {
-      isAnimating = false;
-      for (let i = 0; i < streamElements.length; i++) {
-        streamElements[i].classList.remove("highlighted");
+        setTimeout(() => {
+          for (let i = 0; i < rouletteElements.length; i++) {
+            rouletteElements[i].classList.remove("highlighted");
+          }
+        }, 3000);
+        return;
       }
 
-      const randomKeyword = openKeyword(keywordIdx);
+      rouletteElements[currentIndex].classList.remove("highlighted");
+      currentIndex = (currentIndex + 1) % rouletteElements.length;
+      rouletteElements[currentIndex].classList.add("highlighted");
 
-      if (pubRef.current?.id === pickUser) {
-        changePresentationMode(pubRef.current, 12, randomKeyword);
-      } else {
-        const presenterElement = subRef.current?.filter(
-          sub => sub?.id === pickUser,
-        )[0];
-        console.log(presenterElement);
-        if (presenterElement) {
-          changePresentationMode(presenterElement, 12, randomKeyword);
-        }
-      }
-    }, animationDuration);
+      tickSound.currentTime = 0;
+      tickSound.play();
+
+      iteration++;
+
+      // 비선형적으로 증가하는 시간 간격 계산 (제곱 함수 사용)
+      const progress = iteration / totalIterations;
+      const duration = minDuration * Math.pow((maxDuration / minDuration), progress * 1.5);
+      clearInterval(intervalId);
+      intervalId = setInterval(highlightUser, duration);
+    };
+
+    let intervalId = setInterval(highlightUser, minDuration);
   };
 
   const meetingEvent = () => {
@@ -728,7 +693,28 @@ const Meeting = () => {
       try {
         console.log("keyword Event: ", message);
         console.log("random user: ", message.getRandomParticipant);
-        randomUser(parseInt(message.message), message.getRandomParticipant);
+
+        if (sessionRef.current) {
+          sessionRef.current.classList.add("bg-black");
+        }
+        setTimeout(() => {
+          if (keywordRef.current) {
+            keywordRef.current.classList.add("text-white");
+            keywordRef.current.innerText =
+              "곧 한 참가자가 선택됩니다. 선택된 사람은 질문에 답변해주세요";
+          }
+        }, 2000);
+        setTimeout(() => {
+          randomUser(parseInt(message.message), message.getRandomParticipant);
+          setTimeout(() => {
+            if (sessionRef.current) {
+              sessionRef.current.classList.remove("bg-black");
+            }
+            if(keywordRef.current) {
+              keywordRef.current.classList.remove("text-white");
+            }
+          }, 22000);
+        }, 5000);
       } catch (e: any) {
         console.error(e);
       }
@@ -779,7 +765,7 @@ const Meeting = () => {
             keywordRef.current.innerText =
               "잠시 후 매칭된 사람과의 1:1 대화가 시작됩니다.";
           }
-        }, 5000); // 5초 후 원 위치
+        }, 10000); // 5초 후 원 위치
       } catch (e: any) {
         console.error(e);
       }
@@ -798,8 +784,8 @@ const Meeting = () => {
     socket?.on("lastCupidTime", (response: any) => {
       try {
         console.log("lastCupidTime 도착", response);
-        setChooseMode();
         setIsLastChoose(true);
+        setChooseMode();
       } catch (e: any) {
         console.error(e);
       }
@@ -1051,7 +1037,7 @@ const Meeting = () => {
               // }, 60000); // 1분 후 음소거 해제
             }, 20000); //FIXME 시연용 20초 후 원 위치
           }
-        }, 8000); // 결과 도착 후 13초뒤에 1:1 대화 진행
+        }, 13000); // 결과 도착 후 13초뒤에 1:1 대화 진행
       } catch (e: any) {
         console.error(e);
       }
@@ -1122,14 +1108,8 @@ const Meeting = () => {
 
   useEffect(() => {
     const timeOut = setTimeout(() => {
-      console.log("지금 방의 상태는..?", isFullRef.current);
       if (!isFullRef.current) {
-        console.log(
-          "asdfasdfasdfasdfasdfasdf접속 해제!!!!!!!!!!!!!",
-          loadingRef.current,
-        );
         if (loadingRef.current) {
-          console.log("저 있어요!!!!!!!!!!!!!!!!!!!!!!!!");
           loadingRef.current.innerHTML =
             "<p>누군가 연결을 해제하여 메인화면으로 이동합니다.</p>";
         }
@@ -1254,6 +1234,16 @@ const Meeting = () => {
     };
   }, [avatar]);
 
+  useEffect(() => {
+    if(!isChosen) {
+      return;
+    }
+    if(chooseTimerRef.current) {
+      clearTimeout(chooseTimerRef.current);
+      chooseTimerRef.current = null;
+    }
+  }, [isChosen])
+
   const leaveHandler = () => {
     Swal.fire({
       title: "정말 나가시겠습니까?",
@@ -1317,7 +1307,7 @@ const Meeting = () => {
               ></audio>
             </div>
           </div>
-          <div id="session" className="h-full flex justify-center items-center">
+          <div id="session" className="h-full flex justify-center items-center transition-colors duration-[1500ms] ease-in-out" ref={sessionRef}>
             {/* <div ref={captureRef} className="hidden">
           <UserVideoComponent2 />
         </div> */}
