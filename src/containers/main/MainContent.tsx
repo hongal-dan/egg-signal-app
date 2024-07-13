@@ -25,6 +25,7 @@ import { getUserInfo } from "@/services/users";
 import { defaultSessionState } from "@/app/store/ovInfo";
 import MainChat from "./chat/MainChat";
 import Tutorial from "./tutorial/Tutorial";
+import Logout from "./button/Logout";
 
 interface Notification {
   _id: string;
@@ -282,7 +283,7 @@ const MainContent = () => {
   const toggleFriendList = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
     setIsFriendListVisible(prev => !prev);
-    if(isNotiVisible) {
+    if (isNotiVisible) {
       setIsNotiVisible(false);
     }
   };
@@ -290,7 +291,7 @@ const MainContent = () => {
   const toggleNotiList = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
     setIsNotiVisible(prev => !prev);
-    if(isFriendListVisible) {
+    if (isFriendListVisible) {
       setIsFriendListVisible(false);
     }
   };
@@ -310,18 +311,6 @@ const MainContent = () => {
       setIsVideoLoading(false);
     } catch (error) {
       console.error("Error accessing the webcam: ", error);
-    }
-  };
-
-  const handleLogout = async () => {
-    try {
-      localStorage.removeItem("token");
-      sessionStorage.removeItem("onlineFriends");
-      OffCommonSocketEvent();
-      commonSocket?.disconnect();
-      window.location.reload();
-    } catch (error) {
-      console.error("Log out Error: ", error);
     }
   };
 
@@ -386,12 +375,10 @@ const MainContent = () => {
         onClick={handleMainContentClick}
         className="h-full flex items-center justify-center min-w-[368px]"
       >
-        <button
-          className="fixed top-4 right-4 z-10 border-b border-gray-500 text-gray-500"
-          onClick={handleLogout}
-        >
-          Log out
-        </button>
+        <Logout
+          commonSocket={commonSocket}
+          OffCommonSocketEvent={OffCommonSocketEvent}
+        />
         <div className="w-full flex justify-center items-center">
           <div className="flex flex-col items-center">
             <div className="flex justify-end w-full mb-2">
