@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import FriendList from "./chat/FriendList";
 import NotificationButton from "./button/NotificationsButton";
 import io from "socket.io-client";
 import { useRecoilState } from "recoil";
@@ -22,6 +21,7 @@ import Tutorial from "./tutorial/Tutorial";
 import Logout from "./button/Logout";
 import WebcamDisplay from "./WebcamDisplay";
 import EnterButton from "./button/EnterButton";
+import FriendButton from "./button/FriendButton";
 
 interface Notification {
   _id: string;
@@ -34,10 +34,8 @@ const MainContent = () => {
   const [isNotiVisible, setIsNotiVisible] = useState<boolean>(false);
   const [commonSocket, setCommonSocket] = useRecoilState(commonSocketState);
   const [currentUser, setCurrentUser] = useRecoilState(userState);
-  const [newMessageSenders, setNewMessageSenders] = useRecoilState(
-    newMessageSenderState,
-  );
-  const [messageAlarm, setMessageAlarm] = useRecoilState(messageAlarmState);
+  const [, setNewMessageSenders] = useRecoilState(newMessageSenderState);
+  const [, setMessageAlarm] = useRecoilState(messageAlarmState);
   const [openedChatRoomId, setOpenedChatRoomId] = useRecoilState(chatRoomState);
   const [, setOnlineList] = useRecoilState(onlineListState);
   const [notiList, setNotiList] = useRecoilState(notiListState);
@@ -262,26 +260,10 @@ const MainContent = () => {
             <EnterButton url={url} />
           </div>
         </div>
-        <div className="z-10 absolute bottom-10 right-10">
-          <button
-            className="relative w-48 h-10 flex items-center justify-center bg-amber-100 rounded-2xl shadow-md"
-            onClick={toggleFriendList}
-          >
-            {(messageAlarm ||
-              (newMessageSenders && newMessageSenders.length !== 0)) && (
-              <div className="absolute left-[-5px] top-[-5px] w-4 h-4 rounded-full bg-rose-500 shadow-md" />
-            )}
-            <p className="text-xl font-bold">친구</p>
-          </button>
-          {isFriendListVisible && (
-            <div
-              onClick={e => e.stopPropagation()}
-              className="absolute bottom-[50px] right-1 bg-white shadow-md rounded-lg p-4 z-10 custom-shadow"
-            >
-              <FriendList friendsList={currentUser.friends} />
-            </div>
-          )}
-        </div>
+        <FriendButton
+          isFriendListVisible={isFriendListVisible}
+          toggleFriendList={toggleFriendList}
+        />
       </div>
     </>
   );
