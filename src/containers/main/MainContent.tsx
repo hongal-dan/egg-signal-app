@@ -240,16 +240,15 @@ const MainContent = () => {
     participantName: string;
   };
 
-  const randomNum = Math.floor(Math.random() * 1000).toString(); // 테스트용 익명 닉네임 부여
   const handleLoadingOn: React.MouseEventHandler<
     HTMLButtonElement
   > = async () => {
     const meetingSocket = (await connectSocket()) as Socket | null;
     console.log("socket: ", meetingSocket);
     console.log("currentUser: ", currentUser);
-    console.log("testName", currentUser.nickname + "-" + randomNum);
+    // console.log("testName", currentUser.nickname + "-" + randomNum);
     meetingSocket?.emit("ready", {
-      participantName: `${currentUser.nickname}-${randomNum}`,
+      participantName: currentUser.nickname,
       gender: currentUser.gender,
     });
     if (startButton.current) startButton.current.disabled = true;
@@ -273,7 +272,7 @@ const MainContent = () => {
 
   const handleLoadingCancel = () => {
     socket?.emit("cancel", {
-      participantName: `${currentUser.nickname}-${randomNum}`,
+      participantName: currentUser.nickname,
       gender: currentUser.gender,
     }); // 테스트용 익명 닉네임 부여
     if (startButton.current) startButton.current.disabled = false;
