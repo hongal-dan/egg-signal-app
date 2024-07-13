@@ -106,16 +106,28 @@ video {
   grid-area: f;
 }
 
+@keyframes growArrow {
+  from {
+    width: 0;
+  }
+  to {
+    width: var(--arrow-width);
+  }
+}
+
 .arrow-container {
   position: absolute;
   transform-origin: left center;
   z-index: -1;
 }
+
 .arrow-body {
   height: 5px;
   transform-origin: left center;
   position: relative;
+  width: 0;
 }
+
 .arrow-head {
   width: 0;
   height: 0;
@@ -162,15 +174,13 @@ video {
 }
 
 .streamcomponent .nickname {
-  @apply px-[4px] absolute bg-transparent text-[#777777] rounded-[4px] font-bold;
+  @apply px-[4px] absolute bg-transparent text-[#777777] font-bold mt-[0.8rem];
 }
+
 p {
   margin: 0;
 }
 
 .highlighted {
-  box-sizing: border-box;
-  border: 5px solid #ff6b6b;
-  border-radius: 15px;
-  padding: 0;
+  border: 10px solid #00ff95;
 }
