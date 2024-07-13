@@ -1,30 +1,24 @@
 "use client";
 
-import React, { useRef, useState, useEffect } from "react";
-import FriendList from "./chat/FriendList";
-import Notifications from "./Notifications";
+import React, { useState, useEffect } from "react";
 import io from "socket.io-client";
-import { useRouter } from "next/navigation";
 import { useRecoilState } from "recoil";
-import { meetingSocketState } from "@/app/store/socket";
 import {
   commonSocketState,
   notiListState,
   onlineListState,
 } from "@/app/store/commonSocket";
+import { isChosenState } from "@/app/store/socket";
 import { userState } from "@/app/store/userInfo";
-import {
-  chatRoomState,
-  newMessageSenderState,
-  messageAlarmState,
-} from "@/app/store/chat";
-// import { logoutUser } from "@/services/auth";
-import { Socket } from "socket.io-client";
-import { testState } from "@/app/store/userInfo"; // FIXME 테스트용 랜덤 닉네임 저장, 배포 전에 삭제해야함
+import { newMessageSenderState, messageAlarmState } from "@/app/store/chat";
 import { getUserInfo } from "@/services/users";
-import { defaultSessionState } from "@/app/store/ovInfo";
 import MainChat from "./chat/MainChat";
 import Tutorial from "./tutorial/Tutorial";
+import Logout from "./button/Logout";
+import WebcamDisplay from "./WebcamDisplay";
+import EnterButton from "./button/EnterButton";
+import FriendButton from "./button/FriendButton";
+import NotificationButton from "./button/NotificationsButton";
 
 interface Notification {
   _id: string;
@@ -32,36 +26,17 @@ interface Notification {
 }
 
 const MainContent = () => {
-  const [, setTestName] = useRecoilState(testState); // FIXME 테스트용 랜덤 닉네임 저장, 배포 전에 삭제해야함
-
-  const router = useRouter();
-  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isFriendListVisible, setIsFriendListVisible] =
     useState<boolean>(false);
   const [isNotiVisible, setIsNotiVisible] = useState<boolean>(false);
-  const startButton = useRef<HTMLButtonElement>(null);
-  const url = process.env.NEXT_PUBLIC_API_SERVER;
-
-  const [socket, setSocket] = useRecoilState(meetingSocketState);
   const [commonSocket, setCommonSocket] = useRecoilState(commonSocketState);
   const [currentUser, setCurrentUser] = useRecoilState(userState);
-  const enterBtnRef = useRef<HTMLParagraphElement>(null);
-  const [isEnterLoading, setIsEnterLoading] = useState<boolean>(false);
-  const [newMessageSenders, setNewMessageSenders] = useRecoilState(
-    newMessageSenderState,
-  );
-  const [messageAlarm, setMessageAlarm] = useRecoilState(messageAlarmState);
-  const [openedChatRoomId, setOpenedChatRoomId] = useRecoilState(chatRoomState);
+  const [, setNewMessageSenders] = useRecoilState(newMessageSenderState);
+  const [, setMessageAlarm] = useRecoilState(messageAlarmState);
   const [, setOnlineList] = useRecoilState(onlineListState);
   const [notiList, setNotiList] = useRecoilState(notiListState);
-
-  const [, setDefaultUserInfo] = useRecoilState(defaultSessionState);
   const [chatExpanded, setChatExpanded] = useState(false);
-  const notiRef = useRef<HTMLDivElement>(null);
-  const [isVideoOn, setIsVideoOn] = useState<boolean>(true);
-  const [isVideoLoading, setIsVideoLoading] = useState<boolean>(true);
-  const loadingVideoRef = useRef<HTMLDivElement>(null);
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const [, setIsChosen] = useRecoilState(isChosenState);
 
   const checkOnlineFriends = () => {
     const onlineList = sessionStorage.getItem("onlineFriends");
@@ -109,15 +84,41 @@ const MainContent = () => {
     }
   };
 
+  const toggleFriendList = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+    setIsFriendListVisible(prev => !prev);
+    if (isNotiVisible) {
+      setIsNotiVisible(false);
+    }
+  };
+
+  const toggleNotiList = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+    setIsNotiVisible(prev => !prev);
+    if (isFriendListVisible) {
+      setIsFriendListVisible(false);
+    }
+  };
+
+  const handleMainContentClick = () => {
+    setIsFriendListVisible(false);
+    setIsNotiVisible(false);
+    if (chatExpanded) {
+      setChatExpanded(false);
+    }
+  };
+
   useEffect(() => {
     checkNewMessageAfterLogin();
     checkNewMessage();
   }, [currentUser]);
 
   useEffect(() => {
+    setIsChosen(false); // cupid 선택 여부 false 초기화
     updateUserInfo();
+    checkOnlineFriends();
 
-    const newCommonSocket = io(`${url}/common`, {
+    const newCommonSocket = io(`${process.env.NEXT_PUBLIC_API_SERVER}/common`, {
       transports: ["websocket"],
       auth: { token: JSON.parse(localStorage.getItem("token")!) },
     });
@@ -202,7 +203,6 @@ const MainContent = () => {
             newList.push(key);
           }
         });
-        console.log("friend state new List!!", newList);
         setOnlineList(newList);
         sessionStorage.setItem("onlineFriends", JSON.stringify(newList));
       } else {
@@ -214,285 +214,38 @@ const MainContent = () => {
           }
         });
         const newList = Array.from(new Set(prevList)) as string[];
-        console.log("update online list: ", newList);
         sessionStorage.setItem("onlineFriends", JSON.stringify(newList));
         setOnlineList(newList);
       }
     });
   }, []);
 
-  const connectSocket = async () => {
-    return new Promise(resolve => {
-      const newSocket = io(`${url}/meeting`, {
-        transports: ["websocket"],
-        auth: { token: JSON.parse(localStorage.getItem("token")!) },
-      });
-      newSocket.on("connect", () => {
-        setSocket(newSocket);
-        resolve(newSocket);
-      });
-    });
-  };
-
-  type ovInfo = {
-    sessionId: string;
-    token: string;
-    participantName: string;
-  };
-
-  const handleLoadingOn: React.MouseEventHandler<
-    HTMLButtonElement
-  > = async () => {
-    const meetingSocket = (await connectSocket()) as Socket | null;
-    console.log("socket: ", meetingSocket);
-    console.log("currentUser: ", currentUser);
-    // console.log("testName", currentUser.nickname + "-" + randomNum);
-    meetingSocket?.emit("ready", {
-      participantName: currentUser.nickname,
-      gender: currentUser.gender,
-    });
-    if (startButton.current) startButton.current.disabled = true;
-    setIsLoading(true);
-    meetingSocket?.on("startCall", async (ovInfo: ovInfo) => {
-      console.log(ovInfo);
-      setTestName(ovInfo.participantName); // FIXME 테스트용 랜덤 닉네임 저장, 배포 전에 삭제해야함
-      setDefaultUserInfo({
-        sessionId: ovInfo.sessionId,
-        token: ovInfo.token,
-        participantName: ovInfo.participantName,
-      }); // FIXME 배포용은 participantName 삭제해야함;
-      setIsLoading(false);
-      setIsEnterLoading(true);
-      router.push(`/meeting/${ovInfo.sessionId}`);
-      setTimeout(() => {
-        setIsEnterLoading(false);
-      }, 2000);
-    });
-  };
-
-  const handleLoadingCancel = () => {
-    socket?.emit("cancel", {
-      participantName: currentUser.nickname,
-      gender: currentUser.gender,
-    }); // 테스트용 익명 닉네임 부여
-    if (startButton.current) startButton.current.disabled = false;
-    setIsLoading(false);
-  };
-
-  const toggleFriendList = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.stopPropagation();
-    setIsFriendListVisible(prev => !prev);
-    if(isNotiVisible) {
-      setIsNotiVisible(false);
-    }
-  };
-
-  const toggleNotiList = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.stopPropagation();
-    setIsNotiVisible(prev => !prev);
-    if(isFriendListVisible) {
-      setIsFriendListVisible(false);
-    }
-  };
-
-  const startWebCam = async () => {
-    try {
-      const constraints = {
-        video: true,
-        audio: false,
-      };
-
-      const stream = await navigator.mediaDevices.getUserMedia(constraints);
-      const video = videoRef.current!;
-      if (video && video instanceof HTMLVideoElement) {
-        video.srcObject = stream;
-      }
-      setIsVideoLoading(false);
-    } catch (error) {
-      console.error("Error accessing the webcam: ", error);
-    }
-  };
-
-  const handleLogout = async () => {
-    try {
-      localStorage.removeItem("token");
-      sessionStorage.removeItem("onlineFriends");
-      OffCommonSocketEvent();
-      commonSocket?.disconnect();
-      window.location.reload();
-    } catch (error) {
-      console.error("Log out Error: ", error);
-    }
-  };
-
-  const OffCommonSocketEvent = () => {
-    commonSocket?.off("newMessageNotification");
-    commonSocket?.off("friendOnline");
-    commonSocket?.off("friendOffline");
-    commonSocket?.off("resGetNotifications");
-    commonSocket?.off("newFriendRequest");
-    commonSocket?.off("resAcceptFriend");
-    commonSocket?.off("friendRequestAccepted");
-    commonSocket?.off("friendStat");
-  };
-
-  const toggleCam = () => {
-    videoRef.current?.classList.toggle("hidden");
-    isVideoOn ? setIsVideoOn(false) : setIsVideoOn(true);
-  };
-
-  useEffect(() => {
-    startWebCam();
-    checkOnlineFriends();
-
-    return setIsVideoLoading(true);
-  }, []);
-
-  useEffect(() => {
-    if (!isVideoLoading) {
-      loadingVideoRef.current?.classList.add("bg-[url('/img/camoff.png')]");
-    }
-  }, [isVideoLoading]);
-
-  useEffect(() => {
-    if (isEnterLoading && enterBtnRef.current) {
-      enterBtnRef.current.innerText = "입장 중입니다.";
-    }
-  }, [isEnterLoading]);
-
-  useEffect(() => {
-    if (!isFriendListVisible) {
-      if (openedChatRoomId !== null) {
-        console.log("closeChat: ", openedChatRoomId);
-        commonSocket?.emit("closeChat", { chatRoomdId: openedChatRoomId });
-        setOpenedChatRoomId(null);
-      }
-    }
-  }, [isFriendListVisible]);
-
-  const handleMainContentClick = () => {
-    setIsFriendListVisible(false);
-    setIsNotiVisible(false);
-    if (chatExpanded) {
-      setChatExpanded(false);
-    }
-  };
-
   return (
     <>
       <Tutorial />
       <MainChat chatExpanded={chatExpanded} setChatExpanded={setChatExpanded} />
+      <Logout commonSocket={commonSocket} />
       <div
         onClick={handleMainContentClick}
         className="h-full flex items-center justify-center min-w-[368px]"
       >
-        <button
-          className="fixed top-4 right-4 z-10 border-b border-gray-500 text-gray-500"
-          onClick={handleLogout}
-        >
-          Log out
-        </button>
         <div className="w-full flex justify-center items-center">
           <div className="flex flex-col items-center">
             <div className="flex justify-end w-full mb-2">
-              <div className="w-10 h-10 relative flex items-center justify-center text-xl bg-white rounded-2xl custom-shadow">
-                {notiList.length !== 0 && (
-                  <div className="absolute left-[-5px] top-[-5px] w-4 h-4 rounded-full bg-rose-500 custom-shadow" />
-                )}
-                <button onClick={toggleNotiList}>🔔</button>
-                {isNotiVisible && (
-                  <div
-                    ref={notiRef}
-                    onClick={e => e.stopPropagation()}
-                    className="w-[340px] h-[500px] absolute top-0 left-[50px] bg-zinc-200 shadow-md rounded-lg p-4 z-10"
-                  >
-                    <Notifications />
-                  </div>
-                )}
-              </div>
+              <NotificationButton
+                isNotiVisible={isNotiVisible}
+                notiList={notiList}
+                toggleNotiList={toggleNotiList}
+              />
             </div>
-            <div
-              className="w-[320px] h-[240px] rounded-xl bg-contain bg-no-repeat bg-center border-4 border-[#FAE4C9] custom-shadow md:w-[400px] md:h-[300px]"
-              ref={loadingVideoRef}
-            >
-              <video
-                id="myCam"
-                className="mx-auto rounded-xl"
-                autoPlay
-                playsInline
-                ref={videoRef}
-              ></video>
-            </div>
-            <div className="m-4">
-              <label className="inline-flex items-center gap-2 cursor-pointer">
-                <input
-                  role="switch"
-                  type="checkbox"
-                  className="cam-input custom-shadow"
-                  onClick={toggleCam}
-                  defaultChecked={isVideoOn}
-                />
-              </label>
-            </div>
-            <div className="w-full mt-4 relative">
-              <button
-                className="w-full h-12 bg-amber-400 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mb-1 z-10 relative custom-shadow"
-                ref={startButton}
-                onClick={handleLoadingOn}
-              >
-                {isLoading ? (
-                  <svg
-                    className="animate-spin h-5 w-5 mr-3 text-white inline-block"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    ></circle>
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 2.42.936 4.635 2.464 6.291l1.536-1.536z"
-                    ></path>
-                  </svg>
-                ) : (
-                  <p className="w-full text-2xl font-bold" ref={enterBtnRef}>
-                    입장하기
-                  </p>
-                )}
-              </button>
-              {isLoading && (
-                <div className="absolute border-b-2 right-0 mt-2 border-black text-sm text-gray-900">
-                  <button onClick={handleLoadingCancel}>매칭 취소</button>
-                </div>
-              )}
-            </div>
+            <WebcamDisplay />
+            <EnterButton />
           </div>
         </div>
-        <div className="z-10 absolute bottom-10 right-10">
-          <button
-            className="relative w-48 h-10 flex items-center justify-center bg-amber-100 rounded-2xl shadow-md"
-            onClick={toggleFriendList}
-          >
-            {(messageAlarm ||
-              (newMessageSenders && newMessageSenders.length !== 0)) && (
-              <div className="absolute left-[-5px] top-[-5px] w-4 h-4 rounded-full bg-rose-500 shadow-md" />
-            )}
-            <p className="text-xl font-bold">친구</p>
-          </button>
-          {isFriendListVisible && (
-            <div
-              onClick={e => e.stopPropagation()}
-              className="absolute bottom-[50px] right-1 bg-white shadow-md rounded-lg p-4 z-10 custom-shadow"
-            >
-              <FriendList friendsList={currentUser.friends} />
-            </div>
-          )}
-        </div>
+        <FriendButton
+          isFriendListVisible={isFriendListVisible}
+          toggleFriendList={toggleFriendList}
+        />
       </div>
     </>
   );
