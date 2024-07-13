@@ -9,11 +9,7 @@ import { meetingSocketState } from "@/app/store/socket";
 import { userState } from "@/app/store/userInfo";
 import { defaultSessionState } from "@/app/store/ovInfo";
 
-interface EntranceButtonProps {
-  url: string;
-}
-
-const EnterButton: React.FC<EntranceButtonProps> = ({ url }) => {
+const EnterButton = () => {
   const router = useRouter();
   const [meetingSocket, setMeetingSocket] = useRecoilState(meetingSocketState);
   //   const [, setTestName] = useRecoilState(testState); // FIXME 테스트용 랜덤 닉네임 저장, 배포 전에 삭제해야함
@@ -25,10 +21,13 @@ const EnterButton: React.FC<EntranceButtonProps> = ({ url }) => {
 
   const connectSocket = async () => {
     return new Promise(resolve => {
-      const newMeetingSocket = io(`${url}/meeting`, {
-        transports: ["websocket"],
-        auth: { token: JSON.parse(localStorage.getItem("token")!) },
-      });
+      const newMeetingSocket = io(
+        `${process.env.NEXT_PUBLIC_API_SERVER}/meeting`,
+        {
+          transports: ["websocket"],
+          auth: { token: JSON.parse(localStorage.getItem("token")!) },
+        },
+      );
       newMeetingSocket.on("connect", () => {
         setMeetingSocket(newMeetingSocket);
         resolve(newMeetingSocket);

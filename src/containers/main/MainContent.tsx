@@ -36,11 +36,9 @@ const MainContent = () => {
   const [currentUser, setCurrentUser] = useRecoilState(userState);
   const [, setNewMessageSenders] = useRecoilState(newMessageSenderState);
   const [, setMessageAlarm] = useRecoilState(messageAlarmState);
-  const [openedChatRoomId, setOpenedChatRoomId] = useRecoilState(chatRoomState);
   const [, setOnlineList] = useRecoilState(onlineListState);
   const [notiList, setNotiList] = useRecoilState(notiListState);
   const [chatExpanded, setChatExpanded] = useState(false);
-  const url = process.env.NEXT_PUBLIC_API_SERVER as string;
 
   const checkOnlineFriends = () => {
     const onlineList = sessionStorage.getItem("onlineFriends");
@@ -88,6 +86,30 @@ const MainContent = () => {
     }
   };
 
+  const toggleFriendList = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+    setIsFriendListVisible(prev => !prev);
+    if (isNotiVisible) {
+      setIsNotiVisible(false);
+    }
+  };
+
+  const toggleNotiList = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+    setIsNotiVisible(prev => !prev);
+    if (isFriendListVisible) {
+      setIsFriendListVisible(false);
+    }
+  };
+
+  const handleMainContentClick = () => {
+    setIsFriendListVisible(false);
+    setIsNotiVisible(false);
+    if (chatExpanded) {
+      setChatExpanded(false);
+    }
+  };
+
   useEffect(() => {
     checkNewMessageAfterLogin();
     checkNewMessage();
@@ -95,8 +117,9 @@ const MainContent = () => {
 
   useEffect(() => {
     updateUserInfo();
+    checkOnlineFriends();
 
-    const newCommonSocket = io(`${url}/common`, {
+    const newCommonSocket = io(`${process.env.NEXT_PUBLIC_API_SERVER}/common`, {
       transports: ["websocket"],
       auth: { token: JSON.parse(localStorage.getItem("token")!) },
     });
@@ -181,7 +204,6 @@ const MainContent = () => {
             newList.push(key);
           }
         });
-        console.log("friend state new List!!", newList);
         setOnlineList(newList);
         sessionStorage.setItem("onlineFriends", JSON.stringify(newList));
       } else {
@@ -193,50 +215,11 @@ const MainContent = () => {
           }
         });
         const newList = Array.from(new Set(prevList)) as string[];
-        console.log("update online list: ", newList);
         sessionStorage.setItem("onlineFriends", JSON.stringify(newList));
         setOnlineList(newList);
       }
     });
   }, []);
-
-  const toggleFriendList = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.stopPropagation();
-    setIsFriendListVisible(prev => !prev);
-    if (isNotiVisible) {
-      setIsNotiVisible(false);
-    }
-  };
-
-  const toggleNotiList = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.stopPropagation();
-    setIsNotiVisible(prev => !prev);
-    if (isFriendListVisible) {
-      setIsFriendListVisible(false);
-    }
-  };
-
-  useEffect(() => {
-    checkOnlineFriends();
-  }, []);
-
-  useEffect(() => {
-    if (!isFriendListVisible) {
-      if (openedChatRoomId !== null) {
-        console.log("closeChat: ", openedChatRoomId);
-        commonSocket?.emit("closeChat", { chatRoomId: openedChatRoomId });
-        setOpenedChatRoomId(null);
-      }
-    }
-  }, [isFriendListVisible]);
-
-  const handleMainContentClick = () => {
-    setIsFriendListVisible(false);
-    setIsNotiVisible(false);
-    if (chatExpanded) {
-      setChatExpanded(false);
-    }
-  };
 
   return (
     <>
@@ -257,7 +240,7 @@ const MainContent = () => {
               />
             </div>
             <WebcamDisplay />
-            <EnterButton url={url} />
+            <EnterButton />
           </div>
         </div>
         <FriendButton
