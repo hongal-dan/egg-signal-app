@@ -115,12 +115,24 @@ class Avatar {
   }
 }
 
+const logMemoryUsage = (label: string) => {
+  if ('memory' in performance) {
+    const memory: any = (performance as any).memory;
+    console.log(`${label} - JS Heap Size: ${(memory.usedJSHeapSize / 1024 / 1024).toFixed(2)} MB`);
+  } else {
+    console.log("Memory performance API is not available in this browser.");
+  }
+}
+
+
 function UserVideoComponent2() {
   const avatarName = useRecoilValue(avatarState);
   const containerRef = useRef<HTMLDivElement>(null);
   const [avatar] = useState<Avatar>(new Avatar(avatarName));
 
   useEffect(() => {
+    logMemoryUsage("Before setup");
+
     const mindarThree = new MindARThree({
       container: containerRef.current!,
     });
@@ -163,7 +175,8 @@ function UserVideoComponent2() {
       );
       imgTexture.wrapS = THREE.RepeatWrapping;
       imgTexture.wrapT = THREE.RepeatWrapping;
-
+      
+      let frame = 0;
       // 받은 정보로 프레임마다 아바타 모양 렌더링
       renderer.setAnimationLoop(() => {
         // 가장 최근의 추정치를 가져옴
@@ -175,6 +188,11 @@ function UserVideoComponent2() {
           scene.background = imgTexture;
         }
         renderer.render(scene, camera);
+
+        if(frame % 60 === 0) {
+          logMemoryUsage("Memory check during animation");
+        }
+        frame += 1;
       });
     };
     
@@ -211,7 +229,14 @@ function UserVideoComponent2() {
       }
       disposeAll();
 
+           // 메모리 사용량을 주기적으로 로그로 출력
+    const memoryLogInterval = setInterval(() => {
+      logMemoryUsage("Memory check");
+      }, 60000); // 1분 간격으로 체크
 
+      return () => {
+        clearInterval(memoryLogInterval);
+      };
     };
 
     setup();
