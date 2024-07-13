@@ -27,7 +27,6 @@ const FriendButton: React.FC<FriendButtonProps> = ({
   useEffect(() => {
     if (!isFriendListVisible) {
       if (openedChatRoomId !== null) {
-        console.log("closeChat: ", openedChatRoomId);
         commonSocket?.emit("closeChat", { chatRoomId: openedChatRoomId });
         setOpenedChatRoomId(null);
       }

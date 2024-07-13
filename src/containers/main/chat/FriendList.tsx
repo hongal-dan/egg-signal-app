@@ -52,7 +52,6 @@ const FriendList: React.FC<FriendListPros> = ({ friendsList }) => {
   const closeChat = () => {
     if (commonSocket) {
       const chatRoomId = selectedFriend?.chatRoomId;
-      console.log(chatRoomId);
       commonSocket.emit("closeChat", { chatRoomId: chatRoomId });
     }
     setSelectedFriend(null);
