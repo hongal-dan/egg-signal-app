@@ -10,11 +10,7 @@ import {
   onlineListState,
 } from "@/app/store/commonSocket";
 import { userState } from "@/app/store/userInfo";
-import {
-  chatRoomState,
-  newMessageSenderState,
-  messageAlarmState,
-} from "@/app/store/chat";
+import { newMessageSenderState, messageAlarmState } from "@/app/store/chat";
 import { getUserInfo } from "@/services/users";
 import MainChat from "./chat/MainChat";
 import Tutorial from "./tutorial/Tutorial";
