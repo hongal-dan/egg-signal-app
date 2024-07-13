@@ -52,7 +52,7 @@ const Meeting = () => {
   );
   const [isCanvasModalOpen, setIsCanvasModalOpen] = useState<boolean>(false);
   const [keywordsIndex, setKeywordsIndex] = useState(0);
-  const [, setIsChosen] = useRecoilState(isChosenState);
+  const [isChosen, setIsChosen] = useRecoilState(isChosenState);
 
   const captureRef = useRef<HTMLDivElement>(null);
   const keywordRef = useRef<HTMLParagraphElement>(null);
@@ -71,6 +71,7 @@ const Meeting = () => {
   const [isMatched, setIsMatched] = useState<boolean>(false); // 매칭이 되었는지 여부
   const [, setIsLastChoose] = useRecoilState(isLastChooseState);
   const [lover, setLover] = useState<string>("");
+  const isLastChoose = useRecoilValue(isLastChooseState);
 
   const { sessionId, token, participantName } =
     useRecoilValue(defaultSessionState);
@@ -80,6 +81,8 @@ const Meeting = () => {
 
   const [capturedImage, setCapturedImage] = useState<string>("");
   const [isFinish, setIsFinish] = useState(false);
+
+  const chooseTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // 어떻게든 종료 하면 세션에서 나가게함.
   useEffect(() => {
@@ -1216,6 +1219,16 @@ const Meeting = () => {
       setAvatar(null);
     };
   }, [avatar]);
+
+  useEffect(() => {
+    if(!isChosen) {
+      return;
+    }
+    if(chooseTimerRef.current) {
+      clearTimeout(chooseTimerRef.current);
+      chooseTimerRef.current = null;
+    }
+  }, [isChosen])
 
   const leaveHandler = () => {
     Swal.fire({
