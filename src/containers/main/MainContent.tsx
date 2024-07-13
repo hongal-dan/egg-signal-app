@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import NotificationButton from "./button/NotificationsButton";
 import io from "socket.io-client";
 import { useRecoilState } from "recoil";
 import {
@@ -9,6 +8,7 @@ import {
   notiListState,
   onlineListState,
 } from "@/app/store/commonSocket";
+import { isChosenState } from "@/app/store/socket";
 import { userState } from "@/app/store/userInfo";
 import { newMessageSenderState, messageAlarmState } from "@/app/store/chat";
 import { getUserInfo } from "@/services/users";
@@ -18,6 +18,7 @@ import Logout from "./button/Logout";
 import WebcamDisplay from "./WebcamDisplay";
 import EnterButton from "./button/EnterButton";
 import FriendButton from "./button/FriendButton";
+import NotificationButton from "./button/NotificationsButton";
 
 interface Notification {
   _id: string;
@@ -35,6 +36,7 @@ const MainContent = () => {
   const [, setOnlineList] = useRecoilState(onlineListState);
   const [notiList, setNotiList] = useRecoilState(notiListState);
   const [chatExpanded, setChatExpanded] = useState(false);
+  const [, setIsChosen] = useRecoilState(isChosenState);
 
   const checkOnlineFriends = () => {
     const onlineList = sessionStorage.getItem("onlineFriends");
@@ -112,6 +114,7 @@ const MainContent = () => {
   }, [currentUser]);
 
   useEffect(() => {
+    setIsChosen(false); // cupid 선택 여부 false 초기화
     updateUserInfo();
     checkOnlineFriends();
 
