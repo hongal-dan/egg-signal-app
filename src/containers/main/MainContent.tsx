@@ -1,12 +1,10 @@
 "use client";
 
-import React, { useRef, useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import FriendList from "./chat/FriendList";
 import NotificationButton from "./button/NotificationsButton";
 import io from "socket.io-client";
-import { useRouter } from "next/navigation";
 import { useRecoilState } from "recoil";
-import { meetingSocketState } from "@/app/store/socket";
 import {
   commonSocketState,
   notiListState,
@@ -18,15 +16,12 @@ import {
   newMessageSenderState,
   messageAlarmState,
 } from "@/app/store/chat";
-// import { logoutUser } from "@/services/auth";
-import { Socket } from "socket.io-client";
-import { testState } from "@/app/store/userInfo"; // FIXME 테스트용 랜덤 닉네임 저장, 배포 전에 삭제해야함
 import { getUserInfo } from "@/services/users";
-import { defaultSessionState } from "@/app/store/ovInfo";
 import MainChat from "./chat/MainChat";
 import Tutorial from "./tutorial/Tutorial";
 import Logout from "./button/Logout";
 import WebcamDisplay from "./WebcamDisplay";
+import EnterButton from "./button/EnterButton";
 
 interface Notification {
   _id: string;
@@ -34,21 +29,11 @@ interface Notification {
 }
 
 const MainContent = () => {
-  const [, setTestName] = useRecoilState(testState); // FIXME 테스트용 랜덤 닉네임 저장, 배포 전에 삭제해야함
-
-  const router = useRouter();
-  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isFriendListVisible, setIsFriendListVisible] =
     useState<boolean>(false);
   const [isNotiVisible, setIsNotiVisible] = useState<boolean>(false);
-  const startButton = useRef<HTMLButtonElement>(null);
-  const url = process.env.NEXT_PUBLIC_API_SERVER;
-
-  const [socket, setSocket] = useRecoilState(meetingSocketState);
   const [commonSocket, setCommonSocket] = useRecoilState(commonSocketState);
   const [currentUser, setCurrentUser] = useRecoilState(userState);
-  const enterBtnRef = useRef<HTMLParagraphElement>(null);
-  const [isEnterLoading, setIsEnterLoading] = useState<boolean>(false);
   const [newMessageSenders, setNewMessageSenders] = useRecoilState(
     newMessageSenderState,
   );
@@ -56,9 +41,8 @@ const MainContent = () => {
   const [openedChatRoomId, setOpenedChatRoomId] = useRecoilState(chatRoomState);
   const [, setOnlineList] = useRecoilState(onlineListState);
   const [notiList, setNotiList] = useRecoilState(notiListState);
-
-  const [, setDefaultUserInfo] = useRecoilState(defaultSessionState);
   const [chatExpanded, setChatExpanded] = useState(false);
+  const url = process.env.NEXT_PUBLIC_API_SERVER as string;
 
   const checkOnlineFriends = () => {
     const onlineList = sessionStorage.getItem("onlineFriends");
@@ -218,64 +202,6 @@ const MainContent = () => {
     });
   }, []);
 
-  const connectSocket = async () => {
-    return new Promise(resolve => {
-      const newSocket = io(`${url}/meeting`, {
-        transports: ["websocket"],
-        auth: { token: JSON.parse(localStorage.getItem("token")!) },
-      });
-      newSocket.on("connect", () => {
-        setSocket(newSocket);
-        resolve(newSocket);
-      });
-    });
-  };
-
-  type ovInfo = {
-    sessionId: string;
-    token: string;
-    participantName: string;
-  };
-
-  const handleLoadingOn: React.MouseEventHandler<
-    HTMLButtonElement
-  > = async () => {
-    const meetingSocket = (await connectSocket()) as Socket | null;
-    console.log("socket: ", meetingSocket);
-    console.log("currentUser: ", currentUser);
-    // console.log("testName", currentUser.nickname + "-" + randomNum);
-    meetingSocket?.emit("ready", {
-      participantName: currentUser.nickname,
-      gender: currentUser.gender,
-    });
-    if (startButton.current) startButton.current.disabled = true;
-    setIsLoading(true);
-    meetingSocket?.on("startCall", async (ovInfo: ovInfo) => {
-      console.log(ovInfo);
-      setTestName(ovInfo.participantName); // FIXME 테스트용 랜덤 닉네임 저장, 배포 전에 삭제해야함
-      setDefaultUserInfo({
-        sessionId: ovInfo.sessionId,
-        token: ovInfo.token,
-        participantName: ovInfo.participantName,
-      }); // FIXME 배포용은 participantName 삭제해야함;
-      setIsLoading(false);
-      setIsEnterLoading(true);
-      router.push(`/meeting/${ovInfo.sessionId}`);
-      setTimeout(() => {
-        setIsEnterLoading(false);
-      }, 2000);
-    });
-  };
-
-  const handleLoadingCancel = () => {
-    socket?.emit("cancel", {
-      participantName: currentUser.nickname,
-      gender: currentUser.gender,
-    }); // 테스트용 익명 닉네임 부여
-    if (startButton.current) startButton.current.disabled = false;
-    setIsLoading(false);
-  };
-
   const toggleFriendList = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
     setIsFriendListVisible(prev => !prev);
@@ -295,12 +221,6 @@ const MainContent = () => {
   useEffect(() => {
     checkOnlineFriends();
   }, []);
-
-  useEffect(() => {
-    if (isEnterLoading && enterBtnRef.current) {
-      enterBtnRef.current.innerText = "입장 중입니다.";
-    }
-  }, [isEnterLoading]);
 
   useEffect(() => {
     if (!isFriendListVisible) {
@@ -339,43 +259,7 @@ const MainContent = () => {
               />
             </div>
             <WebcamDisplay />
-            <div className="w-full mt-4 relative">
-              <button
-                className="w-full h-12 bg-amber-400 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mb-1 z-10 relative custom-shadow"
-                ref={startButton}
-                onClick={handleLoadingOn}
-              >
-                {isLoading ? (
-                  <svg
-                    className="animate-spin h-5 w-5 mr-3 text-white inline-block"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    ></circle>
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 2.42.936 4.635 2.464 6.291l1.536-1.536z"
-                    ></path>
-                  </svg>
-                ) : (
-                  <p className="w-full text-2xl font-bold" ref={enterBtnRef}>
-                    입장하기
-                  </p>
-                )}
-              </button>
-              {isLoading && (
-                <div className="absolute border-b-2 right-0 mt-2 border-black text-sm text-gray-900">
-                  <button onClick={handleLoadingCancel}>매칭 취소</button>
-                </div>
-              )}
-            </div>
+            <EnterButton url={url} />
           </div>
         </div>
         <div className="z-10 absolute bottom-10 right-10">
