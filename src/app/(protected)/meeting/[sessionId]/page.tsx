@@ -633,6 +633,8 @@ const Meeting = () => {
       if (!isAnimating || iteration >= totalIterations) {
         clearInterval(intervalId);
         rouletteElements[currentIndex].classList.add("highlighted");
+        tickSound.currentTime = 0;
+        tickSound.play();
         const randomKeyword = openKeyword(keywordIdx);
         if (pubRef.current?.id === pickUser) {
           changePresentationMode(pubRef.current, 11, randomKeyword);
