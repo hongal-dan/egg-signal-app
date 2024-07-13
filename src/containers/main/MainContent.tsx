@@ -244,11 +244,11 @@ const MainContent = () => {
     <>
       <Tutorial />
       <MainChat chatExpanded={chatExpanded} setChatExpanded={setChatExpanded} />
+      <Logout commonSocket={commonSocket} />
       <div
         onClick={handleMainContentClick}
         className="h-full flex items-center justify-center min-w-[368px]"
       >
-        <Logout commonSocket={commonSocket} />
         <div className="w-full flex justify-center items-center">
           <div className="flex flex-col items-center">
             <div className="flex justify-end w-full mb-2">
