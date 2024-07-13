@@ -177,17 +177,54 @@ function UserVideoComponent2() {
         renderer.render(scene, camera);
       });
     };
+    
+
+    const cleanUp = (mindarThree: MindARThree) => {
+      window.removeEventListener("resize", mindarThree._resize.bind(mindarThree));
+      mindarThree.stop();
+
+      // 씬 정리
+      mindarThree.scene.clear();
+      mindarThree.cssScene.clear();
+
+      // 렌더러 정리
+      mindarThree.renderer.dispose();
+
+      // 앵커와 페이스 메쉬 배열 초기화
+      mindarThree.anchors = [];
+      mindarThree.faceMeshes = [];
+
+      const video = containerRef.current?.querySelector("video");
+      if (video) {
+        console.log("비디오 제거");
+        video.pause();
+        video.srcObject = null;
+      }
+      const mindarElements = document.querySelectorAll("[class^='mindar-']");
+      mindarElements.forEach(element => {
+        element.remove();
+      });
+
+      const script = document.querySelector("script[src='https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.9/wasm/vision_wasm_internal.js']");
+      if (script) {
+        script.remove();
+      }
+      disposeAll();
+
+
+    };
 
     setup();
 
     return () => {
       renderer.setAnimationLoop(null);
+      renderer.dispose();
+      scene.clear();
 
-      mindarThree.scene.clear();
-      mindarThree.renderer.dispose();
       if (avatar) {
         avatar.disposeResources();
-      }
+      };
+      cleanUp(mindarThree);
     };
   }, [avatarName]);
 
@@ -198,4 +235,4 @@ function UserVideoComponent2() {
   );
 }
 
-export default React.memo(UserVideoComponent2);
+export default UserVideoComponent2;
