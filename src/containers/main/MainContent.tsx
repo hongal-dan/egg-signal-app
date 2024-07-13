@@ -293,17 +293,6 @@ const MainContent = () => {
     }
   };
 
-  const OffCommonSocketEvent = () => {
-    commonSocket?.off("newMessageNotification");
-    commonSocket?.off("friendOnline");
-    commonSocket?.off("friendOffline");
-    commonSocket?.off("resGetNotifications");
-    commonSocket?.off("newFriendRequest");
-    commonSocket?.off("resAcceptFriend");
-    commonSocket?.off("friendRequestAccepted");
-    commonSocket?.off("friendStat");
-  };
-
   useEffect(() => {
     checkOnlineFriends();
   }, []);
@@ -340,10 +329,7 @@ const MainContent = () => {
         onClick={handleMainContentClick}
         className="h-full flex items-center justify-center min-w-[368px]"
       >
-        <Logout
-          commonSocket={commonSocket}
-          OffCommonSocketEvent={OffCommonSocketEvent}
-        />
+        <Logout commonSocket={commonSocket} />
         <div className="w-full flex justify-center items-center">
           <div className="flex flex-col items-center">
             <div className="flex justify-end w-full mb-2">

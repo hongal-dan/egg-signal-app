@@ -2,18 +2,25 @@ import React from "react";
 
 interface LogoutProps {
   commonSocket: any;
-  OffCommonSocketEvent: () => void;
 }
 
-const Logout: React.FC<LogoutProps> = ({
-  commonSocket,
-  OffCommonSocketEvent,
-}) => {
+const Logout: React.FC<LogoutProps> = ({ commonSocket }) => {
+  const offCommonSocketEvent = () => {
+    commonSocket?.off("newMessageNotification");
+    commonSocket?.off("friendOnline");
+    commonSocket?.off("friendOffline");
+    commonSocket?.off("resGetNotifications");
+    commonSocket?.off("newFriendRequest");
+    commonSocket?.off("resAcceptFriend");
+    commonSocket?.off("friendRequestAccepted");
+    commonSocket?.off("friendStat");
+  };
+
   const handleLogout = async () => {
     try {
       localStorage.removeItem("token");
       sessionStorage.removeItem("onlineFriends");
-      OffCommonSocketEvent();
+      offCommonSocketEvent();
       commonSocket?.disconnect();
       window.location.reload();
     } catch (error) {
