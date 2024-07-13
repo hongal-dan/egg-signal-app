@@ -549,6 +549,20 @@ const Meeting = () => {
       const chooseBtn = subContainer!.getElementsByClassName("choose-btn")[0];
       chooseBtn.classList.remove("hidden");
     });
+    setIsChosen(false);
+    chooseTimerRef.current = setTimeout(() => {
+      const emitChoose = (eventName: string) => {
+        socket?.emit(eventName, {
+          sender: userInfo?.nickname,
+          receiver: subRef.current[subRef.current.length - 1]?.id,
+        });
+      };
+      if (!isLastChoose) {
+        emitChoose("choose");
+      } else {
+        emitChoose("lastChoose");
+      }
+    }, 5000);
   };
 
   const setOneToOneMode = (loverElement: HTMLDivElement) => {
@@ -770,8 +784,8 @@ const Meeting = () => {
     socket?.on("lastCupidTime", (response: any) => {
       try {
         console.log("lastCupidTime 도착", response);
-        setChooseMode();
         setIsLastChoose(true);
+        setChooseMode();
       } catch (e: any) {
         console.error(e);
       }
