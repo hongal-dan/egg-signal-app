@@ -635,11 +635,11 @@ const Meeting = () => {
         rouletteElements[currentIndex].classList.add("highlighted");
         const randomKeyword = openKeyword(keywordIdx);
         if (pubRef.current?.id === pickUser) {
-          changePresentationMode(pubRef.current, 12, randomKeyword);
+          changePresentationMode(pubRef.current, 11, randomKeyword);
         } else {
           const presenterElement = subRef.current?.filter(sub => sub?.id === pickUser)[0];
           if (presenterElement) {
-            changePresentationMode(presenterElement, 12, randomKeyword);
+            changePresentationMode(presenterElement, 11, randomKeyword);
           }
         }
         setTimeout(() => {
