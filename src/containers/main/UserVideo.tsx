@@ -227,7 +227,6 @@ function UserVideoComponent2() {
       if (script) {
         script.remove();
       }
-      disposeAll();
 
            // 메모리 사용량을 주기적으로 로그로 출력
     const memoryLogInterval = setInterval(() => {
