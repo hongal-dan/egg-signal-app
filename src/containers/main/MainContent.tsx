@@ -26,6 +26,7 @@ import { defaultSessionState } from "@/app/store/ovInfo";
 import MainChat from "./chat/MainChat";
 import Tutorial from "./tutorial/Tutorial";
 import Logout from "./button/Logout";
+import WebcamDisplay from "./WebcamDisplay";
 
 interface Notification {
   _id: string;
@@ -59,10 +60,6 @@ const MainContent = () => {
   const [, setDefaultUserInfo] = useRecoilState(defaultSessionState);
   const [chatExpanded, setChatExpanded] = useState(false);
   const notiRef = useRef<HTMLDivElement>(null);
-  const [isVideoOn, setIsVideoOn] = useState<boolean>(true);
-  const [isVideoLoading, setIsVideoLoading] = useState<boolean>(true);
-  const loadingVideoRef = useRef<HTMLDivElement>(null);
-  const videoRef = useRef<HTMLVideoElement>(null);
 
   const checkOnlineFriends = () => {
     const onlineList = sessionStorage.getItem("onlineFriends");
@@ -296,24 +293,6 @@ const MainContent = () => {
     }
   };
 
-  const startWebCam = async () => {
-    try {
-      const constraints = {
-        video: true,
-        audio: false,
-      };
-
-      const stream = await navigator.mediaDevices.getUserMedia(constraints);
-      const video = videoRef.current!;
-      if (video && video instanceof HTMLVideoElement) {
-        video.srcObject = stream;
-      }
-      setIsVideoLoading(false);
-    } catch (error) {
-      console.error("Error accessing the webcam: ", error);
-    }
-  };
-
   const OffCommonSocketEvent = () => {
     commonSocket?.off("newMessageNotification");
     commonSocket?.off("friendOnline");
@@ -325,23 +304,9 @@ const MainContent = () => {
     commonSocket?.off("friendStat");
   };
 
-  const toggleCam = () => {
-    videoRef.current?.classList.toggle("hidden");
-    isVideoOn ? setIsVideoOn(false) : setIsVideoOn(true);
-  };
-
   useEffect(() => {
-    startWebCam();
     checkOnlineFriends();
-
-    return setIsVideoLoading(true);
   }, []);
-
-  useEffect(() => {
-    if (!isVideoLoading) {
-      loadingVideoRef.current?.classList.add("bg-[url('/img/camoff.png')]");
-    }
-  }, [isVideoLoading]);
 
   useEffect(() => {
     if (isEnterLoading && enterBtnRef.current) {
@@ -398,29 +363,7 @@ const MainContent = () => {
                 )}
               </div>
             </div>
-            <div
-              className="w-[320px] h-[240px] rounded-xl bg-contain bg-no-repeat bg-center border-4 border-[#FAE4C9] custom-shadow md:w-[400px] md:h-[300px]"
-              ref={loadingVideoRef}
-            >
-              <video
-                id="myCam"
-                className="mx-auto rounded-xl"
-                autoPlay
-                playsInline
-                ref={videoRef}
-              ></video>
-            </div>
-            <div className="m-4">
-              <label className="inline-flex items-center gap-2 cursor-pointer">
-                <input
-                  role="switch"
-                  type="checkbox"
-                  className="cam-input custom-shadow"
-                  onClick={toggleCam}
-                  defaultChecked={isVideoOn}
-                />
-              </label>
-            </div>
+            <WebcamDisplay />
             <div className="w-full mt-4 relative">
               <button
                 className="w-full h-12 bg-amber-400 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mb-1 z-10 relative custom-shadow"
