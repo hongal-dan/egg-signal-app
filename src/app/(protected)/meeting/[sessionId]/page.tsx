@@ -52,7 +52,7 @@ const Meeting = () => {
   );
   const [isCanvasModalOpen, setIsCanvasModalOpen] = useState<boolean>(false);
   const [keywordsIndex, setKeywordsIndex] = useState(0);
-  const [, setIsChosen] = useRecoilState(isChosenState);
+  const [isChosen, setIsChosen] = useRecoilState(isChosenState);
 
   const captureRef = useRef<HTMLDivElement>(null);
   const keywordRef = useRef<HTMLParagraphElement>(null);
@@ -71,6 +71,7 @@ const Meeting = () => {
   const [isMatched, setIsMatched] = useState<boolean>(false); // 매칭이 되었는지 여부
   const [, setIsLastChoose] = useRecoilState(isLastChooseState);
   const [lover, setLover] = useState<string>("");
+  const isLastChoose = useRecoilValue(isLastChooseState);
 
   const { sessionId, token, participantName } =
     useRecoilValue(defaultSessionState);
@@ -80,6 +81,8 @@ const Meeting = () => {
 
   const [capturedImage, setCapturedImage] = useState<string>("");
   const [isFinish, setIsFinish] = useState(false);
+
+  const chooseTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // 어떻게든 종료 하면 세션에서 나가게함.
   useEffect(() => {
@@ -546,6 +549,20 @@ const Meeting = () => {
       const chooseBtn = subContainer!.getElementsByClassName("choose-btn")[0];
       chooseBtn.classList.remove("hidden");
     });
+    setIsChosen(false);
+    chooseTimerRef.current = setTimeout(() => {
+      const emitChoose = (eventName: string) => {
+        socket?.emit(eventName, {
+          sender: userInfo?.nickname,
+          receiver: subRef.current[subRef.current.length - 1]?.id,
+        });
+      };
+      if (!isLastChoose) {
+        emitChoose("choose");
+      } else {
+        emitChoose("lastChoose");
+      }
+    }, 5000);
   };
 
   const setOneToOneMode = (loverElement: HTMLDivElement) => {
@@ -633,13 +650,15 @@ const Meeting = () => {
       if (!isAnimating || iteration >= totalIterations) {
         clearInterval(intervalId);
         rouletteElements[currentIndex].classList.add("highlighted");
+        tickSound.currentTime = 0;
+        tickSound.play();
         const randomKeyword = openKeyword(keywordIdx);
         if (pubRef.current?.id === pickUser) {
-          changePresentationMode(pubRef.current, 12, randomKeyword);
+          changePresentationMode(pubRef.current, 11, randomKeyword);
         } else {
           const presenterElement = subRef.current?.filter(sub => sub?.id === pickUser)[0];
           if (presenterElement) {
-            changePresentationMode(presenterElement, 12, randomKeyword);
+            changePresentationMode(presenterElement, 11, randomKeyword);
           }
         }
         setTimeout(() => {
@@ -765,8 +784,8 @@ const Meeting = () => {
     socket?.on("lastCupidTime", (response: any) => {
       try {
         console.log("lastCupidTime 도착", response);
-        setChooseMode();
         setIsLastChoose(true);
+        setChooseMode();
       } catch (e: any) {
         console.error(e);
       }
@@ -1089,14 +1108,8 @@ const Meeting = () => {
 
   useEffect(() => {
     const timeOut = setTimeout(() => {
-      console.log("지금 방의 상태는..?", isFullRef.current);
       if (!isFullRef.current) {
-        console.log(
-          "asdfasdfasdfasdfasdfasdf접속 해제!!!!!!!!!!!!!",
-          loadingRef.current,
-        );
         if (loadingRef.current) {
-          console.log("저 있어요!!!!!!!!!!!!!!!!!!!!!!!!");
           loadingRef.current.innerHTML =
             "<p>누군가 연결을 해제하여 메인화면으로 이동합니다.</p>";
         }
@@ -1220,6 +1233,16 @@ const Meeting = () => {
       setAvatar(null);
     };
   }, [avatar]);
+
+  useEffect(() => {
+    if(!isChosen) {
+      return;
+    }
+    if(chooseTimerRef.current) {
+      clearTimeout(chooseTimerRef.current);
+      chooseTimerRef.current = null;
+    }
+  }, [isChosen])
 
   const leaveHandler = () => {
     Swal.fire({
