@@ -1091,14 +1091,8 @@ const Meeting = () => {
 
   useEffect(() => {
     const timeOut = setTimeout(() => {
-      console.log("지금 방의 상태는..?", isFullRef.current);
       if (!isFullRef.current) {
-        console.log(
-          "asdfasdfasdfasdfasdfasdf접속 해제!!!!!!!!!!!!!",
-          loadingRef.current,
-        );
         if (loadingRef.current) {
-          console.log("저 있어요!!!!!!!!!!!!!!!!!!!!!!!!");
           loadingRef.current.innerHTML =
             "<p>누군가 연결을 해제하여 메인화면으로 이동합니다.</p>";
         }
