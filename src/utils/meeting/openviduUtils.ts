@@ -107,6 +107,37 @@ export const getVideoConstraints = (networkInfo: NetworkInfo, systemInfo: { cpuC
 
   return constraints;
 };
+
+export const updatePublisherStream = (publisher: StreamManager, newConstraints: networkConstraints) => {
+  const videoTrack = publisher.stream.getMediaStream().getVideoTracks()[0]
+  
+  if(!publisher || !publisher.stream || !publisher.stream.getMediaStream()) {
+    console.error("Publisher or stream is not available.");
+    return;
+  }
+
+  // 이미 설정된 해상도와 같은 경우, 업데이트하지 않음
+  if(videoTrack.getSettings().width === newConstraints.width) {
+    return;
+  }
+
+  const constraints = {
+    width: newConstraints.width,
+    height: newConstraints.height,
+    frameRate: { ideal: newConstraints.frameRate.ideal, max: newConstraints.frameRate.max },
+    resizeMode: "crop-and-scale",
+  };
+
+  // const capabilities = videoTrack.getCapabilities();
+  // console.log("Capabilities:", capabilities);
+  // console.log("================", constraints);
+  videoTrack.applyConstraints(constraints).then(() => {
+    console.log("Updated video constraints:", videoTrack.getSettings());
+  }).catch((error: any) => {
+    console.error("Error updating video constraints:", error);
+  });
+};
+
 export const joinSession = async ({
   token,
   userInfo,
