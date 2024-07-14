@@ -26,8 +26,8 @@ import Emoji from "@/containers/meeting/emoji";
 import { createRoot } from "react-dom/client";
 import Swal from "sweetalert2";
 import {
-  showArrow,
-  hideArrow,
+  changeLoveStickMode,
+  undoLoveStickMode,
   captureVideoFrame,
   captureCamInit,
 } from "@/utils/meeting/meetingUtils";
@@ -154,39 +154,6 @@ const Meeting = () => {
     }
   };
 
-  const changeLoveStickMode = (datas: Array<chooseResult>) => {
-    const videoElements = document.querySelectorAll("video");
-    const canvasElements = document.querySelectorAll("canvas");
-    videoElements.forEach(video => {
-      video.style.width = "100%";
-      video.style.height = "100%";
-    });
-    canvasElements.forEach(canvas => {
-      canvas.style.width = "100%";
-      canvas.style.height = "100%";
-    });
-
-    const videoArray = Array.from(subRef.current);
-    videoArray.unshift(pubRef.current);
-    videoArray.forEach((video, idx) => {
-      video?.classList.add(String.fromCharCode(97 + idx));
-    });
-
-    videoContainerRef.current?.classList.add("love-stick");
-    showArrow(datas);
-    return;
-  };
-
-  const undoLoveStickMode = () => {
-    console.log("사랑의 작대기 모드 해제");
-    const videoArray = Array.from(subRef.current);
-    videoArray.unshift(pubRef.current);
-    videoArray.forEach((video, idx) => {
-      video?.classList.remove(String.fromCharCode(97 + idx));
-    });
-    videoContainerRef.current?.classList.remove("love-stick");
-    hideArrow();
-  };
   // time 초 동안 발표 모드 (presenter: 발표자, time: 발표 시간(초), mention: 발표 주제)
   const changePresentationMode = (
     presenter: HTMLDivElement,
@@ -477,10 +444,19 @@ const Meeting = () => {
         console.log("chooseResult = ", response);
         undoChooseMode(); // 선택모드 해제
         removeChooseSign(); // 선택된 사람 표시 제거
-        changeLoveStickMode(response.message as Array<chooseResult>);
+        changeLoveStickMode(
+          response.message as Array<chooseResult>,
+          subRef.current as HTMLDivElement[],
+          pubRef.current as HTMLDivElement,
+          videoContainerRef.current as HTMLDivElement,
+        );
         setTimeout(() => {
           console.log("원 위치로 변경");
-          undoLoveStickMode();
+          undoLoveStickMode(
+            subRef.current as HTMLDivElement[],
+            pubRef.current as HTMLDivElement,
+            videoContainerRef.current as HTMLDivElement,
+          );
           if (keywordRef.current) {
             console.log("잠시 후 1:1대화가 시작된다는 멘트 ");
             keywordRef.current.innerText =
@@ -517,10 +493,19 @@ const Meeting = () => {
         console.log("lastChooseResult = ", response);
         undoChooseMode(); // 선택모드 해제
         removeChooseSign(); // 선택된 사람 표시 제거
-        changeLoveStickMode(response as Array<chooseResult>);
+        changeLoveStickMode(
+          response.message as Array<chooseResult>,
+          subRef.current as HTMLDivElement[],
+          pubRef.current as HTMLDivElement,
+          videoContainerRef.current as HTMLDivElement,
+        );
         setTimeout(() => {
           console.log("원 위치로 변경");
-          undoLoveStickMode();
+          undoLoveStickMode(
+            subRef.current as HTMLDivElement[],
+            pubRef.current as HTMLDivElement,
+            videoContainerRef.current as HTMLDivElement,
+          );
           if (keywordRef.current) {
             keywordRef.current.innerText = "잠시 후 미팅이 종료됩니다";
           }

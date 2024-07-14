@@ -51,7 +51,7 @@ export const setArrowColor = (
   Body.style.backgroundColor = "#fa3689";
 };
 
-export const showArrow = (datas: Array<chooseResult>) => {
+const showArrow = (datas: Array<chooseResult>) => {
   datas.forEach(({ sender, receiver }) => {
     const fromUser = document.getElementById(sender) as HTMLDivElement;
     const toUser = document.getElementById(receiver) as HTMLDivElement;
@@ -101,11 +101,54 @@ export const showArrow = (datas: Array<chooseResult>) => {
   });
 };
 
-export const hideArrow = () => {
+const hideArrow = () => {
   const arrowContainers = document.querySelectorAll(".arrow-container");
   arrowContainers.forEach(arrowContainer => {
     arrowContainer.classList.add("hidden");
   });
+};
+
+export const changeLoveStickMode = (
+  datas: Array<chooseResult>,
+  subContainer: HTMLDivElement[],
+  pubContainer: HTMLDivElement,
+  videoContainer: HTMLDivElement,
+) => {
+  const videoElements = document.querySelectorAll("video");
+  const canvasElements = document.querySelectorAll("canvas");
+  videoElements.forEach(video => {
+    video.style.width = "100%";
+    video.style.height = "100%";
+  });
+  canvasElements.forEach(canvas => {
+    canvas.style.width = "100%";
+    canvas.style.height = "100%";
+  });
+
+  const videoArray = Array.from(subContainer);
+  videoArray.unshift(pubContainer);
+  videoArray.forEach((video, idx) => {
+    video?.classList.add(String.fromCharCode(97 + idx));
+  });
+
+  videoContainer?.classList.add("love-stick");
+  showArrow(datas);
+  return;
+};
+
+export const undoLoveStickMode = (
+  subContainer: HTMLDivElement[],
+  pubContainer: HTMLDivElement,
+  videoContainer: HTMLDivElement,
+) => {
+  console.log("사랑의 작대기 모드 해제");
+  const videoArray = Array.from(subContainer);
+  videoArray.unshift(pubContainer);
+  videoArray.forEach((video, idx) => {
+    video?.classList.remove(String.fromCharCode(97 + idx));
+  });
+  videoContainer?.classList.remove("love-stick");
+  hideArrow();
 };
 
 export const captureVideoFrame = (lover: string) => {
