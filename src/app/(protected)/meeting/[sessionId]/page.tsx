@@ -5,11 +5,9 @@ import Image from "next/image";
 import UserVideoComponent from "@/containers/meeting/UserVideoComponent";
 import UserVideoComponent2 from "@/containers/main/UserVideo";
 import {
-  OpenVidu,
   Session,
   Publisher,
   StreamManager,
-  PublisherSpeakingEvent,
   Subscriber,
 } from "openvidu-browser";
 import { useRouter } from "next/navigation";
@@ -35,9 +33,9 @@ import {
   showArrow,
   hideArrow,
   captureVideoFrame,
-  captureCanvas,
   captureCamInit,
 } from "@/utils/meeting/meetingUtils";
+import { joinSession } from "@/utils/meeting/openviduUtils";
 
 type chooseResult = {
   sender: string;
@@ -99,12 +97,6 @@ const Meeting = () => {
     };
   }, []);
 
-  const deleteSubscriber = (streamManager: StreamManager) => {
-    setSubscribers(prevSubscribers =>
-      prevSubscribers.filter(sub => sub !== streamManager),
-    );
-  };
-
   const openCam = () => {
     if (publisher) {
       navigator.mediaDevices.getUserMedia({ video: true }).then(stream => {
@@ -163,90 +155,6 @@ const Meeting = () => {
         }
       });
     }
-  };
-
-  const joinSession = () => {
-    const OV = new OpenVidu();
-    OV.setAdvancedConfiguration({
-      publisherSpeakingEventsOptions: {
-        interval: 100, // Frequency of the polling of audio streams in ms (default 100)
-        threshold: -50, // Threshold volume in dB (default -50)
-      },
-    });
-
-    const newSession = OV.initSession();
-    setSession(newSession);
-    // Connect to the session
-    newSession
-      .connect(token, {
-        clientData: userInfo?.nickname as string, // FIXME 배포시엔 저를 써주세요.
-        // clientData: participantName, // FIXME 배포 시 랜덤닉네임 말고 유저 아이디로
-        gender: userInfo?.gender as string,
-      })
-      .then(async () => {
-        const arStream = captureCanvas(captureRef.current!);
-        const publisher = await OV.initPublisherAsync(undefined, {
-          audioSource: undefined,
-          // videoSource: undefined, // todo : 테스트용이라 다시 arStream으로 변경
-          videoSource: arStream,
-          publishAudio: true,
-          publishVideo: true,
-          resolution: "640x480",
-          frameRate: 30,
-          insertMode: "APPEND",
-          mirror: false,
-        });
-
-        console.log("Publisher created:", publisher, sessionId);
-        publisher.updatePublisherSpeakingEventsOptions({
-          interval: 100, // 발화자 이벤트 감지 주기 (밀리초)
-          threshold: -50, // 발화자 이벤트 발생 임계값 (데시벨)
-        });
-        newSession.publish(publisher);
-        setPublisher(publisher);
-      })
-      .catch(error => {
-        console.log(
-          "There was an error connecting to the session:",
-          error.code,
-          error.message,
-        );
-      });
-
-    newSession.on("streamCreated", event => {
-      // 새로운 스트림이 생성될 때, 해당 스트림을 구독
-      const subscriber = newSession.subscribe(event.stream, undefined);
-      // 구독한 스트림을 구독자 목록에 추가
-      console.log("지금 들어온 사람", subscriber.stream.connection.data);
-      setSubscribers(prevSubscribers => [...prevSubscribers, subscriber]);
-    });
-
-    newSession.on("streamDestroyed", event => {
-      deleteSubscriber(event.stream.streamManager);
-    });
-
-    newSession.on("exception", exception => {
-      console.warn(exception);
-    });
-
-    // 세션에서 발화자 이벤트 리스너 추가
-    newSession.on("publisherStartSpeaking", (event: PublisherSpeakingEvent) => {
-      const streamId = event.connection.stream?.streamId;
-      if (streamId !== undefined) {
-        setSpeakingPublisherIds(prevIds => [...prevIds, streamId]);
-      } else {
-        console.log("streamId undefined");
-      }
-    });
-
-    newSession.on("publisherStopSpeaking", (event: PublisherSpeakingEvent) => {
-      const streamId = event.connection.stream?.streamId;
-      if (streamId !== undefined) {
-        setSpeakingPublisherIds(prevIds =>
-          prevIds.filter(id => id !== streamId),
-        );
-      }
-    });
   };
 
   // 선택된 표시 제거
@@ -1170,14 +1078,16 @@ const Meeting = () => {
     }
 
     captureCamInit(captureRef.current!); // 캡쳐용 비디오, 캔버스 display none
-    joinSession();
-
-    if (publisher) {
-      publisher.updatePublisherSpeakingEventsOptions({
-        interval: 100, // 발화자 이벤트 감지 주기 (밀리초)
-        threshold: -50, // 발화자 이벤트 발생 임계값 (데시벨)
-      });
-    }
+    joinSession({
+      token,
+      userInfo,
+      captureRef: captureRef.current!,
+      sessionId,
+      setSession,
+      setPublisher,
+      setSubscribers,
+      setSpeakingPublisherIds,
+    });
 
     meetingEvent();
 
