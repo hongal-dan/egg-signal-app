@@ -22,7 +22,7 @@ const RenderDrawings: React.FC<RenderDrawingsProps> = ({
         >
           {selectedUser === user && (
             <div className="absolute top-0 left-0 p-2">
-              <IoMdHeart className="text-red-600 text-xl border rounded-xl bg-white" />
+              <IoMdHeart className="text-red-600 text-2xl" />
             </div>
           )}
           <img
