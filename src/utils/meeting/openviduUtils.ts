@@ -111,7 +111,6 @@ export const joinSession = async ({
   // 세션에서 발화자 이벤트 리스너 추가
   newSession.on("publisherStartSpeaking", (event: PublisherSpeakingEvent) => {
     const streamId = event.connection.stream?.streamId;
-    console.log("말하는 사람: ", event.connection.stream?.connection.data);
     if (streamId !== undefined) {
       setSpeakingPublisherIds(prevIds => [...prevIds, streamId]);
     } else {
@@ -121,7 +120,6 @@ export const joinSession = async ({
 
   newSession.on("publisherStopSpeaking", (event: PublisherSpeakingEvent) => {
     const streamId = event.connection.stream?.streamId;
-    console.log("말 그만한 사람: ", event.connection.stream?.connection.data);
     if (streamId !== undefined) {
       setSpeakingPublisherIds(prevIds => prevIds.filter(id => id !== streamId));
     }
