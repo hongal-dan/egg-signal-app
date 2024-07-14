@@ -16,7 +16,7 @@ import {
 import { useRouter } from "next/navigation";
 import { useRecoilValue, useRecoilState } from "recoil";
 import {
-  isLastChooseState,
+  chooseState,
   meetingSocketState,
   isChosenState,
 } from "@/app/store/socket";
@@ -69,9 +69,8 @@ const Meeting = () => {
   const userInfo = useRecoilValue(userState);
   const isFullRef = useRef(isFull);
   const [isMatched, setIsMatched] = useState<boolean>(false); // 매칭이 되었는지 여부
-  const [, setIsLastChoose] = useRecoilState(isLastChooseState);
+  const [choiceState, setChoiceState] = useRecoilState(chooseState);
   const [lover, setLover] = useState<string>("");
-  const isLastChoose = useRecoilValue(isLastChooseState);
 
   const { sessionId, token, participantName } =
     useRecoilValue(defaultSessionState);
@@ -317,7 +316,7 @@ const Meeting = () => {
     setPublisher(undefined);
     setSortedSubscribers([]);
     setIsFull(false);
-    setIsLastChoose(false);
+    setChoiceState("");
     setIsChosen(false);
     OffSocketEvent();
 
@@ -557,7 +556,7 @@ const Meeting = () => {
           receiver: subRef.current[subRef.current.length - 1]?.id,
         });
       };
-      if (!isLastChoose) {
+      if (choiceState === "first") {
         emitChoose("choose");
       } else {
         emitChoose("lastChoose");
@@ -588,9 +587,6 @@ const Meeting = () => {
       console.log("상대방이 없습니다.");
     }
     loverElement?.classList.add("b");
-    console.log("컨테이너", videoContainerRef.current);
-    console.log("나자신", streamElements[0]);
-    console.log("상대방: ", loverElement);
     let acc = 2;
     for (let i = 1; i < streamElements.length; i++) {
       if (streamElements[i].classList.contains("b")) {
@@ -618,8 +614,6 @@ const Meeting = () => {
       acc += 1;
     }
     loverElement?.classList.remove("b");
-    console.log("나자신", streamElements[0]);
-    console.log("상대방: ", loverElement);
   };
 
 
@@ -642,7 +636,7 @@ const Meeting = () => {
     for (let i = 0; i < rouletteElements.length; i++) {
       rouletteElements[i].classList.remove("speaking");
       if (rouletteElements[i].id === pickUser) {
-        currentIndex += i % 6;
+        currentIndex += i % rouletteElements.length;
       }
     }
 
@@ -789,7 +783,7 @@ const Meeting = () => {
     socket?.on("cupidTime", (response: string) => {
       try {
         console.log("cupidTime 도착", response);
-        setChooseMode();
+        setChoiceState("first");
       } catch (e: any) {
         console.error(e);
       }
@@ -798,8 +792,7 @@ const Meeting = () => {
     socket?.on("lastCupidTime", (response: any) => {
       try {
         console.log("lastCupidTime 도착", response);
-        setIsLastChoose(true);
-        setChooseMode();
+        setChoiceState("last");
       } catch (e: any) {
         console.error(e);
       }
@@ -969,7 +962,6 @@ const Meeting = () => {
         setTimeout(() => {
           console.log("큐피드result로 계산 시작");
           if (lover != "0") {
-            console.log("이거도 없니?", keywordRef.current);
             if (keywordRef.current) {
               console.log("즐거운 시간 보내라고 p 태그 변경");
               keywordRef.current.innerText =
@@ -1121,6 +1113,13 @@ const Meeting = () => {
   };
 
   useEffect(() => {
+    if(!choiceState) {
+      return;
+    }
+    setChooseMode();
+  }, [choiceState]);
+
+  useEffect(() => {
     const timeOut = setTimeout(() => {
       if (!isFullRef.current) {
         if (loadingRef.current) {
@@ -1196,8 +1195,7 @@ const Meeting = () => {
     if (!subscribers) {
       return;
     }
-    meetingCupidResultEvent();
-
+    
     if (subscribers.length === 5) {
       if (getUserGender(publisher!) === "MALE") {
         sortSubscribers("MALE");
@@ -1206,6 +1204,7 @@ const Meeting = () => {
       }
       setIsFull(true);
       socket?.emit("startTimer", { sessionId: sessionId });
+      meetingCupidResultEvent();
     }
     if (isFull && subscribers.length !== 5 && !isFinish) {
       if (keywordRef.current) {
