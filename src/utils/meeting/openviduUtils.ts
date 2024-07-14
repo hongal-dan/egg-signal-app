@@ -66,6 +66,34 @@ export const getNetworkInfo = (): NetworkInfo | null => {
   };
 };
 
+export const getVideoConstraints = (networkInfo: NetworkInfo, systemInfo: { cpuCores: number; deviceMemory: number; memoryUsage:number, totalMemory:number }) => {
+  let constraints: networkConstraints = {
+    width: 0,
+    height: 0,
+    frameRate: { ideal: 0, max: 0 }
+  };
+  if (networkInfo.effectiveType === "4g" && networkInfo.rtt < 100) {
+    constraints = {
+      width: 640,
+      height: 480,
+      frameRate: { ideal: 30, max: 30 },
+    };
+  } else if (
+    networkInfo.effectiveType === "3g" ||
+    (networkInfo.effectiveType === "4g" && networkInfo.rtt >= 100)
+  ) {
+    constraints = {
+      width: 480,
+      height: 360,
+      frameRate: { ideal: 15, max: 25 },
+    };
+  } else {
+    constraints = {
+      width: 320,
+      height: 240,
+      frameRate: { ideal: 10, max: 10 },
+    }; // 저해상도
+  }
 
 export const joinSession = async ({
   token,
