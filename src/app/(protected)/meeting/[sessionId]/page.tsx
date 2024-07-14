@@ -1196,8 +1196,7 @@ const Meeting = () => {
     if (!subscribers) {
       return;
     }
-    meetingCupidResultEvent();
-
+    
     if (subscribers.length === 5) {
       if (getUserGender(publisher!) === "MALE") {
         sortSubscribers("MALE");
@@ -1206,6 +1205,7 @@ const Meeting = () => {
       }
       setIsFull(true);
       socket?.emit("startTimer", { sessionId: sessionId });
+      meetingCupidResultEvent();
     }
     if (isFull && subscribers.length !== 5 && !isFinish) {
       if (keywordRef.current) {
