@@ -38,7 +38,7 @@ import {
   captureVideoFrame,
   captureCanvas,
   captureCamInit,
-} from "@/utils/meetingUtils";
+} from "@/utils/meeting/meetingUtils.js";
 
 type chooseResult = {
   sender: string;
