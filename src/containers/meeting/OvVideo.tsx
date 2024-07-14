@@ -6,7 +6,7 @@ import { useEffect } from "react";
 import { isChosenState } from "@/app/store/socket";
 import { useRecoilState } from "recoil";
 import "../../styles/App.css";
-import { isLastChooseState, meetingSocketState } from "@/app/store/socket";
+import { chooseState, meetingSocketState } from "@/app/store/socket";
 import { useRecoilValue } from "recoil";
 
 type Props = {
@@ -19,7 +19,7 @@ const OpenViduVideoComponent = (props: Props) => {
   const btnRef = React.useRef<HTMLDivElement>(null);
   const [isChosen, setIsChosen] = useRecoilState<boolean>(isChosenState);
   const socket = useRecoilValue(meetingSocketState);
-  const isLastChoose = useRecoilValue(isLastChooseState);
+  const choiceState = useRecoilValue(chooseState);
 
   useEffect(() => {
     if (props.streamManager && videoRef.current) {
@@ -49,7 +49,7 @@ const OpenViduVideoComponent = (props: Props) => {
 
     containerRef.current!.classList.add("chosen-stream");
     videoRef.current!.classList.add("opacity");
-    if (!isLastChoose) {
+    if (choiceState === "first") {
       emitChoose("choose");
     } else {
       emitChoose("lastChoose");

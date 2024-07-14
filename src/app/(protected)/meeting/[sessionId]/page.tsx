@@ -16,7 +16,7 @@ import {
 import { useRouter } from "next/navigation";
 import { useRecoilValue, useRecoilState } from "recoil";
 import {
-  isLastChooseState,
+  chooseState,
   meetingSocketState,
   isChosenState,
 } from "@/app/store/socket";
@@ -69,9 +69,8 @@ const Meeting = () => {
   const userInfo = useRecoilValue(userState);
   const isFullRef = useRef(isFull);
   const [isMatched, setIsMatched] = useState<boolean>(false); // 매칭이 되었는지 여부
-  const [, setIsLastChoose] = useRecoilState(isLastChooseState);
+  const [choiceState, setChoiceState] = useRecoilState(chooseState);
   const [lover, setLover] = useState<string>("");
-  const isLastChoose = useRecoilValue(isLastChooseState);
 
   const { sessionId, token, participantName } =
     useRecoilValue(defaultSessionState);
@@ -317,7 +316,7 @@ const Meeting = () => {
     setPublisher(undefined);
     setSortedSubscribers([]);
     setIsFull(false);
-    setIsLastChoose(false);
+    setChoiceState("");
     setIsChosen(false);
     OffSocketEvent();
 
@@ -557,7 +556,7 @@ const Meeting = () => {
           receiver: subRef.current[subRef.current.length - 1]?.id,
         });
       };
-      if (!isLastChoose) {
+      if (choiceState === "first") {
         emitChoose("choose");
       } else {
         emitChoose("lastChoose");
@@ -789,7 +788,7 @@ const Meeting = () => {
     socket?.on("cupidTime", (response: string) => {
       try {
         console.log("cupidTime 도착", response);
-        setChooseMode();
+        setChoiceState("first");
       } catch (e: any) {
         console.error(e);
       }
@@ -798,8 +797,7 @@ const Meeting = () => {
     socket?.on("lastCupidTime", (response: any) => {
       try {
         console.log("lastCupidTime 도착", response);
-        setIsLastChoose(true);
-        setChooseMode();
+        setChoiceState("last");
       } catch (e: any) {
         console.error(e);
       }
