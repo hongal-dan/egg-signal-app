@@ -94,8 +94,18 @@ const Meeting = () => {
     console.log("메인이 실행되었습니다.");
     const handleBeforeUnload = () => leaveSession();
     window.addEventListener("beforeunload", handleBeforeUnload);
+
+    const preventGoBack = () => {
+      history.pushState(null, "", location.href);
+      leaveHandler(leaveSession);
+      setSubscribers([]); // 리렌더링용
+    };
+    history.pushState(null, "", location.href);
+    window.addEventListener("popstate", preventGoBack);
+
     return () => {
       window.removeEventListener("beforeunload", handleBeforeUnload);
+      window.removeEventListener("popstate", preventGoBack);
       console.log("메인이 종료되었습니다.");
     };
   }, []);
