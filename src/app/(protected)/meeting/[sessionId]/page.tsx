@@ -34,6 +34,8 @@ import {
   joinSession,
   toggleLoserAudio,
   toggleLoverAudio,
+  getUserID,
+  getUserGender,
 } from "@/utils/meeting/openviduUtils";
 
 type chooseResult = {
@@ -835,22 +837,22 @@ const Meeting = () => {
     meetingCamEvent();
   }, [publisher]);
 
-  const getUserID = (person: StreamManager): string => {
-    const idMatch = person?.stream.connection.data.match(
-      /"clientData":"([a-zA-Z0-9-\uAC00-\uD7A3]+)"/,
-    );
-    const id = idMatch ? idMatch[1] : "";
-    return id;
-  };
+  // const getUserID = (person: StreamManager): string => {
+  //   const idMatch = person?.stream.connection.data.match(
+  //     /"clientData":"([a-zA-Z0-9-\uAC00-\uD7A3]+)"/,
+  //   );
+  //   const id = idMatch ? idMatch[1] : "";
+  //   return id;
+  // };
 
-  const getUserGender = (person: StreamManager): string => {
-    const genderMatch = person?.stream.connection.data.match(
-      /"gender":"(MALE|FEMALE)"/,
-    );
-    const gender = genderMatch ? genderMatch[1] : "";
+  // const getUserGender = (person: StreamManager): string => {
+  //   const genderMatch = person?.stream.connection.data.match(
+  //     /"gender":"(MALE|FEMALE)"/,
+  //   );
+  //   const gender = genderMatch ? genderMatch[1] : "";
 
-    return gender;
-  };
+  //   return gender;
+  // };
 
   // 내 성별 기준으로 서브 정렬
   const sortSubscribers = (myGender: string) => {
@@ -884,7 +886,7 @@ const Meeting = () => {
     }
     meetingCupidResultEvent();
 
-    if (subscribers.length === 5) {
+    if (subscribers.length === 1) {
       if (getUserGender(publisher!) === "MALE") {
         sortSubscribers("MALE");
       } else {
@@ -893,7 +895,7 @@ const Meeting = () => {
       setIsFull(true);
       socket?.emit("startTimer", { sessionId: sessionId });
     }
-    if (isFull && subscribers.length !== 5 && !isFinish) {
+    if (isFull && subscribers.length !== 1 && !isFinish) {
       if (keywordRef.current) {
         keywordRef.current.innerText =
           "누군가가 연결을 해제하여 10초 후 메인으로 이동합니다.";

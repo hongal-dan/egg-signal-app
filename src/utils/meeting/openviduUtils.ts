@@ -174,3 +174,20 @@ export const toggleLoverAudio = (
     });
   }
 };
+
+export const getUserID = (person: StreamManager): string => {
+  const idMatch = person?.stream.connection.data.match(
+    /"clientData":"([a-zA-Z0-9-\uAC00-\uD7A3]+)"/,
+  );
+  const id = idMatch ? idMatch[1] : "";
+  return id;
+};
+
+export const getUserGender = (person: StreamManager): string => {
+  const genderMatch = person?.stream.connection.data.match(
+    /"gender":"(MALE|FEMALE)"/,
+  );
+  const gender = genderMatch ? genderMatch[1] : "";
+
+  return gender;
+};
