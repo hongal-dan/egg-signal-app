@@ -249,30 +249,23 @@ const CanvasModal: React.FC<CanvasModalProps> = ({
 
   const handleForwardDrawing = async () => {
     const canvas = canvasRef.current!;
-    const context = canvas.getContext("2d");
     setHasSubmitted(true);
     const capturedPhoto = captureVideoFrame();
 
-    if (context) {
-      context.drawImage(canvas, 0, 0, canvas.width, canvas.height);
-      const blob = await new Promise<Blob | null>(resolve => {
-        canvas.toBlob(resolve, "image/webp");
+    const blob = await new Promise<Blob | null>(resolve => {
+      canvas.toBlob(resolve, "image/webp");
+    });
+
+    if (!blob) return;
+
+    const compressedImageUrl = await resizeAndCompressImage(blob, canvas.width);
+
+    if (compressedImageUrl) {
+      socket.emit("forwardDrawing", {
+        userName: userInfo?.nickname,
+        drawing: compressedImageUrl,
+        photo: capturedPhoto,
       });
-
-      if (!blob) return;
-
-      const compressedImageUrl = await resizeAndCompressImage(
-        blob,
-        canvas.width,
-      );
-
-      if (compressedImageUrl) {
-        socket.emit("forwardDrawing", {
-          userName: userInfo?.nickname,
-          drawing: compressedImageUrl,
-          photo: capturedPhoto,
-        });
-      }
     }
   };
 
