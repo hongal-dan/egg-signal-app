@@ -120,7 +120,7 @@ export const captureVideoFrame = (lover: string) => {
     const context = canvas.getContext("2d");
     if (context) {
       context.drawImage(loverVideoElement, 0, 0, canvas.width, canvas.height);
-      const dataUrl = canvas.toDataURL("image/png");
+      const dataUrl = canvas.toDataURL("image/webp");
       return dataUrl;
     }
   }
