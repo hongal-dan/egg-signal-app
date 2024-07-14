@@ -52,7 +52,6 @@ const Meeting = () => {
   const [sortedSubscribers, setSortedSubscribers] = useState<StreamManager[]>(
     [],
   );
-  const [mainStreamManager, setMainStreamManager] = useState<StreamManager>();
   const [, setCurrentVideoDevice] = useState<Device | null>(null);
   const [speakingPublisherIds, setSpeakingPublisherIds] = useState<string[]>(
     [],
@@ -222,7 +221,6 @@ const Meeting = () => {
         if (currentVideoDevice) {
           setCurrentVideoDevice(currentVideoDevice);
         }
-        setMainStreamManager(publisher);
         setPublisher(publisher);
       })
       .catch(error => {
@@ -1199,13 +1197,6 @@ const Meeting = () => {
       publisher.updatePublisherSpeakingEventsOptions({
         interval: 100, // 발화자 이벤트 감지 주기 (밀리초)
         threshold: -50, // 발화자 이벤트 발생 임계값 (데시벨)
-      });
-    }
-
-    if (mainStreamManager) {
-      mainStreamManager.updatePublisherSpeakingEventsOptions({
-        interval: 100, // 오디오 스트림 폴링 간격 (ms)
-        threshold: -50, // 볼륨 임계값 (dB)
       });
     }
 
