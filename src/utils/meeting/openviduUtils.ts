@@ -95,6 +95,18 @@ export const getVideoConstraints = (networkInfo: NetworkInfo, systemInfo: { cpuC
     }; // 저해상도
   }
 
+  const memoryUsagePercentage = (systemInfo.memoryUsage / systemInfo.totalMemory) * 100;
+  // console.log(systemInfo, "====================");
+  // console.log(memoryUsagePercentage, "====================")
+  // 시스템 성능에 따른 해상도 및 프레임 레이트 조절
+  if (systemInfo.cpuCores < 4 || systemInfo.deviceMemory < 4 || memoryUsagePercentage > 60) {
+    constraints.width = Math.min(constraints.width, 320);
+    constraints.height = Math.min(constraints.height, 240);
+    constraints.frameRate = { ideal: 10, max: 10 };
+  }
+
+  return constraints;
+};
 export const joinSession = async ({
   token,
   userInfo,
