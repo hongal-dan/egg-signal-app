@@ -35,6 +35,17 @@ interface JoinSessionProps {
   setSpeakingPublisherIds: React.Dispatch<SetStateAction<string[]>>;
 }
 
+interface NetworkInfo {
+  effectiveType: string; // 네트워크 유형 (e.g., '4g', '3g', 'wifi')
+  rtt: number; // 라운드 트립 시간 (밀리초 단위)
+}
+
+export interface networkConstraints {
+  width: number;
+  height: number;
+  frameRate: { ideal: number; max: number };
+}
+
 export const getSystemPerformance = () => {
   const cpuCores = navigator.hardwareConcurrency || 4; // 기본값 4코어
   const deviceMemory = (navigator as any).deviceMemory || 4; // 기본값 4GB
