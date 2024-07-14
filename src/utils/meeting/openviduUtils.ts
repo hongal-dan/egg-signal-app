@@ -35,6 +35,16 @@ interface JoinSessionProps {
   setSpeakingPublisherIds: React.Dispatch<SetStateAction<string[]>>;
 }
 
+export const getSystemPerformance = () => {
+  const cpuCores = navigator.hardwareConcurrency || 4; // 기본값 4코어
+  const deviceMemory = (navigator as any).deviceMemory || 4; // 기본값 4GB
+  const memoryUsage = (performance as any).memory ? (performance as any).memory.usedJSHeapSize : 0;
+  const totalMemory = (performance as any).memory ? (performance as any).memory.jsHeapSizeLimit : 1;
+
+  return { cpuCores, deviceMemory, memoryUsage, totalMemory };
+};
+
+
 export const joinSession = async ({
   token,
   userInfo,
