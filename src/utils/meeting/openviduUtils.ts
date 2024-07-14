@@ -44,6 +44,17 @@ export const getSystemPerformance = () => {
   return { cpuCores, deviceMemory, memoryUsage, totalMemory };
 };
 
+export const getNetworkInfo = (): NetworkInfo | null => {
+  const connection = (navigator as any).connection || (navigator as any).mozConnection || (navigator as any).webkitConnection;
+  if(!connection) {
+    return null;
+  }
+  return {
+    effectiveType: connection.effectiveType,
+    rtt: connection.rtt,
+  };
+};
+
 
 export const joinSession = async ({
   token,
