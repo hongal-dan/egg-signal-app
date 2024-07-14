@@ -587,9 +587,6 @@ const Meeting = () => {
       console.log("상대방이 없습니다.");
     }
     loverElement?.classList.add("b");
-    console.log("컨테이너", videoContainerRef.current);
-    console.log("나자신", streamElements[0]);
-    console.log("상대방: ", loverElement);
     let acc = 2;
     for (let i = 1; i < streamElements.length; i++) {
       if (streamElements[i].classList.contains("b")) {
@@ -617,8 +614,6 @@ const Meeting = () => {
       acc += 1;
     }
     loverElement?.classList.remove("b");
-    console.log("나자신", streamElements[0]);
-    console.log("상대방: ", loverElement);
   };
 
 
@@ -641,7 +636,7 @@ const Meeting = () => {
     for (let i = 0; i < rouletteElements.length; i++) {
       rouletteElements[i].classList.remove("speaking");
       if (rouletteElements[i].id === pickUser) {
-        currentIndex += i % 6;
+        currentIndex += i % rouletteElements.length;
       }
     }
 
@@ -967,7 +962,6 @@ const Meeting = () => {
         setTimeout(() => {
           console.log("큐피드result로 계산 시작");
           if (lover != "0") {
-            console.log("이거도 없니?", keywordRef.current);
             if (keywordRef.current) {
               console.log("즐거운 시간 보내라고 p 태그 변경");
               keywordRef.current.innerText =

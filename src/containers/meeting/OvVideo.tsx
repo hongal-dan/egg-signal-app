@@ -23,7 +23,6 @@ const OpenViduVideoComponent = (props: Props) => {
 
   useEffect(() => {
     if (props.streamManager && videoRef.current) {
-      console.log("Adding video element to stream manager:", videoRef.current);
       props.streamManager.addVideoElement(videoRef.current);
     }
   }, [videoRef, props.streamManager]);
