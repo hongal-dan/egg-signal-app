@@ -940,7 +940,6 @@ const Meeting = () => {
             setOneToOneMode(loverElement);
             toggleLoserAudio(lover, false); // 나머지 오디오 차단
             setTimeout(() => {
-              // console.log("1:1 모드 해제")
               if (keywordRef.current) {
                 keywordRef.current.innerText = "";
                 console.log("즐거운시간 삭제");
@@ -989,12 +988,10 @@ const Meeting = () => {
                 // }, 60000); // 1분 후 흑백 해제
               }, 20000); //FIXME 시연용 20초 후 원 위치
             });
-            // muteAudio();
             setTimeout(() => {
               if (keywordRef.current) {
                 keywordRef.current.innerText = "";
               }
-              // unMuteAudio();
               toggleLoverAudio(loser, true); // 오디오 재개
               // }, 60000); // 1분 후 음소거 해제
             }, 20000); //FIXME 시연용 20초 후 원 위치
@@ -1267,18 +1264,13 @@ const Meeting = () => {
             className="h-full flex justify-center items-center transition-colors duration-[1500ms] ease-in-out"
             ref={sessionRef}
           >
-            {/* <div ref={captureRef} className="hidden">
-          <UserVideoComponent2 />
-        </div> */}
             <div
               className="relative col-md-6 video-container"
               ref={videoContainerRef}
             >
               {publisher !== undefined ? (
                 <div
-                  // className={`stream-container col-md-6 col-xs-6 pub ${publisher.stream.streamId === speakingPublisherId ? "speaking" : ""} ${getUserGender(publisher)}`}
                   className={`stream-container col-md-6 col-xs-6 pub custom-shadow ${getUserGender(publisher)}`}
-                  // onClick={() => handleMainVideoStream(publisher)}
                   id={getUserID(publisher)}
                   ref={pubRef}
                 >
@@ -1296,9 +1288,7 @@ const Meeting = () => {
                 <div
                   key={sub.stream.streamId}
                   data-key={sub.stream.streamId}
-                  // className={`stream-container col-md-6 col-xs-6 sub ${sub.stream.streamId === speakingPublisherId ? "speaking" : ""} ${getUserGender(sub)}`}
                   className={`stream-container col-md-6 col-xs-6 sub custom-shadow ${getUserGender(sub)}`}
-                  // onClick={() => handleMainVideoStream(sub)}
                   id={getUserID(sub)}
                   ref={el => {
                     subRef.current[idx] = el;
