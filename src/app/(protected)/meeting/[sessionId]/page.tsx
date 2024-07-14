@@ -37,6 +37,7 @@ import {
   toggleLoverAudio,
   getUserID,
   getUserGender,
+  sortSubscribers,
 } from "@/utils/meeting/openviduUtils";
 
 type chooseResult = {
@@ -802,7 +803,7 @@ const Meeting = () => {
   };
 
   useEffect(() => {
-    if(!choiceState) {
+    if (!choiceState) {
       return;
     }
     setChooseMode();
@@ -837,42 +838,17 @@ const Meeting = () => {
     meetingCamEvent();
   }, [publisher]);
 
-  // 내 성별 기준으로 서브 정렬
-  const sortSubscribers = (myGender: string) => {
-    let oppositeGender = "";
-    if (myGender === "MALE") {
-      oppositeGender = "FEMALE";
-    } else {
-      oppositeGender = "MALE";
-    }
-
-    subscribers.forEach(subscriber => {
-      if (getUserGender(subscriber) === myGender)
-        setSortedSubscribers(prevSortedSubScribers => [
-          ...prevSortedSubScribers,
-          subscriber,
-        ]);
-    });
-    subscribers.forEach(subscriber => {
-      if (getUserGender(subscriber) === oppositeGender)
-        setSortedSubscribers(prevSortedSubScribers => [
-          ...prevSortedSubScribers,
-          subscriber,
-        ]);
-    });
-  };
-
   useEffect(() => {
     console.log("subscribers", subscribers);
     if (!subscribers) {
       return;
     }
-    
+
     if (subscribers.length === 5) {
       if (getUserGender(publisher!) === "MALE") {
-        sortSubscribers("MALE");
+        sortSubscribers("MALE", subscribers, setSortedSubscribers);
       } else {
-        sortSubscribers("FEMALE");
+        sortSubscribers("FEMALE", subscribers, setSortedSubscribers);
       }
       setIsFull(true);
       socket?.emit("startTimer", { sessionId: sessionId });

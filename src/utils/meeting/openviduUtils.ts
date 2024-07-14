@@ -191,3 +191,32 @@ export const getUserGender = (person: StreamManager): string => {
 
   return gender;
 };
+
+// 내 성별 기준으로 서브 정렬
+export const sortSubscribers = (
+  myGender: string,
+  subscribers: StreamManager[],
+  setSortedSubscribers: React.Dispatch<SetStateAction<StreamManager[]>>,
+) => {
+  let oppositeGender = "";
+  if (myGender === "MALE") {
+    oppositeGender = "FEMALE";
+  } else {
+    oppositeGender = "MALE";
+  }
+
+  subscribers.forEach(subscriber => {
+    if (getUserGender(subscriber) === myGender)
+      setSortedSubscribers(prevSortedSubScribers => [
+        ...prevSortedSubScribers,
+        subscriber,
+      ]);
+  });
+  subscribers.forEach(subscriber => {
+    if (getUserGender(subscriber) === oppositeGender)
+      setSortedSubscribers(prevSortedSubScribers => [
+        ...prevSortedSubScribers,
+        subscriber,
+      ]);
+  });
+};
