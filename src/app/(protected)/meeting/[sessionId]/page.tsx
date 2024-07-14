@@ -4,15 +4,7 @@ import React, { useEffect, useState, useRef } from "react";
 import Image from "next/image";
 import UserVideoComponent from "@/containers/meeting/UserVideoComponent";
 import UserVideoComponent2 from "@/containers/main/UserVideo";
-import {
-  OpenVidu,
-  Session,
-  Publisher,
-  StreamManager,
-  Device,
-  PublisherSpeakingEvent,
-  Subscriber,
-} from "openvidu-browser";
+import { Session, Publisher, StreamManager } from "openvidu-browser";
 import { useRouter } from "next/navigation";
 import { useRecoilValue, useRecoilState } from "recoil";
 import {
@@ -28,10 +20,24 @@ import CanvasModal from "@/containers/meeting/CanvasModal";
 import { defaultSessionState, winnerSessionState } from "@/app/store/ovInfo";
 import MatchingResult from "@/containers/meeting/MatchingResult";
 import EggTimer from "@/containers/meeting/EggTimer";
+import MeetingLoading from "@/containers/meeting/MeetingLoading";
 import "animate.css";
 import Emoji from "@/containers/meeting/emoji";
 import { createRoot } from "react-dom/client";
 import Swal from "sweetalert2";
+import {
+  showArrow,
+  hideArrow,
+  captureVideoFrame,
+  captureCamInit,
+} from "@/utils/meeting/meetingUtils";
+import {
+  joinSession,
+  toggleLoserAudio,
+  toggleLoverAudio,
+  getUserID,
+  getUserGender,
+} from "@/utils/meeting/openviduUtils";
 
 type chooseResult = {
   sender: string;
@@ -45,8 +51,6 @@ const Meeting = () => {
   const [sortedSubscribers, setSortedSubscribers] = useState<StreamManager[]>(
     [],
   );
-  const [mainStreamManager, setMainStreamManager] = useState<StreamManager>();
-  const [, setCurrentVideoDevice] = useState<Device | null>(null);
   const [speakingPublisherIds, setSpeakingPublisherIds] = useState<string[]>(
     [],
   );
@@ -94,42 +98,6 @@ const Meeting = () => {
     };
   }, []);
 
-  const deleteSubscriber = (streamManager: StreamManager) => {
-    setSubscribers(prevSubscribers =>
-      prevSubscribers.filter(sub => sub !== streamManager),
-    );
-  };
-
-  const captureCanvas = () => {
-    console.log("캡쳐 시작");
-    const canvas = captureRef.current?.querySelector(
-      "canvas",
-    ) as HTMLCanvasElement;
-
-    if (!canvas) {
-      console.error("캔버스 업슴!!!");
-      return;
-    }
-
-    const stream = canvas?.captureStream(15); // 30 FPS로 캡처
-    if (!stream) {
-      console.error("Stream not found");
-    }
-    const videoTracks = stream.getVideoTracks();
-    if (videoTracks.length === 0) {
-      console.error("No video tracks found in the stream");
-      return;
-    }
-    console.log("Captured video track:", stream!.getVideoTracks()[0]);
-    canvas!.style.display = "none";
-    canvas!.style.backgroundColor = "transparent";
-    if (videoTracks.length === 0) {
-      console.error("No video tracks found in the stream");
-      return;
-    }
-    return videoTracks[0]; // 비디오 트랙을 반환
-  };
-
   const openCam = () => {
     if (publisher) {
       navigator.mediaDevices.getUserMedia({ video: true }).then(stream => {
@@ -145,150 +113,6 @@ const Meeting = () => {
           });
       });
     }
-  };
-
-  // 오디오 차단 관련
-  const getKeyById = (id: string) => {
-    const element = document.getElementById(id);
-    if (element) {
-      return element.getAttribute("data-key");
-    } else {
-      console.error("Element with id", id, "not found.");
-      return null;
-    }
-  };
-
-  // 내가 매칭 된 경우, 매칭 안 된 참여자들 소리 안 듣기
-  const toggleLoserAudio = (partnerName: string, flag: boolean) => {
-    const partnerStreamId = getKeyById(partnerName);
-
-    subscribers.forEach(sub => {
-      if (
-        sub instanceof Subscriber &&
-        sub.stream.streamId !== partnerStreamId
-      ) {
-        sub?.subscribeToAudio(flag);
-      }
-    });
-  };
-
-  // 내가 매칭 안 된 경우, 매칭 된 참여자들 소리 안 듣기
-  const toggleLoverAudio = (loser: string[], flag: boolean) => {
-    const loserStreamIds = loser
-      .map(loserName => getKeyById(loserName))
-      .filter(id => id !== null);
-
-    if (loserStreamIds.length > 0) {
-      subscribers.forEach(sub => {
-        if (
-          sub instanceof Subscriber &&
-          !loserStreamIds.includes(sub.stream.streamId)
-        ) {
-          sub?.subscribeToAudio(flag);
-        }
-      });
-    }
-  };
-
-  const joinSession = () => {
-    const OV = new OpenVidu();
-    OV.setAdvancedConfiguration({
-      publisherSpeakingEventsOptions: {
-        interval: 100, // Frequency of the polling of audio streams in ms (default 100)
-        threshold: -50, // Threshold volume in dB (default -50)
-      },
-    });
-
-    const newSession = OV.initSession();
-    setSession(newSession);
-    // Connect to the session
-    newSession
-      .connect(token, {
-        clientData: userInfo?.nickname as string, // FIXME 배포시엔 저를 써주세요.
-        // clientData: participantName, // FIXME 배포 시 랜덤닉네임 말고 유저 아이디로
-        gender: userInfo?.gender as string,
-      })
-      .then(async () => {
-        const arStream = captureCanvas();
-        const publisher = await OV.initPublisherAsync(undefined, {
-          audioSource: undefined,
-          // videoSource: undefined, // todo : 테스트용이라 다시 arStream으로 변경
-          videoSource: arStream,
-          publishAudio: true,
-          publishVideo: true,
-          resolution: "640x480",
-          frameRate: 30,
-          insertMode: "APPEND",
-          mirror: false,
-        });
-
-        console.log("Publisher created:", publisher, sessionId);
-        publisher.updatePublisherSpeakingEventsOptions({
-          interval: 100, // 발화자 이벤트 감지 주기 (밀리초)
-          threshold: -50, // 발화자 이벤트 발생 임계값 (데시벨)
-        });
-        newSession.publish(publisher);
-
-        const devices = await OV.getDevices();
-        const videoDevices = devices.filter(
-          device => device.kind === "videoinput",
-        );
-        const currentVideoDeviceId = publisher.stream
-          .getMediaStream()
-          .getVideoTracks()[0]
-          .getSettings().deviceId;
-        const currentVideoDevice = videoDevices.find(
-          device => device.deviceId === currentVideoDeviceId,
-        );
-
-        if (currentVideoDevice) {
-          setCurrentVideoDevice(currentVideoDevice);
-        }
-        setMainStreamManager(publisher);
-        setPublisher(publisher);
-      })
-      .catch(error => {
-        console.log(
-          "There was an error connecting to the session:",
-          error.code,
-          error.message,
-        );
-      });
-
-    newSession.on("streamCreated", event => {
-      // 새로운 스트림이 생성될 때, 해당 스트림을 구독
-      const subscriber = newSession.subscribe(event.stream, undefined);
-      // 구독한 스트림을 구독자 목록에 추가
-      console.log("지금 들어온 사람", subscriber.stream.connection.data);
-      setSubscribers(prevSubscribers => [...prevSubscribers, subscriber]);
-    });
-
-    newSession.on("streamDestroyed", event => {
-      deleteSubscriber(event.stream.streamManager);
-    });
-
-    newSession.on("exception", exception => {
-      console.warn(exception);
-    });
-
-    // 세션에서 발화자 이벤트 리스너 추가
-    newSession.on("publisherStartSpeaking", (event: PublisherSpeakingEvent) => {
-      const streamId = event.connection.stream?.streamId;
-      if (streamId !== undefined) {
-        setSpeakingPublisherIds(prevIds => [...prevIds, streamId]);
-      } else {
-        console.log("streamId undefined");
-      }
-    });
-
-    newSession.on("publisherStopSpeaking", (event: PublisherSpeakingEvent) => {
-      const streamId = event.connection.stream?.streamId;
-      if (streamId !== undefined) {
-        setSpeakingPublisherIds(prevIds =>
-          prevIds.filter(id => id !== streamId),
-        );
-      }
-    });
   };
 
   // 선택된 표시 제거
@@ -327,109 +151,6 @@ const Meeting = () => {
       router.push("/meeting/matching");
       return;
     }
-  };
-
-  // 화살표 출발 도착 좌표 계산
-  const findPosition = (
-    fromElement: HTMLDivElement,
-    toElement: HTMLDivElement,
-  ): Array<number> => {
-    const rect1 = fromElement.getBoundingClientRect();
-    const rect2 = toElement.getBoundingClientRect();
-    let acc = 0;
-    if (fromElement.classList.contains("MALE")) {
-      acc = 10;
-    } else {
-      acc = -10;
-    }
-
-    if (
-      fromElement.classList.contains("a") ||
-      fromElement.classList.contains("b") ||
-      fromElement.classList.contains("c")
-    ) {
-      const startX1 = rect1.right;
-      const startY1 = rect1.top + rect1.height / 2;
-      const endX2 = rect2.left;
-      const endY2 = rect2.top + rect2.height / 2;
-      return [startX1, startY1 + acc, endX2, endY2 - acc];
-    } else {
-      const startX1 = rect1.left;
-      const startY1 = rect1.top + rect1.height / 2;
-      const endX2 = rect2.right;
-      const endY2 = rect2.top + rect2.height / 2;
-      return [startX1, startY1 + acc, endX2, endY2 - acc];
-    }
-  };
-
-  // 성별에 따라 화살표 색 변경
-  const setArrowColor = (
-    fromElement: HTMLDivElement,
-    arrow: Array<HTMLDivElement>,
-  ) => {
-    const [Head, Body] = arrow;
-    if (fromElement.classList.contains("MALE")) {
-      Head.style.borderBottom = "20px solid #33C4D7";
-      Body.style.backgroundColor = "#33C4D7";
-      return;
-    }
-    Head.style.borderBottom = "20px solid #fa3689";
-    Body.style.backgroundColor = "#fa3689";
-  };
-
-  const showArrow = (datas: Array<chooseResult>) => {
-    datas.forEach(({ sender, receiver }) => {
-      const fromUser = document.getElementById(sender) as HTMLDivElement;
-      const toUser = document.getElementById(receiver) as HTMLDivElement;
-      const arrowContainer = fromUser?.querySelector(
-        ".arrow-container",
-      ) as HTMLDivElement;
-      const arrowBody = arrowContainer?.querySelector(
-        ".arrow-body",
-      ) as HTMLDivElement;
-      const arrowHead = arrowBody?.querySelector(
-        ".arrow-head",
-      ) as HTMLDivElement;
-
-      const rect1 = fromUser.getBoundingClientRect();
-      const [startX1, startY1, endX2, endY2] = findPosition(fromUser, toUser);
-
-      const deltaX = endX2 - startX1;
-      const deltaY = endY2 - startY1;
-      const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-      setArrowColor(fromUser, [arrowHead, arrowBody]);
-      arrowContainer.style.paddingTop = "1rem";
-      // arrowBody.style.width = distance - 20 + "px";
-      arrowContainer.style.top = startY1 - rect1.top + "px";
-      arrowContainer.style.left = startX1 - rect1.left + "px";
-
-      arrowBody.style.setProperty('--arrow-width', `${distance - 20}px`);
-
-      arrowContainer.style.transform = `rotate(${
-        (Math.atan2(deltaY, deltaX) * 180) / Math.PI
-      }deg)`;
-
-      if(fromUser.classList.contains("a") || fromUser.classList.contains("b") || fromUser.classList.contains("c")) {
-        arrowContainer.classList.remove("hidden");
-        arrowBody.style.animation = 'none';
-        arrowBody.offsetHeight;
-        arrowBody.style.animation = 'growArrow 2s ease-out forwards';
-        return;
-      }
-      setTimeout(() => {
-        arrowContainer.classList.remove("hidden");
-        arrowBody.style.animation = 'none';
-        arrowBody.offsetHeight;
-        arrowBody.style.animation = 'growArrow 2s ease-out forwards';
-      }, 3000);
-    });
-  };
-
-  const hideArrow = () => {
-    const arrowContainers = document.querySelectorAll(".arrow-container");
-    arrowContainers.forEach(arrowContainer => {
-      arrowContainer.classList.add("hidden");
-    });
   };
 
   const changeLoveStickMode = (datas: Array<chooseResult>) => {
@@ -497,21 +218,6 @@ const Meeting = () => {
         keywordRef.current.innerText = "";
       }
     }, time * 1000);
-  };
-
-  const captureCamInit = () => {
-    const videoElement = captureRef.current?.querySelector(
-      "video",
-    ) as HTMLVideoElement;
-    const canvasElement = captureRef.current?.querySelector(
-      "canvas",
-    ) as HTMLCanvasElement;
-    if (videoElement) {
-      videoElement.style.display = "none";
-    }
-    if (canvasElement) {
-      canvasElement.style.display = "none";
-    }
   };
 
   const openKeyword = (random: number) => {
@@ -616,14 +322,17 @@ const Meeting = () => {
     loverElement?.classList.remove("b");
   };
 
-
   //FIXME 시연용 룰렛 함수
   const randomUser = (keywordIdx: number, pickUser: string) => {
     const streamElements = document.getElementsByClassName("stream-container");
     const streamArray = Array.from(streamElements);
     const tickSound = document.getElementById("tickSound") as HTMLAudioElement;
 
-    const rouletteElements = streamArray.slice(0, streamArray.length / 2).concat(streamArray.slice(streamArray.length / 2).reverse()) as HTMLDivElement[];
+    const rouletteElements = streamArray
+      .slice(0, streamArray.length / 2)
+      .concat(
+        streamArray.slice(streamArray.length / 2).reverse(),
+      ) as HTMLDivElement[];
 
     const totalIterations = 36; // 원하는 총 반복 횟수
     const minDuration = 10; // 초기 강조 시간 간격
@@ -650,7 +359,9 @@ const Meeting = () => {
         if (pubRef.current?.id === pickUser) {
           changePresentationMode(pubRef.current, 11, randomKeyword);
         } else {
-          const presenterElement = subRef.current?.filter(sub => sub?.id === pickUser)[0];
+          const presenterElement = subRef.current?.filter(
+            sub => sub?.id === pickUser,
+          )[0];
           if (presenterElement) {
             changePresentationMode(presenterElement, 11, randomKeyword);
           }
@@ -662,7 +373,7 @@ const Meeting = () => {
           rouletteElements.forEach(element => {
             element.classList.remove("bright-5");
             element.classList.add("bright-100");
-          })
+          });
         }, 3000);
         return;
       }
@@ -680,7 +391,8 @@ const Meeting = () => {
 
       // 비선형적으로 증가하는 시간 간격 계산 (제곱 함수 사용)
       const progress = iteration / totalIterations;
-      const duration = minDuration * Math.pow((maxDuration / minDuration), progress * 1.5);
+      const duration =
+        minDuration * Math.pow(maxDuration / minDuration, progress * 1.5);
       clearInterval(intervalId);
       intervalId = setInterval(highlightUser, duration);
     };
@@ -700,7 +412,7 @@ const Meeting = () => {
         pubRef.current?.classList.add("bright-5");
         subRef.current.forEach(sub => {
           sub?.classList.add("bright-5");
-        })
+        });
         setTimeout(() => {
           if (keywordRef.current) {
             keywordRef.current.classList.add("text-white");
@@ -717,8 +429,8 @@ const Meeting = () => {
             pubRef.current?.classList.remove("bright-5");
             subRef.current.forEach(sub => {
               sub?.classList.remove("bright-5");
-            })
-            if(keywordRef.current) {
+            });
+            if (keywordRef.current) {
               keywordRef.current.classList.remove("text-white");
             }
           }, 22000);
@@ -829,7 +541,7 @@ const Meeting = () => {
           // 러버 저장하고 넘겨야해요. 모달로 띄워야되니까
           console.log("제게는 사랑하는 짝이 있어요. 그게 누구냐면..", lover);
           setLover(lover);
-          captureVideoFrame(lover);
+          setCapturedImage(captureVideoFrame(lover) as string);
           setIsMatched(true); // 이게 성공 모달
         }
       } catch (e: any) {
@@ -982,15 +694,14 @@ const Meeting = () => {
             });
 
             setOneToOneMode(loverElement);
-            toggleLoserAudio(lover, false); // 나머지 오디오 차단
+            toggleLoserAudio(subscribers, lover, false); // 나머지 오디오 차단
             setTimeout(() => {
-              // console.log("1:1 모드 해제")
               if (keywordRef.current) {
                 keywordRef.current.innerText = "";
                 console.log("즐거운시간 삭제");
               }
               undoOneToOneMode(loverElement);
-              toggleLoserAudio(lover, true); // 나머지 오디오 재개
+              toggleLoserAudio(subscribers, lover, true); // 나머지 오디오 재개
               loser.forEach(loser => {
                 const loserElementContainer = document.getElementById(
                   loser,
@@ -1018,7 +729,7 @@ const Meeting = () => {
               keywordRef.current.innerText =
                 "당신은 선택받지 못했습니다. 1:1 대화 중인 참여자들의 소리를 들을 수 없어요.";
             }
-            toggleLoverAudio(loser, false); // 매칭된 사람들 오디오 차단
+            toggleLoverAudio(subscribers, loser, false); // 매칭된 사람들 오디오 차단
             loser.forEach(loser => {
               const loserElementContainer = document.getElementById(
                 loser,
@@ -1033,13 +744,11 @@ const Meeting = () => {
                 // }, 60000); // 1분 후 흑백 해제
               }, 20000); //FIXME 시연용 20초 후 원 위치
             });
-            // muteAudio();
             setTimeout(() => {
               if (keywordRef.current) {
                 keywordRef.current.innerText = "";
               }
-              // unMuteAudio();
-              toggleLoverAudio(loser, true); // 오디오 재개
+              toggleLoverAudio(subscribers, loser, true); // 오디오 재개
               // }, 60000); // 1분 후 음소거 해제
             }, 20000); //FIXME 시연용 20초 후 원 위치
           }
@@ -1073,26 +782,6 @@ const Meeting = () => {
         console.error(e);
       }
     });
-  };
-
-  const captureVideoFrame = (lover: string) => {
-    const loverVideoContainer = document.getElementById(
-      lover,
-    ) as HTMLDivElement;
-    const loverVideoElement = loverVideoContainer.querySelector(
-      "video",
-    ) as HTMLVideoElement;
-    const canvas = document.createElement("canvas");
-    if (loverVideoElement) {
-      canvas.width = loverVideoElement.videoWidth;
-      canvas.height = loverVideoElement.videoHeight;
-      const context = canvas.getContext("2d");
-      if (context) {
-        context.drawImage(loverVideoElement, 0, 0, canvas.width, canvas.height);
-        const dataUrl = canvas.toDataURL("image/png");
-        setCapturedImage(dataUrl);
-      }
-    }
   };
 
   const OffSocketEvent = () => {
@@ -1147,23 +836,6 @@ const Meeting = () => {
     }
     meetingCamEvent();
   }, [publisher]);
-
-  const getUserID = (person: StreamManager): string => {
-    const idMatch = person?.stream.connection.data.match(
-      /"clientData":"([a-zA-Z0-9-\uAC00-\uD7A3]+)"/,
-    );
-    const id = idMatch ? idMatch[1] : "";
-    return id;
-  };
-
-  const getUserGender = (person: StreamManager): string => {
-    const genderMatch = person?.stream.connection.data.match(
-      /"gender":"(MALE|FEMALE)"/,
-    );
-    const gender = genderMatch ? genderMatch[1] : "";
-
-    return gender;
-  };
 
   // 내 성별 기준으로 서브 정렬
   const sortSubscribers = (myGender: string) => {
@@ -1223,22 +895,17 @@ const Meeting = () => {
       return;
     }
 
-    captureCamInit(); // 캡쳐용 비디오, 캔버스 display none
-    joinSession();
-
-    if (publisher) {
-      publisher.updatePublisherSpeakingEventsOptions({
-        interval: 100, // 발화자 이벤트 감지 주기 (밀리초)
-        threshold: -50, // 발화자 이벤트 발생 임계값 (데시벨)
-      });
-    }
-
-    if (mainStreamManager) {
-      mainStreamManager.updatePublisherSpeakingEventsOptions({
-        interval: 100, // 오디오 스트림 폴링 간격 (ms)
-        threshold: -50, // 볼륨 임계값 (dB)
-      });
-    }
+    captureCamInit(captureRef.current!); // 캡쳐용 비디오, 캔버스 display none
+    joinSession({
+      token,
+      userInfo,
+      captureRef: captureRef.current!,
+      sessionId,
+      setSession,
+      setPublisher,
+      setSubscribers,
+      setSpeakingPublisherIds,
+    });
 
     meetingEvent();
 
@@ -1248,14 +915,14 @@ const Meeting = () => {
   }, [avatar]);
 
   useEffect(() => {
-    if(!isChosen) {
+    if (!isChosen) {
       return;
     }
-    if(chooseTimerRef.current) {
+    if (chooseTimerRef.current) {
       clearTimeout(chooseTimerRef.current);
       chooseTimerRef.current = null;
     }
-  }, [isChosen])
+  }, [isChosen]);
 
   const leaveHandler = () => {
     Swal.fire({
@@ -1282,16 +949,7 @@ const Meeting = () => {
   ) : !isFinish ? (
     <>
       {!isFull ? (
-        <div className="w-[100vw] h-[100vh] flex flex-col justify-center items-center gap-24">
-          <div
-            className="flex flex-col items-center gap-4 text-3xl"
-            ref={loadingRef}
-          >
-            <p>다른 사람들의 접속을 기다리고 있습니다</p>
-            <p>잠시만 기다려주세요</p>
-          </div>
-          <span className="pan"></span>
-        </div>
+        <MeetingLoading ref={loadingRef} />
       ) : (
         <div className="h-full">
           <div
@@ -1320,19 +978,18 @@ const Meeting = () => {
               ></audio>
             </div>
           </div>
-          <div id="session" className="h-full flex justify-center items-center transition-colors duration-[1500ms] ease-in-out" ref={sessionRef}>
-            {/* <div ref={captureRef} className="hidden">
-          <UserVideoComponent2 />
-        </div> */}
+          <div
+            id="session"
+            className="h-full flex justify-center items-center transition-colors duration-[1500ms] ease-in-out"
+            ref={sessionRef}
+          >
             <div
               className="relative col-md-6 video-container"
               ref={videoContainerRef}
             >
               {publisher !== undefined ? (
                 <div
-                  // className={`stream-container col-md-6 col-xs-6 pub ${publisher.stream.streamId === speakingPublisherId ? "speaking" : ""} ${getUserGender(publisher)}`}
                   className={`stream-container col-md-6 col-xs-6 pub custom-shadow ${getUserGender(publisher)}`}
-                  // onClick={() => handleMainVideoStream(publisher)}
                   id={getUserID(publisher)}
                   ref={pubRef}
                 >
@@ -1350,9 +1007,7 @@ const Meeting = () => {
                 <div
                   key={sub.stream.streamId}
                   data-key={sub.stream.streamId}
-                  // className={`stream-container col-md-6 col-xs-6 sub ${sub.stream.streamId === speakingPublisherId ? "speaking" : ""} ${getUserGender(sub)}`}
                   className={`stream-container col-md-6 col-xs-6 sub custom-shadow ${getUserGender(sub)}`}
-                  // onClick={() => handleMainVideoStream(sub)}
                   id={getUserID(sub)}
                   ref={el => {
                     subRef.current[idx] = el;
