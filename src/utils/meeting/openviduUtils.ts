@@ -8,6 +8,7 @@ import {
 } from "openvidu-browser";
 import { captureCanvas } from "./meetingUtils";
 import { SetStateAction } from "react";
+import Swal from "sweetalert2";
 
 interface Friend {
   friend: string;
@@ -218,5 +219,45 @@ export const sortSubscribers = (
         ...prevSortedSubScribers,
         subscriber,
       ]);
+  });
+};
+
+export const openCam = (
+  publisher: Publisher,
+  setIsOpenCam: React.Dispatch<React.SetStateAction<boolean>>,
+) => {
+  if (publisher) {
+    navigator.mediaDevices.getUserMedia({ video: true }).then(stream => {
+      const webcamTrack = stream.getVideoTracks()[0];
+      publisher
+        .replaceTrack(webcamTrack)
+        .then(() => {
+          setIsOpenCam(true);
+          console.log("Track replaced with webcam track");
+        })
+        .catch(error => {
+          console.error("Error replacing track:", error);
+        });
+    });
+  }
+};
+
+export const leaveHandler = (leaveSession: () => void) => {
+  Swal.fire({
+    title: "정말 나가시겠습니까?",
+    text: "지금 나가면 현재 미팅 방이 종료됩니다!",
+    imageUrl: "/img/500.png",
+    imageWidth: 200,
+    imageHeight: 200,
+    imageAlt: "crying eggs",
+    showCancelButton: true,
+    confirmButtonColor: "#3085d6",
+    cancelButtonColor: "#d33",
+    confirmButtonText: "나갈게요",
+    cancelButtonText: "취소",
+  }).then(result => {
+    if (result.isConfirmed) {
+      leaveSession();
+    }
   });
 };

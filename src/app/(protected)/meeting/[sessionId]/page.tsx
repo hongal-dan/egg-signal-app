@@ -24,7 +24,6 @@ import MeetingLoading from "@/containers/meeting/MeetingLoading";
 import "animate.css";
 import Emoji from "@/containers/meeting/emoji";
 import { createRoot } from "react-dom/client";
-import Swal from "sweetalert2";
 import {
   changeLoveStickMode,
   undoLoveStickMode,
@@ -38,6 +37,8 @@ import {
   getUserID,
   getUserGender,
   sortSubscribers,
+  openCam,
+  leaveHandler,
 } from "@/utils/meeting/openviduUtils";
 
 type chooseResult = {
@@ -98,23 +99,6 @@ const Meeting = () => {
       console.log("메인이 종료되었습니다.");
     };
   }, []);
-
-  const openCam = () => {
-    if (publisher) {
-      navigator.mediaDevices.getUserMedia({ video: true }).then(stream => {
-        const webcamTrack = stream.getVideoTracks()[0];
-        publisher
-          .replaceTrack(webcamTrack)
-          .then(() => {
-            setIsOpenCam(true);
-            console.log("Track replaced with webcam track");
-          })
-          .catch(error => {
-            console.error("Error replacing track:", error);
-          });
-      });
-    }
-  };
 
   // 선택된 표시 제거
   const removeChooseSign = () => {
@@ -761,7 +745,7 @@ const Meeting = () => {
             if (keywordRef.current) {
               keywordRef.current.innerText = "";
             }
-            openCam();
+            openCam(publisher as Publisher, setIsOpenCam);
           }
         }, 1000);
       } catch (e: any) {
@@ -885,26 +869,6 @@ const Meeting = () => {
     }
   }, [isChosen]);
 
-  const leaveHandler = () => {
-    Swal.fire({
-      title: "정말 나가시겠습니까?",
-      text: "지금 나가면 현재 미팅 방이 종료됩니다!",
-      imageUrl: "/img/500.png",
-      imageWidth: 200,
-      imageHeight: 200,
-      imageAlt: "crying eggs",
-      showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
-      confirmButtonText: "나갈게요",
-      cancelButtonText: "취소",
-    }).then(result => {
-      if (result.isConfirmed) {
-        leaveSession();
-      }
-    });
-  };
-
   return !avatar ? (
     <AvatarCollection />
   ) : !isFinish ? (
@@ -922,7 +886,7 @@ const Meeting = () => {
                 className="border-b border-gray-500 text-gray-500 cursor-pointer"
                 type="button"
                 id="buttonLeaveSession"
-                onClick={() => leaveHandler()}
+                onClick={() => leaveHandler(leaveSession)}
                 value="종료하기"
               />
             </div>
