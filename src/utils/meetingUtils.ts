@@ -107,3 +107,21 @@ export const hideArrow = () => {
     arrowContainer.classList.add("hidden");
   });
 };
+
+export const captureVideoFrame = (lover: string) => {
+  const loverVideoContainer = document.getElementById(lover) as HTMLDivElement;
+  const loverVideoElement = loverVideoContainer.querySelector(
+    "video",
+  ) as HTMLVideoElement;
+  const canvas = document.createElement("canvas");
+  if (loverVideoElement) {
+    canvas.width = loverVideoElement.videoWidth;
+    canvas.height = loverVideoElement.videoHeight;
+    const context = canvas.getContext("2d");
+    if (context) {
+      context.drawImage(loverVideoElement, 0, 0, canvas.width, canvas.height);
+      const dataUrl = canvas.toDataURL("image/png");
+      return dataUrl;
+    }
+  }
+};

@@ -32,7 +32,7 @@ import "animate.css";
 import Emoji from "@/containers/meeting/emoji";
 import { createRoot } from "react-dom/client";
 import Swal from "sweetalert2";
-import { showArrow, hideArrow } from "@/utils/meetingUtils";
+import { showArrow, hideArrow, captureVideoFrame } from "@/utils/meetingUtils";
 
 type chooseResult = {
   sender: string;
@@ -843,7 +843,7 @@ const Meeting = () => {
           // 러버 저장하고 넘겨야해요. 모달로 띄워야되니까
           console.log("제게는 사랑하는 짝이 있어요. 그게 누구냐면..", lover);
           setLover(lover);
-          captureVideoFrame(lover);
+          setCapturedImage(captureVideoFrame(lover) as string);
           setIsMatched(true); // 이게 성공 모달
         }
       } catch (e: any) {
@@ -1090,25 +1090,25 @@ const Meeting = () => {
     });
   };
 
-  const captureVideoFrame = (lover: string) => {
-    const loverVideoContainer = document.getElementById(
-      lover,
-    ) as HTMLDivElement;
-    const loverVideoElement = loverVideoContainer.querySelector(
-      "video",
-    ) as HTMLVideoElement;
-    const canvas = document.createElement("canvas");
-    if (loverVideoElement) {
-      canvas.width = loverVideoElement.videoWidth;
-      canvas.height = loverVideoElement.videoHeight;
-      const context = canvas.getContext("2d");
-      if (context) {
-        context.drawImage(loverVideoElement, 0, 0, canvas.width, canvas.height);
-        const dataUrl = canvas.toDataURL("image/png");
-        setCapturedImage(dataUrl);
-      }
-    }
-  };
+  // const captureVideoFrame = (lover: string) => {
+  //   const loverVideoContainer = document.getElementById(
+  //     lover,
+  //   ) as HTMLDivElement;
+  //   const loverVideoElement = loverVideoContainer.querySelector(
+  //     "video",
+  //   ) as HTMLVideoElement;
+  //   const canvas = document.createElement("canvas");
+  //   if (loverVideoElement) {
+  //     canvas.width = loverVideoElement.videoWidth;
+  //     canvas.height = loverVideoElement.videoHeight;
+  //     const context = canvas.getContext("2d");
+  //     if (context) {
+  //       context.drawImage(loverVideoElement, 0, 0, canvas.width, canvas.height);
+  //       const dataUrl = canvas.toDataURL("image/png");
+  //       setCapturedImage(dataUrl);
+  //     }
+  //   }
+  // };
 
   const OffSocketEvent = () => {
     if (socket) {
