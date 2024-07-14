@@ -2,6 +2,7 @@ import {
   OpenVidu,
   Session,
   Publisher,
+  Subscriber,
   StreamManager,
   PublisherSpeakingEvent,
 } from "openvidu-browser";
@@ -124,4 +125,52 @@ export const joinSession = async ({
       setSpeakingPublisherIds(prevIds => prevIds.filter(id => id !== streamId));
     }
   });
+};
+
+// 오디오 차단 관련
+const getKeyById = (id: string) => {
+  const element = document.getElementById(id);
+  if (element) {
+    return element.getAttribute("data-key");
+  } else {
+    console.error("Element with id", id, "not found.");
+    return null;
+  }
+};
+
+// 내가 매칭 된 경우, 매칭 안 된 참여자들 소리 안 듣기
+export const toggleLoserAudio = (
+  subscribers: StreamManager[],
+  partnerName: string,
+  flag: boolean,
+) => {
+  const partnerStreamId = getKeyById(partnerName);
+
+  subscribers.forEach(sub => {
+    if (sub instanceof Subscriber && sub.stream.streamId !== partnerStreamId) {
+      sub?.subscribeToAudio(flag);
+    }
+  });
+};
+
+// 내가 매칭 안 된 경우, 매칭 된 참여자들 소리 안 듣기
+export const toggleLoverAudio = (
+  subscribers: StreamManager[],
+  loser: string[],
+  flag: boolean,
+) => {
+  const loserStreamIds = loser
+    .map(loserName => getKeyById(loserName))
+    .filter(id => id !== null);
+
+  if (loserStreamIds.length > 0) {
+    subscribers.forEach(sub => {
+      if (
+        sub instanceof Subscriber &&
+        !loserStreamIds.includes(sub.stream.streamId)
+      ) {
+        sub?.subscribeToAudio(flag);
+      }
+    });
+  }
 };

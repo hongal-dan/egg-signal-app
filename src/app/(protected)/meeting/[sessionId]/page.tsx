@@ -4,12 +4,7 @@ import React, { useEffect, useState, useRef } from "react";
 import Image from "next/image";
 import UserVideoComponent from "@/containers/meeting/UserVideoComponent";
 import UserVideoComponent2 from "@/containers/main/UserVideo";
-import {
-  Session,
-  Publisher,
-  StreamManager,
-  Subscriber,
-} from "openvidu-browser";
+import { Session, Publisher, StreamManager } from "openvidu-browser";
 import { useRouter } from "next/navigation";
 import { useRecoilValue, useRecoilState } from "recoil";
 import {
@@ -35,7 +30,11 @@ import {
   captureVideoFrame,
   captureCamInit,
 } from "@/utils/meeting/meetingUtils";
-import { joinSession } from "@/utils/meeting/openviduUtils";
+import {
+  joinSession,
+  toggleLoserAudio,
+  toggleLoverAudio,
+} from "@/utils/meeting/openviduUtils";
 
 type chooseResult = {
   sender: string;
@@ -110,49 +109,6 @@ const Meeting = () => {
           .catch(error => {
             console.error("Error replacing track:", error);
           });
-      });
-    }
-  };
-
-  // 오디오 차단 관련
-  const getKeyById = (id: string) => {
-    const element = document.getElementById(id);
-    if (element) {
-      return element.getAttribute("data-key");
-    } else {
-      console.error("Element with id", id, "not found.");
-      return null;
-    }
-  };
-
-  // 내가 매칭 된 경우, 매칭 안 된 참여자들 소리 안 듣기
-  const toggleLoserAudio = (partnerName: string, flag: boolean) => {
-    const partnerStreamId = getKeyById(partnerName);
-
-    subscribers.forEach(sub => {
-      if (
-        sub instanceof Subscriber &&
-        sub.stream.streamId !== partnerStreamId
-      ) {
-        sub?.subscribeToAudio(flag);
-      }
-    });
-  };
-
-  // 내가 매칭 안 된 경우, 매칭 된 참여자들 소리 안 듣기
-  const toggleLoverAudio = (loser: string[], flag: boolean) => {
-    const loserStreamIds = loser
-      .map(loserName => getKeyById(loserName))
-      .filter(id => id !== null);
-
-    if (loserStreamIds.length > 0) {
-      subscribers.forEach(sub => {
-        if (
-          sub instanceof Subscriber &&
-          !loserStreamIds.includes(sub.stream.streamId)
-        ) {
-          sub?.subscribeToAudio(flag);
-        }
       });
     }
   };
@@ -743,14 +699,14 @@ const Meeting = () => {
             });
 
             setOneToOneMode(loverElement);
-            toggleLoserAudio(lover, false); // 나머지 오디오 차단
+            toggleLoserAudio(subscribers, lover, false); // 나머지 오디오 차단
             setTimeout(() => {
               if (keywordRef.current) {
                 keywordRef.current.innerText = "";
                 console.log("즐거운시간 삭제");
               }
               undoOneToOneMode(loverElement);
-              toggleLoserAudio(lover, true); // 나머지 오디오 재개
+              toggleLoserAudio(subscribers, lover, true); // 나머지 오디오 재개
               loser.forEach(loser => {
                 const loserElementContainer = document.getElementById(
                   loser,
@@ -778,7 +734,7 @@ const Meeting = () => {
               keywordRef.current.innerText =
                 "당신은 선택받지 못했습니다. 1:1 대화 중인 참여자들의 소리를 들을 수 없어요.";
             }
-            toggleLoverAudio(loser, false); // 매칭된 사람들 오디오 차단
+            toggleLoverAudio(subscribers, loser, false); // 매칭된 사람들 오디오 차단
             loser.forEach(loser => {
               const loserElementContainer = document.getElementById(
                 loser,
@@ -797,7 +753,7 @@ const Meeting = () => {
               if (keywordRef.current) {
                 keywordRef.current.innerText = "";
               }
-              toggleLoverAudio(loser, true); // 오디오 재개
+              toggleLoverAudio(subscribers, loser, true); // 오디오 재개
               // }, 60000); // 1분 후 음소거 해제
             }, 20000); //FIXME 시연용 20초 후 원 위치
           }
