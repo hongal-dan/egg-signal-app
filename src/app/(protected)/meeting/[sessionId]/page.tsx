@@ -665,13 +665,19 @@ const Meeting = () => {
           for (let i = 0; i < rouletteElements.length; i++) {
             rouletteElements[i].classList.remove("highlighted");
           }
+          rouletteElements.forEach(element => {
+            element.classList.remove("bright-5");
+            element.classList.add("bright-100");
+          })
         }, 3000);
         return;
       }
 
       rouletteElements[currentIndex].classList.remove("highlighted");
+      rouletteElements[currentIndex].classList.add("bright-5");
       currentIndex = (currentIndex + 1) % rouletteElements.length;
       rouletteElements[currentIndex].classList.add("highlighted");
+      rouletteElements[currentIndex].classList.remove("bright-5");
 
       tickSound.currentTime = 0;
       tickSound.play();
@@ -697,6 +703,10 @@ const Meeting = () => {
         if (sessionRef.current) {
           sessionRef.current.classList.add("bg-black");
         }
+        pubRef.current?.classList.add("bright-5");
+        subRef.current.forEach(sub => {
+          sub?.classList.add("bright-5");
+        })
         setTimeout(() => {
           if (keywordRef.current) {
             keywordRef.current.classList.add("text-white");
@@ -710,6 +720,10 @@ const Meeting = () => {
             if (sessionRef.current) {
               sessionRef.current.classList.remove("bg-black");
             }
+            pubRef.current?.classList.remove("bright-5");
+            subRef.current.forEach(sub => {
+              sub?.classList.remove("bright-5");
+            })
             if(keywordRef.current) {
               keywordRef.current.classList.remove("text-white");
             }

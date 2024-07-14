@@ -48,7 +48,7 @@ const Chat: React.FC<Props> = ({ friend, onClose }) => {
   useEffect(() => {
     console.log("joinChat emit: ", friend.chatRoomId);
     if (commonSocket) {
-      commonSocket.emit("joinchat", {
+      commonSocket.emit("joinChat", {
         newChatRoomId: friend.chatRoomId,
         friendName: friend.friend,
       });
@@ -69,7 +69,7 @@ const Chat: React.FC<Props> = ({ friend, onClose }) => {
     }
 
     return () => {
-      commonSocket?.emit("closeChat", { chatRoomdId: chatRoomId });
+      commonSocket?.emit("closeChat", { chatRoomId: chatRoomId });
     };
   }, []);
 

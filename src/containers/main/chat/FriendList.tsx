@@ -42,7 +42,7 @@ const FriendList: React.FC<FriendListPros> = ({ friendsList }) => {
       if (prev === true) {
         console.log("closeChat: ", selectedFriend?.chatRoomId);
         commonSocket?.emit("closeChat", {
-          chatRoomdId: selectedFriend?.chatRoomId,
+          chatRoomId: selectedFriend?.chatRoomId,
         });
       }
       return !prev;
@@ -52,8 +52,7 @@ const FriendList: React.FC<FriendListPros> = ({ friendsList }) => {
   const closeChat = () => {
     if (commonSocket) {
       const chatRoomId = selectedFriend?.chatRoomId;
-      console.log(chatRoomId);
-      commonSocket.emit("closeChat", { chatRoomdId: chatRoomId });
+      commonSocket.emit("closeChat", { chatRoomId: chatRoomId });
     }
     setSelectedFriend(null);
     setIsChatVisible(false);
