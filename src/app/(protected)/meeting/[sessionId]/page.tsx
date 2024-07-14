@@ -9,7 +9,6 @@ import {
   Session,
   Publisher,
   StreamManager,
-  Device,
   PublisherSpeakingEvent,
   Subscriber,
 } from "openvidu-browser";
@@ -38,7 +37,7 @@ import {
   captureVideoFrame,
   captureCanvas,
   captureCamInit,
-} from "@/utils/meeting/meetingUtils.js";
+} from "@/utils/meeting/meetingUtils";
 
 type chooseResult = {
   sender: string;
@@ -52,7 +51,6 @@ const Meeting = () => {
   const [sortedSubscribers, setSortedSubscribers] = useState<StreamManager[]>(
     [],
   );
-  const [, setCurrentVideoDevice] = useState<Device | null>(null);
   const [speakingPublisherIds, setSpeakingPublisherIds] = useState<string[]>(
     [],
   );
@@ -205,22 +203,6 @@ const Meeting = () => {
           threshold: -50, // 발화자 이벤트 발생 임계값 (데시벨)
         });
         newSession.publish(publisher);
-
-        const devices = await OV.getDevices();
-        const videoDevices = devices.filter(
-          device => device.kind === "videoinput",
-        );
-        const currentVideoDeviceId = publisher.stream
-          .getMediaStream()
-          .getVideoTracks()[0]
-          .getSettings().deviceId;
-        const currentVideoDevice = videoDevices.find(
-          device => device.deviceId === currentVideoDeviceId,
-        );
-
-        if (currentVideoDevice) {
-          setCurrentVideoDevice(currentVideoDevice);
-        }
         setPublisher(publisher);
       })
       .catch(error => {
