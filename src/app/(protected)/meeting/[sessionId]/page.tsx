@@ -1121,6 +1121,13 @@ const Meeting = () => {
   };
 
   useEffect(() => {
+    if(!choiceState) {
+      return;
+    }
+    setChooseMode();
+  }, [choiceState]);
+
+  useEffect(() => {
     const timeOut = setTimeout(() => {
       if (!isFullRef.current) {
         if (loadingRef.current) {
