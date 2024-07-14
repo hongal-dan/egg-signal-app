@@ -20,6 +20,7 @@ import CanvasModal from "@/containers/meeting/CanvasModal";
 import { defaultSessionState, winnerSessionState } from "@/app/store/ovInfo";
 import MatchingResult from "@/containers/meeting/MatchingResult";
 import EggTimer from "@/containers/meeting/EggTimer";
+import MeetingLoading from "@/containers/meeting/MeetingLoading";
 import "animate.css";
 import Emoji from "@/containers/meeting/emoji";
 import { createRoot } from "react-dom/client";
@@ -949,16 +950,7 @@ const Meeting = () => {
   ) : !isFinish ? (
     <>
       {!isFull ? (
-        <div className="w-[100vw] h-[100vh] flex flex-col justify-center items-center gap-24">
-          <div
-            className="flex flex-col items-center gap-4 text-3xl"
-            ref={loadingRef}
-          >
-            <p>다른 사람들의 접속을 기다리고 있습니다</p>
-            <p>잠시만 기다려주세요</p>
-          </div>
-          <span className="pan"></span>
-        </div>
+        <MeetingLoading ref={loadingRef} />
       ) : (
         <div className="h-full">
           <div
