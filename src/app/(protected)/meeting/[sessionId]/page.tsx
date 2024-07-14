@@ -172,10 +172,6 @@ const Meeting = () => {
     }, time * 1000);
   };
 
-  const openKeyword = (random: number) => {
-    return keywords[random];
-  };
-
   const undoChooseMode = () => {
     setIsChosen(false);
     // 선택 모드 일 때는 마우스 하버시에 선택 가능한 상태로 변경
@@ -307,7 +303,7 @@ const Meeting = () => {
         rouletteElements[currentIndex].classList.add("highlighted");
         tickSound.currentTime = 0;
         tickSound.play();
-        const randomKeyword = openKeyword(keywordIdx);
+        const randomKeyword = keywords[keywordIdx];
         if (pubRef.current?.id === pickUser) {
           changePresentationMode(pubRef.current, 11, randomKeyword);
         } else {
