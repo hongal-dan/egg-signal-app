@@ -32,7 +32,13 @@ import "animate.css";
 import Emoji from "@/containers/meeting/emoji";
 import { createRoot } from "react-dom/client";
 import Swal from "sweetalert2";
-import { showArrow, hideArrow, captureVideoFrame } from "@/utils/meetingUtils";
+import {
+  showArrow,
+  hideArrow,
+  captureVideoFrame,
+  captureCanvas,
+  captureCamInit,
+} from "@/utils/meetingUtils";
 
 type chooseResult = {
   sender: string;
@@ -100,36 +106,6 @@ const Meeting = () => {
     setSubscribers(prevSubscribers =>
       prevSubscribers.filter(sub => sub !== streamManager),
     );
-  };
-
-  const captureCanvas = () => {
-    console.log("캡쳐 시작");
-    const canvas = captureRef.current?.querySelector(
-      "canvas",
-    ) as HTMLCanvasElement;
-
-    if (!canvas) {
-      console.error("캔버스 업슴!!!");
-      return;
-    }
-
-    const stream = canvas?.captureStream(15); // 30 FPS로 캡처
-    if (!stream) {
-      console.error("Stream not found");
-    }
-    const videoTracks = stream.getVideoTracks();
-    if (videoTracks.length === 0) {
-      console.error("No video tracks found in the stream");
-      return;
-    }
-    console.log("Captured video track:", stream!.getVideoTracks()[0]);
-    canvas!.style.display = "none";
-    canvas!.style.backgroundColor = "transparent";
-    if (videoTracks.length === 0) {
-      console.error("No video tracks found in the stream");
-      return;
-    }
-    return videoTracks[0]; // 비디오 트랙을 반환
   };
 
   const openCam = () => {
@@ -211,7 +187,7 @@ const Meeting = () => {
         gender: userInfo?.gender as string,
       })
       .then(async () => {
-        const arStream = captureCanvas();
+        const arStream = captureCanvas(captureRef.current!);
         const publisher = await OV.initPublisherAsync(undefined, {
           audioSource: undefined,
           // videoSource: undefined, // todo : 테스트용이라 다시 arStream으로 변경
@@ -499,21 +475,6 @@ const Meeting = () => {
         keywordRef.current.innerText = "";
       }
     }, time * 1000);
-  };
-
-  const captureCamInit = () => {
-    const videoElement = captureRef.current?.querySelector(
-      "video",
-    ) as HTMLVideoElement;
-    const canvasElement = captureRef.current?.querySelector(
-      "canvas",
-    ) as HTMLCanvasElement;
-    if (videoElement) {
-      videoElement.style.display = "none";
-    }
-    if (canvasElement) {
-      canvasElement.style.display = "none";
-    }
   };
 
   const openKeyword = (random: number) => {
@@ -1231,7 +1192,7 @@ const Meeting = () => {
       return;
     }
 
-    captureCamInit(); // 캡쳐용 비디오, 캔버스 display none
+    captureCamInit(captureRef.current!); // 캡쳐용 비디오, 캔버스 display none
     joinSession();
 
     if (publisher) {

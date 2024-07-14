@@ -125,3 +125,45 @@ export const captureVideoFrame = (lover: string) => {
     }
   }
 };
+
+// 미팅 세팅 시 ar 합성된 캔버스 캡쳐
+export const captureCanvas = (captureRef: HTMLDivElement) => {
+  console.log("meetingUtils에서 캡쳐 시작");
+  const canvas = captureRef.querySelector("canvas") as HTMLCanvasElement;
+
+  if (!canvas) {
+    console.error("캔버스 업슴!!!");
+    return;
+  }
+
+  const stream = canvas?.captureStream(15); // 30 FPS로 캡처
+  if (!stream) {
+    console.error("Stream not found");
+  }
+  const videoTracks = stream.getVideoTracks();
+  if (videoTracks.length === 0) {
+    console.error("No video tracks found in the stream");
+    return;
+  }
+
+  canvas!.style.display = "none";
+  canvas!.style.backgroundColor = "transparent";
+  if (videoTracks.length === 0) {
+    console.error("No video tracks found in the stream");
+    return;
+  }
+  return videoTracks[0]; // 비디오 트랙을 반환
+};
+
+// 캡쳐용 비디오, 캔버스 display none
+export const captureCamInit = (captureRef: HTMLDivElement) => {
+  console.log("meetingUtils에서 captureCamInit 시작");
+  const videoElement = captureRef.querySelector("video") as HTMLVideoElement;
+  const canvasElement = captureRef.querySelector("canvas") as HTMLCanvasElement;
+  if (videoElement) {
+    videoElement.style.display = "none";
+  }
+  if (canvasElement) {
+    canvasElement.style.display = "none";
+  }
+};
