@@ -1,3 +1,5 @@
+import { keywords } from "../../../public/data/keywords.js";
+
 type chooseResult = {
   sender: string;
   receiver: string;
@@ -209,4 +211,92 @@ export const captureCamInit = (captureRef: HTMLDivElement) => {
   if (canvasElement) {
     canvasElement.style.display = "none";
   }
+};
+
+//FIXME 시연용 룰렛 함수
+export const randomKeywordEvent = (
+  keywordIdx: number,
+  pickUser: string,
+  pubContainer: HTMLDivElement,
+  subContainer: HTMLDivElement[],
+  changePresentationMode: (
+    presenter: HTMLDivElement,
+    time: number,
+    mention?: string,
+  ) => void,
+) => {
+  const streamElements = document.getElementsByClassName("stream-container");
+  const streamArray = Array.from(streamElements);
+  const tickSound = document.getElementById("tickSound") as HTMLAudioElement;
+
+  const rouletteElements = streamArray
+    .slice(0, streamArray.length / 2)
+    .concat(
+      streamArray.slice(streamArray.length / 2).reverse(),
+    ) as HTMLDivElement[];
+
+  const totalIterations = 36; // 원하는 총 반복 횟수
+  const minDuration = 10; // 초기 강조 시간 간격
+  const maxDuration = 200; // 마지막 강조 시간 간격
+
+  let currentIndex = 0;
+  let iteration = 0;
+  const isAnimating = true;
+
+  for (let i = 0; i < rouletteElements.length; i++) {
+    rouletteElements[i].classList.remove("speaking");
+    if (rouletteElements[i].id === pickUser) {
+      currentIndex += i % rouletteElements.length;
+    }
+  }
+
+  const highlightUser = () => {
+    if (!isAnimating || iteration >= totalIterations) {
+      clearInterval(intervalId);
+      rouletteElements[currentIndex].classList.add("highlighted");
+      tickSound.currentTime = 0;
+      tickSound.play();
+      const randomKeyword = keywords[keywordIdx];
+      if (pubContainer?.id === pickUser) {
+        changePresentationMode(pubContainer, 11, randomKeyword);
+      } else {
+        const presenterElement = subContainer?.filter(
+          sub => sub?.id === pickUser,
+        )[0];
+        if (presenterElement) {
+          changePresentationMode(presenterElement, 11, randomKeyword);
+        }
+      }
+      setTimeout(() => {
+        for (let i = 0; i < rouletteElements.length; i++) {
+          rouletteElements[i].classList.remove("highlighted");
+        }
+        rouletteElements.forEach(element => {
+          element.classList.remove("bright-5");
+          element.classList.add("bright-100");
+        });
+      }, 3000);
+      return;
+    }
+
+    rouletteElements[currentIndex].classList.remove("highlighted");
+    rouletteElements[currentIndex].classList.add("bright-5");
+    currentIndex = (currentIndex + 1) % rouletteElements.length;
+    rouletteElements[currentIndex].classList.add("highlighted");
+    rouletteElements[currentIndex].classList.remove("bright-5");
+
+    tickSound.currentTime = 0;
+    tickSound.play();
+
+    iteration++;
+
+    // 비선형적으로 증가하는 시간 간격 계산 (제곱 함수 사용)
+    const progress = iteration / totalIterations;
+    const duration =
+      minDuration * Math.pow(maxDuration / minDuration, progress * 1.5);
+    clearInterval(intervalId);
+    intervalId = setInterval(highlightUser, duration);
+  };
+
+  let intervalId = setInterval(highlightUser, minDuration);
 };
