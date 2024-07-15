@@ -697,6 +697,18 @@ const Meeting = () => {
     });
   };
 
+  const speakingStyle = (streamManager: Publisher | StreamManager) => {
+    if(!speakingPublisherIds.includes(streamManager.stream.streamId)) {
+      return {};
+    }
+    return {
+      width: "100%",
+      height: "100%",
+      boxShadow: "0 0 10px 10px rgba(50, 205, 50, 0.7)",
+    };
+  };
+
+
   const OffSocketEvent = () => {
     if (socket) {
       socket.off("keyword");
@@ -870,14 +882,10 @@ const Meeting = () => {
                   className={`stream-container col-md-6 col-xs-6 pub custom-shadow ${getUserGender(publisher)}`}
                   id={getUserID(publisher)}
                   ref={pubRef}
+                  style={speakingStyle(publisher)}
                 >
                   <UserVideoComponent
                     streamManager={publisher}
-                    className={
-                      speakingPublisherIds.includes(publisher.stream.streamId)
-                        ? "speaking"
-                        : ""
-                    }
                   />
                 </div>
               ) : null}
@@ -890,15 +898,11 @@ const Meeting = () => {
                   ref={el => {
                     subRef.current[idx] = el;
                   }}
+                  style={speakingStyle(sub)}
                 >
                   <UserVideoComponent
                     key={sub.stream.streamId}
                     streamManager={sub}
-                    className={
-                      speakingPublisherIds.includes(sub.stream.streamId)
-                        ? "speaking"
-                        : ""
-                    }
                   />
                 </div>
               ))}
