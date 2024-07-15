@@ -181,6 +181,19 @@ p {
   margin: 0;
 }
 
+
+.bright-5 {
+  filter: brightness(0.5);
+  transition: filter 1.5s ease-in-out;
+}
+
+.bright-100 {
+  filter: brightness(1);
+  transition: filter 1.5s ease-in-out;
+}
+
 .highlighted {
   border: 10px solid #00ff95;
+  filter: brightness(1);
+  transition: none !important;
 }
