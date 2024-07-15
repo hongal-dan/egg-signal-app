@@ -259,7 +259,7 @@ export const randomKeywordEvent = (
     ) as HTMLDivElement[];
 
   const totalIterations = 36; // 원하는 총 반복 횟수
-  const minDuration = 10; // 초기 강조 시간 간격
+  const minDuration = 30; // 초기 강조 시간 간격
   const maxDuration = 200; // 마지막 강조 시간 간격
 
   let currentIndex = 0;
@@ -267,7 +267,6 @@ export const randomKeywordEvent = (
   const isAnimating = true;
 
   for (let i = 0; i < rouletteElements.length; i++) {
-    rouletteElements[i].classList.remove("speaking");
     if (rouletteElements[i].id === pickUser) {
       currentIndex += i % rouletteElements.length;
     }
@@ -281,23 +280,19 @@ export const randomKeywordEvent = (
       tickSound.play();
       const randomKeyword = keywords[keywordIdx];
       if (pubContainer?.id === pickUser) {
-        changePresentationMode(pubContainer, 11, randomKeyword);
+        changePresentationMode(pubContainer, 12, randomKeyword);
       } else {
         const presenterElement = subContainer?.filter(
           sub => sub?.id === pickUser,
         )[0];
         if (presenterElement) {
-          changePresentationMode(presenterElement, 11, randomKeyword);
+          changePresentationMode(presenterElement, 12, randomKeyword);
         }
       }
       setTimeout(() => {
         for (let i = 0; i < rouletteElements.length; i++) {
           rouletteElements[i].classList.remove("highlighted");
         }
-        rouletteElements.forEach(element => {
-          element.classList.remove("bright-5");
-          element.classList.add("bright-100");
-        });
       }, 3000);
       return;
     }

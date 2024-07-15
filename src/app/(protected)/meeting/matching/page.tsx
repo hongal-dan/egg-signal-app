@@ -157,6 +157,17 @@ const Matching = () => {
     });
   };
 
+  const speakingStyle = (streamManager: Publisher | StreamManager) => {
+    if(!speakingPublisherIds.includes(streamManager.stream.streamId)) {
+      return {};
+    }
+    return {
+      width: "100%",
+      height: "100%",
+      boxShadow: "0 0 10px 10px rgba(50, 205, 50, 0.7)",
+    };
+  };
+
   useEffect(() => {
     console.log("메인이 실행되었습니다.");
     const handleBeforeUnload = () => leaveSession();
@@ -172,26 +183,16 @@ const Matching = () => {
     <div className="flex flex-col h-[100vh] justify-center items-center gap-20">
       <div className="col-md-6 flex w-[60vw] gap-20">
         {publisher !== undefined ? (
-          <div className="stream-container col-md-6 col-xs-6">
+          <div className="stream-container col-md-6 col-xs-6" style={speakingStyle(publisher)}>
             <UserVideoComponent
               streamManager={publisher}
-              className={
-                speakingPublisherIds.includes(publisher.stream.streamId)
-                  ? "speaking"
-                  : ""
-              }
             />
           </div>
         ) : null}
         {subscriber !== undefined ? (
-          <div className="stream-container col-md-6 col-xs-6">
+          <div className="stream-container col-md-6 col-xs-6" style={speakingStyle(subscriber)}>
             <UserVideoComponent
               streamManager={subscriber!}
-              className={
-                speakingPublisherIds.includes(subscriber!.stream.streamId)
-                  ? "speaking"
-                  : ""
-              }
             />
           </div>
         ) : null}

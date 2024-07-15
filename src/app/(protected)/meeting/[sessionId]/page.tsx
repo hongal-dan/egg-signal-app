@@ -323,10 +323,12 @@ const Meeting = () => {
         if (sessionRef.current) {
           sessionRef.current.classList.add("bg-black");
         }
-        pubRef.current?.classList.add("bright-5");
-        subRef.current.forEach(sub => {
-          sub?.classList.add("bright-5");
-        });
+        setTimeout(() => {
+          pubRef.current?.classList.add("bright-5");
+          subRef.current.forEach(sub => {
+            sub?.classList.add("bright-5");
+          });
+        }, 500); // 0.5초 후 밝기 하락
         setTimeout(() => {
           if (keywordRef.current) {
             keywordRef.current.classList.add("text-white");
@@ -346,15 +348,17 @@ const Meeting = () => {
             if (sessionRef.current) {
               sessionRef.current.classList.remove("bg-black");
             }
-            pubRef.current?.classList.remove("bright-5");
-            subRef.current.forEach(sub => {
-              sub?.classList.remove("bright-5");
-            });
-            if (keywordRef.current) {
-              keywordRef.current.classList.remove("text-white");
-            }
-          }, 22000);
-        }, 5000);
+            setTimeout(() => {
+              pubRef.current?.classList.remove("bright-5");
+              subRef.current.forEach(sub => {
+                sub?.classList.remove("bright-5");
+              });
+              if (keywordRef.current) {
+                keywordRef.current.classList.remove("text-white");
+              }
+            }, 500); // 0.5초 후 밝기 해제
+          }, 21000); // 총 발표 시간
+        }, 5000); // 어두워 지고 5초 후 이벤트 시작
       } catch (e: any) {
         console.error(e);
       }
@@ -722,6 +726,18 @@ const Meeting = () => {
     });
   };
 
+  const speakingStyle = (streamManager: Publisher | StreamManager) => {
+    if(!speakingPublisherIds.includes(streamManager.stream.streamId)) {
+      return {};
+    }
+    return {
+      width: "100%",
+      height: "100%",
+      boxShadow: "0 0 10px 10px rgba(50, 205, 50, 0.7)",
+    };
+  };
+
+
   const OffSocketEvent = () => {
     if (socket) {
       socket.off("keyword");
@@ -895,14 +911,10 @@ const Meeting = () => {
                   className={`stream-container col-md-6 col-xs-6 pub custom-shadow ${getUserGender(publisher)}`}
                   id={getUserID(publisher)}
                   ref={pubRef}
+                  style={speakingStyle(publisher)}
                 >
                   <UserVideoComponent
                     streamManager={publisher}
-                    className={
-                      speakingPublisherIds.includes(publisher.stream.streamId)
-                        ? "speaking"
-                        : ""
-                    }
                   />
                 </div>
               ) : null}
@@ -915,15 +927,11 @@ const Meeting = () => {
                   ref={el => {
                     subRef.current[idx] = el;
                   }}
+                  style={speakingStyle(sub)}
                 >
                   <UserVideoComponent
                     key={sub.stream.streamId}
                     streamManager={sub}
-                    className={
-                      speakingPublisherIds.includes(sub.stream.streamId)
-                        ? "speaking"
-                        : ""
-                    }
                   />
                 </div>
               ))}
