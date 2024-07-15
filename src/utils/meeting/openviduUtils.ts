@@ -8,6 +8,7 @@ import {
 } from "openvidu-browser";
 import { captureCanvas } from "./meetingUtils";
 import { SetStateAction } from "react";
+import Swal from "sweetalert2";
 
 interface Friend {
   friend: string;
@@ -293,4 +294,73 @@ export const getUserGender = (person: StreamManager): string => {
   const gender = genderMatch ? genderMatch[1] : "";
 
   return gender;
+};
+
+// 내 성별 기준으로 서브 정렬
+export const sortSubscribers = (
+  myGender: string,
+  subscribers: StreamManager[],
+  setSortedSubscribers: React.Dispatch<SetStateAction<StreamManager[]>>,
+) => {
+  let oppositeGender = "";
+  if (myGender === "MALE") {
+    oppositeGender = "FEMALE";
+  } else {
+    oppositeGender = "MALE";
+  }
+
+  subscribers.forEach(subscriber => {
+    if (getUserGender(subscriber) === myGender)
+      setSortedSubscribers(prevSortedSubScribers => [
+        ...prevSortedSubScribers,
+        subscriber,
+      ]);
+  });
+  subscribers.forEach(subscriber => {
+    if (getUserGender(subscriber) === oppositeGender)
+      setSortedSubscribers(prevSortedSubScribers => [
+        ...prevSortedSubScribers,
+        subscriber,
+      ]);
+  });
+};
+
+export const openCam = (
+  publisher: Publisher,
+  setIsOpenCam: React.Dispatch<React.SetStateAction<boolean>>,
+) => {
+  if (publisher) {
+    navigator.mediaDevices.getUserMedia({ video: true }).then(stream => {
+      const webcamTrack = stream.getVideoTracks()[0];
+      publisher
+        .replaceTrack(webcamTrack)
+        .then(() => {
+          setIsOpenCam(true);
+          console.log("Track replaced with webcam track");
+        })
+        .catch(error => {
+          console.error("Error replacing track:", error);
+        });
+    });
+  }
+};
+
+export const leaveHandler = (leaveSession: () => void) => {
+  Swal.fire({
+    title: "정말 나가시겠습니까?",
+    text: "지금 나가면 현재 미팅 방이 종료됩니다!",
+    imageUrl: "/img/500.png",
+    imageWidth: 200,
+    imageHeight: 200,
+    imageAlt: "crying eggs",
+    showCancelButton: true,
+    confirmButtonColor: "#3085d6",
+    cancelButtonColor: "#d33",
+    confirmButtonText: "나갈게요",
+    cancelButtonText: "취소",
+  }).then(result => {
+    if (result.isConfirmed) {
+      leaveSession();
+    }
+  });
 };

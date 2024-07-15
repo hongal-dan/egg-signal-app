@@ -13,7 +13,6 @@ import {
   isChosenState,
 } from "@/app/store/socket";
 import { avatarState } from "@/app/store/avatar";
-import { keywords } from "../../../../../public/data/keywords.js";
 import AvatarCollection from "@/containers/main/AvatarCollection";
 import { userState } from "@/app/store/userInfo";
 import CanvasModal from "@/containers/meeting/CanvasModal";
@@ -25,12 +24,12 @@ import "animate.css";
 import Emoji from "@/containers/meeting/emoji";
 import MikeMuteButton from "@/containers/meeting/MikeMuteButton";
 import { createRoot } from "react-dom/client";
-import Swal from "sweetalert2";
 import {
-  showArrow,
-  hideArrow,
+  changeLoveStickMode,
+  undoLoveStickMode,
   captureVideoFrame,
   captureCamInit,
+  randomKeywordEvent,
 } from "@/utils/meeting/meetingUtils";
 import {
   joinSession,
@@ -38,6 +37,9 @@ import {
   toggleLoverAudio,
   getUserID,
   getUserGender,
+  sortSubscribers,
+  openCam,
+  leaveHandler,
   getNetworkInfo,
   getVideoConstraints,
   updatePublisherStream,
@@ -97,28 +99,21 @@ const Meeting = () => {
     console.log("메인이 실행되었습니다.");
     const handleBeforeUnload = () => leaveSession();
     window.addEventListener("beforeunload", handleBeforeUnload);
+
+    const preventGoBack = () => {
+      history.pushState(null, "", location.href);
+      leaveHandler(leaveSession);
+      setSubscribers([]); // 리렌더링용
+    };
+    history.pushState(null, "", location.href);
+    window.addEventListener("popstate", preventGoBack);
+
     return () => {
       window.removeEventListener("beforeunload", handleBeforeUnload);
+      window.removeEventListener("popstate", preventGoBack);
       console.log("메인이 종료되었습니다.");
     };
   }, []);
-
-  const openCam = () => {
-    if (publisher) {
-      navigator.mediaDevices.getUserMedia({ video: true }).then(stream => {
-        const webcamTrack = stream.getVideoTracks()[0];
-        publisher
-          .replaceTrack(webcamTrack)
-          .then(() => {
-            setIsOpenCam(true);
-            console.log("Track replaced with webcam track");
-          })
-          .catch(error => {
-            console.error("Error replacing track:", error);
-          });
-      });
-    }
-  };
 
   // 선택된 표시 제거
   const removeChooseSign = () => {
@@ -158,39 +153,6 @@ const Meeting = () => {
     }
   };
 
-  const changeLoveStickMode = (datas: Array<chooseResult>) => {
-    const videoElements = document.querySelectorAll("video");
-    const canvasElements = document.querySelectorAll("canvas");
-    videoElements.forEach(video => {
-      video.style.width = "100%";
-      video.style.height = "100%";
-    });
-    canvasElements.forEach(canvas => {
-      canvas.style.width = "100%";
-      canvas.style.height = "100%";
-    });
-
-    const videoArray = Array.from(subRef.current);
-    videoArray.unshift(pubRef.current);
-    videoArray.forEach((video, idx) => {
-      video?.classList.add(String.fromCharCode(97 + idx));
-    });
-
-    videoContainerRef.current?.classList.add("love-stick");
-    showArrow(datas);
-    return;
-  };
-
-  const undoLoveStickMode = () => {
-    console.log("사랑의 작대기 모드 해제");
-    const videoArray = Array.from(subRef.current);
-    videoArray.unshift(pubRef.current);
-    videoArray.forEach((video, idx) => {
-      video?.classList.remove(String.fromCharCode(97 + idx));
-    });
-    videoContainerRef.current?.classList.remove("love-stick");
-    hideArrow();
-  };
   // time 초 동안 발표 모드 (presenter: 발표자, time: 발표 시간(초), mention: 발표 주제)
   const changePresentationMode = (
     presenter: HTMLDivElement,
@@ -223,10 +185,6 @@ const Meeting = () => {
         keywordRef.current.innerText = "";
       }
     }, time * 1000);
-  };
-
-  const openKeyword = (random: number) => {
-    return keywords[random];
   };
 
   const undoChooseMode = () => {
@@ -327,84 +285,6 @@ const Meeting = () => {
     loverElement?.classList.remove("b");
   };
 
-  //FIXME 시연용 룰렛 함수
-  const randomUser = (keywordIdx: number, pickUser: string) => {
-    const streamElements = document.getElementsByClassName("stream-container");
-    const streamArray = Array.from(streamElements);
-    const tickSound = document.getElementById("tickSound") as HTMLAudioElement;
-
-    const rouletteElements = streamArray
-      .slice(0, streamArray.length / 2)
-      .concat(
-        streamArray.slice(streamArray.length / 2).reverse(),
-      ) as HTMLDivElement[];
-
-    const totalIterations = 36; // 원하는 총 반복 횟수
-    const minDuration = 10; // 초기 강조 시간 간격
-    const maxDuration = 200; // 마지막 강조 시간 간격
-
-    let currentIndex = 0;
-    let iteration = 0;
-    const isAnimating = true;
-
-    for (let i = 0; i < rouletteElements.length; i++) {
-      rouletteElements[i].classList.remove("speaking");
-      if (rouletteElements[i].id === pickUser) {
-        currentIndex += i % rouletteElements.length;
-      }
-    }
-
-    const highlightUser = () => {
-      if (!isAnimating || iteration >= totalIterations) {
-        clearInterval(intervalId);
-        rouletteElements[currentIndex].classList.add("highlighted");
-        tickSound.currentTime = 0;
-        tickSound.play();
-        const randomKeyword = openKeyword(keywordIdx);
-        if (pubRef.current?.id === pickUser) {
-          changePresentationMode(pubRef.current, 11, randomKeyword);
-        } else {
-          const presenterElement = subRef.current?.filter(
-            sub => sub?.id === pickUser,
-          )[0];
-          if (presenterElement) {
-            changePresentationMode(presenterElement, 11, randomKeyword);
-          }
-        }
-        setTimeout(() => {
-          for (let i = 0; i < rouletteElements.length; i++) {
-            rouletteElements[i].classList.remove("highlighted");
-          }
-          rouletteElements.forEach(element => {
-            element.classList.remove("bright-5");
-            element.classList.add("bright-100");
-          });
-        }, 3000);
-        return;
-      }
-
-      rouletteElements[currentIndex].classList.remove("highlighted");
-      rouletteElements[currentIndex].classList.add("bright-5");
-      currentIndex = (currentIndex + 1) % rouletteElements.length;
-      rouletteElements[currentIndex].classList.add("highlighted");
-      rouletteElements[currentIndex].classList.remove("bright-5");
-
-      tickSound.currentTime = 0;
-      tickSound.play();
-
-      iteration++;
-
-      // 비선형적으로 증가하는 시간 간격 계산 (제곱 함수 사용)
-      const progress = iteration / totalIterations;
-      const duration =
-        minDuration * Math.pow(maxDuration / minDuration, progress * 1.5);
-      clearInterval(intervalId);
-      intervalId = setInterval(highlightUser, duration);
-    };
-
-    let intervalId = setInterval(highlightUser, minDuration);
-  };
-
   const meetingEvent = () => {
     socket?.on("keyword", message => {
       try {
@@ -426,7 +306,13 @@ const Meeting = () => {
           }
         }, 2000);
         setTimeout(() => {
-          randomUser(parseInt(message.message), message.getRandomParticipant);
+          randomKeywordEvent(
+            parseInt(message.message),
+            message.getRandomParticipant,
+            pubRef.current as HTMLDivElement,
+            subRef.current as HTMLDivElement[],
+            changePresentationMode,
+          );
           setTimeout(() => {
             if (sessionRef.current) {
               sessionRef.current.classList.remove("bg-black");
@@ -481,10 +367,19 @@ const Meeting = () => {
         console.log("chooseResult = ", response);
         undoChooseMode(); // 선택모드 해제
         removeChooseSign(); // 선택된 사람 표시 제거
-        changeLoveStickMode(response.message as Array<chooseResult>);
+        changeLoveStickMode(
+          response.message as Array<chooseResult>,
+          subRef.current as HTMLDivElement[],
+          pubRef.current as HTMLDivElement,
+          videoContainerRef.current as HTMLDivElement,
+        );
         setTimeout(() => {
           console.log("원 위치로 변경");
-          undoLoveStickMode();
+          undoLoveStickMode(
+            subRef.current as HTMLDivElement[],
+            pubRef.current as HTMLDivElement,
+            videoContainerRef.current as HTMLDivElement,
+          );
           if (keywordRef.current) {
             console.log("잠시 후 1:1대화가 시작된다는 멘트 ");
             keywordRef.current.innerText =
@@ -521,10 +416,19 @@ const Meeting = () => {
         console.log("lastChooseResult = ", response);
         undoChooseMode(); // 선택모드 해제
         removeChooseSign(); // 선택된 사람 표시 제거
-        changeLoveStickMode(response as Array<chooseResult>);
+        changeLoveStickMode(
+          response.message as Array<chooseResult>,
+          subRef.current as HTMLDivElement[],
+          pubRef.current as HTMLDivElement,
+          videoContainerRef.current as HTMLDivElement,
+        );
         setTimeout(() => {
           console.log("원 위치로 변경");
-          undoLoveStickMode();
+          undoLoveStickMode(
+            subRef.current as HTMLDivElement[],
+            pubRef.current as HTMLDivElement,
+            videoContainerRef.current as HTMLDivElement,
+          );
           if (keywordRef.current) {
             keywordRef.current.innerText = "잠시 후 미팅이 종료됩니다";
           }
@@ -780,7 +684,7 @@ const Meeting = () => {
             if (keywordRef.current) {
               keywordRef.current.innerText = "";
             }
-            openCam();
+            openCam(publisher as Publisher, setIsOpenCam);
           }
         }, 1000);
       } catch (e: any) {
@@ -840,10 +744,10 @@ const Meeting = () => {
       return;
     }
     const updateNetwork = setInterval(() => {
-      let networkInfo = getNetworkInfo();
-      let systemInfo = getSystemPerformance();
+      const networkInfo = getNetworkInfo();
+      const systemInfo = getSystemPerformance();
       if (networkInfo) {
-        let newConstraints = getVideoConstraints(networkInfo, systemInfo);
+        const newConstraints = getVideoConstraints(networkInfo, systemInfo);
         updatePublisherStream(publisher, newConstraints);
       }
     }, 5000);
@@ -851,31 +755,6 @@ const Meeting = () => {
 
     return () => clearInterval(updateNetwork);
   }, [publisher]);
-
-  // 내 성별 기준으로 서브 정렬
-  const sortSubscribers = (myGender: string) => {
-    let oppositeGender = "";
-    if (myGender === "MALE") {
-      oppositeGender = "FEMALE";
-    } else {
-      oppositeGender = "MALE";
-    }
-
-    subscribers.forEach(subscriber => {
-      if (getUserGender(subscriber) === myGender)
-        setSortedSubscribers(prevSortedSubScribers => [
-          ...prevSortedSubScribers,
-          subscriber,
-        ]);
-    });
-    subscribers.forEach(subscriber => {
-      if (getUserGender(subscriber) === oppositeGender)
-        setSortedSubscribers(prevSortedSubScribers => [
-          ...prevSortedSubScribers,
-          subscriber,
-        ]);
-    });
-  };
 
   useEffect(() => {
     console.log("subscribers", subscribers);
@@ -885,9 +764,9 @@ const Meeting = () => {
 
     if (subscribers.length === 5) {
       if (getUserGender(publisher!) === "MALE") {
-        sortSubscribers("MALE");
+        sortSubscribers("MALE", subscribers, setSortedSubscribers);
       } else {
-        sortSubscribers("FEMALE");
+        sortSubscribers("FEMALE", subscribers, setSortedSubscribers);
       }
       setIsFull(true);
       socket?.emit("startTimer", { sessionId: sessionId });
@@ -939,26 +818,6 @@ const Meeting = () => {
     }
   }, [isChosen]);
 
-  const leaveHandler = () => {
-    Swal.fire({
-      title: "정말 나가시겠습니까?",
-      text: "지금 나가면 현재 미팅 방이 종료됩니다!",
-      imageUrl: "/img/500.png",
-      imageWidth: 200,
-      imageHeight: 200,
-      imageAlt: "crying eggs",
-      showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
-      confirmButtonText: "나갈게요",
-      cancelButtonText: "취소",
-    }).then(result => {
-      if (result.isConfirmed) {
-        leaveSession();
-      }
-    });
-  };
-
   return !avatar ? (
     <AvatarCollection />
   ) : !isFinish ? (
@@ -976,7 +835,7 @@ const Meeting = () => {
                 className="border-b border-gray-500 text-gray-500 cursor-pointer"
                 type="button"
                 id="buttonLeaveSession"
-                onClick={() => leaveHandler()}
+                onClick={() => leaveHandler(leaveSession)}
                 value="종료하기"
               />
             </div>

@@ -1,4 +1,4 @@
-### Egg signal app repository
+### EggTalk repository
 
 🚨 node 버전 20 기준으로 개발하였습니다.
 
@@ -7,7 +7,5 @@
 ```
 brew install pkg-config cairo pango libpng jpeg giflib librsvg
 ```
-
-
 
 위 명령어를 입력해주세요!
