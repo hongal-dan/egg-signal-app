@@ -37,6 +37,10 @@ import {
   toggleLoverAudio,
   getUserID,
   getUserGender,
+  getNetworkInfo,
+  getVideoConstraints,
+  updatePublisherStream,
+  getSystemPerformance,
 } from "@/utils/meeting/openviduUtils";
 
 type chooseResult = {
@@ -834,7 +838,17 @@ const Meeting = () => {
     if (!publisher) {
       return;
     }
+    const updateNetwork = setInterval(() => {
+      let networkInfo = getNetworkInfo();
+      let systemInfo = getSystemPerformance();
+      if (networkInfo) {
+        let newConstraints = getVideoConstraints(networkInfo, systemInfo);
+        updatePublisherStream(publisher, newConstraints);
+      }
+    }, 5000);
     meetingCamEvent();
+
+    return () => clearInterval(updateNetwork);
   }, [publisher]);
 
   // 내 성별 기준으로 서브 정렬
