@@ -294,10 +294,12 @@ const Meeting = () => {
         if (sessionRef.current) {
           sessionRef.current.classList.add("bg-black");
         }
-        pubRef.current?.classList.add("bright-5");
-        subRef.current.forEach(sub => {
-          sub?.classList.add("bright-5");
-        });
+        setTimeout(() => {
+          pubRef.current?.classList.add("bright-5");
+          subRef.current.forEach(sub => {
+            sub?.classList.add("bright-5");
+          });
+        }, 500); // 0.5초 후 밝기 하락
         setTimeout(() => {
           if (keywordRef.current) {
             keywordRef.current.classList.add("text-white");
@@ -317,15 +319,17 @@ const Meeting = () => {
             if (sessionRef.current) {
               sessionRef.current.classList.remove("bg-black");
             }
-            pubRef.current?.classList.remove("bright-5");
-            subRef.current.forEach(sub => {
-              sub?.classList.remove("bright-5");
-            });
-            if (keywordRef.current) {
-              keywordRef.current.classList.remove("text-white");
-            }
-          }, 22000);
-        }, 5000);
+            setTimeout(() => {
+              pubRef.current?.classList.remove("bright-5");
+              subRef.current.forEach(sub => {
+                sub?.classList.remove("bright-5");
+              });
+              if (keywordRef.current) {
+                keywordRef.current.classList.remove("text-white");
+              }
+            }, 500); // 0.5초 후 밝기 해제
+          }, 21000); // 총 발표 시간
+        }, 5000); // 어두워 지고 5초 후 이벤트 시작
       } catch (e: any) {
         console.error(e);
       }
