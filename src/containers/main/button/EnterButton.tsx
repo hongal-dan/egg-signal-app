@@ -42,14 +42,17 @@ const EnterButton = () => {
   };
 
   const handleLoadingOn = async () => {
-    const meetingSocket = (await connectSocket()) as Socket | null;
-    meetingSocket?.emit("ready", {
+    let newMeetingSocket = meetingSocket;
+    if(!newMeetingSocket){
+      newMeetingSocket = (await connectSocket()) as Socket | null;
+    }
+    newMeetingSocket?.emit("ready", {
       participantName: currentUser.nickname,
       gender: currentUser.gender,
     });
     setIsLoading(true);
 
-    meetingSocket?.on("startCall", async (ovInfo: ovInfo) => {
+    newMeetingSocket?.on("startCall", async (ovInfo: ovInfo) => {
       //   setTestName(ovInfo.participantName);
       setDefaultUserInfo({
         sessionId: ovInfo.sessionId,
