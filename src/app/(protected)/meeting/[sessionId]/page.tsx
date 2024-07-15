@@ -1,29 +1,23 @@
 "use client";
 
 import React, { useEffect, useState, useRef } from "react";
+import { createRoot } from "react-dom/client";
 import Image from "next/image";
-import UserVideoComponent from "@/containers/meeting/UserVideoComponent";
-import UserVideoComponent2 from "@/containers/main/UserVideo";
-import { Session, Publisher, StreamManager } from "openvidu-browser";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useRecoilValue, useRecoilState } from "recoil";
+import { Session, Publisher, StreamManager } from "openvidu-browser";
+import "animate.css";
 import {
   chooseState,
   meetingSocketState,
   isChosenState,
 } from "@/app/store/socket";
 import { avatarState } from "@/app/store/avatar";
-import AvatarCollection from "@/containers/main/AvatarCollection";
 import { userState } from "@/app/store/userInfo";
-import CanvasModal from "@/containers/meeting/CanvasModal";
 import { defaultSessionState, winnerSessionState } from "@/app/store/ovInfo";
-import MatchingResult from "@/containers/meeting/MatchingResult";
-import EggTimer from "@/containers/meeting/EggTimer";
-import MeetingLoading from "@/containers/meeting/MeetingLoading";
-import "animate.css";
-import Emoji from "@/containers/meeting/emoji";
-import MikeMuteButton from "@/containers/meeting/MikeMuteButton";
-import { createRoot } from "react-dom/client";
+import UserVideoComponent from "@/containers/meeting/UserVideoComponent";
+import UserVideoComponent2 from "@/containers/main/UserVideo";
 import {
   changeLoveStickMode,
   undoLoveStickMode,
@@ -50,6 +44,41 @@ type chooseResult = {
   sender: string;
   receiver: string;
 };
+
+const DynamicAvatarCollection = dynamic(
+  () => import("@/containers/main/AvatarCollection"),
+  { ssr: false },
+);
+
+const DynamicCanvasModal = dynamic(
+  () => import("@/containers/meeting/CanvasModal"),
+  { ssr: false },
+);
+
+const DynamicMatchingResult = dynamic(
+  () => import("@/containers/meeting/MatchingResult"),
+  { ssr: false },
+);
+
+const DynamicEggTimer = dynamic(() => import("@/containers/meeting/EggTimer"), {
+  ssr: false,
+});
+
+const DynamicMeetingLoading = dynamic(
+  () => import("@/containers/meeting/MeetingLoading"),
+  { ssr: false },
+);
+
+const DynamicEmoji = dynamic(() => import("@/containers/meeting/emoji"), {
+  ssr: false,
+});
+
+const DynamicMikeMuteButton = dynamic(
+  () => import("@/containers/meeting/MikeMuteButton"),
+  {
+    ssr: false,
+  },
+);
 
 const Meeting = () => {
   const [session, setSession] = useState<Session | undefined>(undefined);
@@ -819,11 +848,11 @@ const Meeting = () => {
   }, [isChosen]);
 
   return !avatar ? (
-    <AvatarCollection />
+    <DynamicAvatarCollection />
   ) : !isFinish ? (
     <>
       {!isFull ? (
-        <MeetingLoading ref={loadingRef} />
+        <DynamicMeetingLoading ref={loadingRef} />
       ) : (
         <div className="h-full">
           <div
@@ -839,7 +868,7 @@ const Meeting = () => {
                 value="종료하기"
               />
             </div>
-            <EggTimer setTime={5} />
+            <DynamicEggTimer setTime={5} />
             <div className="w-full h-6 mt-4">
               <p
                 className="flex justify-center items-center font-bold h-full text-3xl"
@@ -901,15 +930,15 @@ const Meeting = () => {
             </div>
             <div className="fixed bottom-3 left-0 right-0 flex justify-center">
               <div className="relative bg-white p-2 rounded-lg shadow-md">
-                <Emoji />
-                <MikeMuteButton publisher={publisher} />
+                <DynamicEmoji />
+                <DynamicMikeMuteButton publisher={publisher} />
               </div>
             </div>
           </div>
         </div>
       )}
       {isCanvasModalOpen && (
-        <CanvasModal
+        <DynamicCanvasModal
           onClose={() => setIsCanvasModalOpen(false)}
           keywordsIndex={keywordsIndex}
         />
@@ -923,7 +952,7 @@ const Meeting = () => {
   ) : (
     <>
       {isFinish ? (
-        <MatchingResult
+        <DynamicMatchingResult
           capturedImage={capturedImage}
           lover={lover}
           isMatched={isMatched}
