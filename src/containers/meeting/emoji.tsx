@@ -30,8 +30,7 @@ function Emoji() {
   };
 
   return (
-    <div className="fixed bottom-3 left-0 right-0 flex justify-center">
-      <div className="bg-white p-2 rounded-lg shadow-md">
+      <>
         {emojiNames.map((emoji, index) => (
           <button
             key={index}
@@ -41,8 +40,7 @@ function Emoji() {
             <img src={emoji} className="w-8 h-8" />
           </button>
         ))}
-      </div>
-    </div>
+      </>
   );
 }
 

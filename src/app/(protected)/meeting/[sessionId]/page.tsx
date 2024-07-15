@@ -4,34 +4,47 @@ import React, { useEffect, useState, useRef } from "react";
 import Image from "next/image";
 import UserVideoComponent from "@/containers/meeting/UserVideoComponent";
 import UserVideoComponent2 from "@/containers/main/UserVideo";
-import {
-  OpenVidu,
-  Session,
-  Publisher,
-  StreamManager,
-  Device,
-  PublisherSpeakingEvent,
-  Subscriber,
-} from "openvidu-browser";
+import { Session, Publisher, StreamManager } from "openvidu-browser";
 import { useRouter } from "next/navigation";
 import { useRecoilValue, useRecoilState } from "recoil";
 import {
-  isLastChooseState,
+  chooseState,
   meetingSocketState,
   isChosenState,
 } from "@/app/store/socket";
 import { avatarState } from "@/app/store/avatar";
-import { keywords } from "../../../../../public/data/keywords.js";
 import AvatarCollection from "@/containers/main/AvatarCollection";
 import { userState } from "@/app/store/userInfo";
 import CanvasModal from "@/containers/meeting/CanvasModal";
 import { defaultSessionState, winnerSessionState } from "@/app/store/ovInfo";
 import MatchingResult from "@/containers/meeting/MatchingResult";
 import EggTimer from "@/containers/meeting/EggTimer";
+import MeetingLoading from "@/containers/meeting/MeetingLoading";
 import "animate.css";
 import Emoji from "@/containers/meeting/emoji";
+import MikeMuteButton from "@/containers/meeting/MikeMuteButton";
 import { createRoot } from "react-dom/client";
-import Swal from "sweetalert2";
+import {
+  changeLoveStickMode,
+  undoLoveStickMode,
+  captureVideoFrame,
+  captureCamInit,
+  randomKeywordEvent,
+} from "@/utils/meeting/meetingUtils";
+import {
+  joinSession,
+  toggleLoserAudio,
+  toggleLoverAudio,
+  getUserID,
+  getUserGender,
+  sortSubscribers,
+  openCam,
+  leaveHandler,
+  getNetworkInfo,
+  getVideoConstraints,
+  updatePublisherStream,
+  getSystemPerformance,
+} from "@/utils/meeting/openviduUtils";
 
 type chooseResult = {
   sender: string;
@@ -45,8 +58,6 @@ const Meeting = () => {
   const [sortedSubscribers, setSortedSubscribers] = useState<StreamManager[]>(
     [],
   );
-  const [mainStreamManager, setMainStreamManager] = useState<StreamManager>();
-  const [, setCurrentVideoDevice] = useState<Device | null>(null);
   const [speakingPublisherIds, setSpeakingPublisherIds] = useState<string[]>(
     [],
   );
@@ -69,9 +80,8 @@ const Meeting = () => {
   const userInfo = useRecoilValue(userState);
   const isFullRef = useRef(isFull);
   const [isMatched, setIsMatched] = useState<boolean>(false); // 매칭이 되었는지 여부
-  const [, setIsLastChoose] = useRecoilState(isLastChooseState);
+  const [choiceState, setChoiceState] = useRecoilState(chooseState);
   const [lover, setLover] = useState<string>("");
-  const isLastChoose = useRecoilValue(isLastChooseState);
 
   const { sessionId, token, participantName } =
     useRecoilValue(defaultSessionState);
@@ -89,208 +99,21 @@ const Meeting = () => {
     console.log("메인이 실행되었습니다.");
     const handleBeforeUnload = () => leaveSession();
     window.addEventListener("beforeunload", handleBeforeUnload);
+
+    const preventGoBack = () => {
+      history.pushState(null, "", location.href);
+      leaveHandler(leaveSession);
+      setSubscribers([]); // 리렌더링용
+    };
+    history.pushState(null, "", location.href);
+    window.addEventListener("popstate", preventGoBack);
+
     return () => {
       window.removeEventListener("beforeunload", handleBeforeUnload);
+      window.removeEventListener("popstate", preventGoBack);
       console.log("메인이 종료되었습니다.");
     };
   }, []);
-
-  const deleteSubscriber = (streamManager: StreamManager) => {
-    setSubscribers(prevSubscribers =>
-      prevSubscribers.filter(sub => sub !== streamManager),
-    );
-  };
-
-  const captureCanvas = () => {
-    console.log("캡쳐 시작");
-    const canvas = captureRef.current?.querySelector(
-      "canvas",
-    ) as HTMLCanvasElement;
-
-    if (!canvas) {
-      console.error("캔버스 업슴!!!");
-      return;
-    }
-
-    const stream = canvas?.captureStream(15); // 30 FPS로 캡처
-    if (!stream) {
-      console.error("Stream not found");
-    }
-    const videoTracks = stream.getVideoTracks();
-    if (videoTracks.length === 0) {
-      console.error("No video tracks found in the stream");
-      return;
-    }
-    console.log("Captured video track:", stream!.getVideoTracks()[0]);
-    canvas!.style.display = "none";
-    canvas!.style.backgroundColor = "transparent";
-    if (videoTracks.length === 0) {
-      console.error("No video tracks found in the stream");
-      return;
-    }
-    return videoTracks[0]; // 비디오 트랙을 반환
-  };
-
-  const openCam = () => {
-    if (publisher) {
-      navigator.mediaDevices.getUserMedia({ video: true }).then(stream => {
-        const webcamTrack = stream.getVideoTracks()[0];
-        publisher
-          .replaceTrack(webcamTrack)
-          .then(() => {
-            setIsOpenCam(true);
-            console.log("Track replaced with webcam track");
-          })
-          .catch(error => {
-            console.error("Error replacing track:", error);
-          });
-      });
-    }
-  };
-
-  // 오디오 차단 관련
-  const getKeyById = (id: string) => {
-    const element = document.getElementById(id);
-    if (element) {
-      return element.getAttribute("data-key");
-    } else {
-      console.error("Element with id", id, "not found.");
-      return null;
-    }
-  };
-
-  // 내가 매칭 된 경우, 매칭 안 된 참여자들 소리 안 듣기
-  const toggleLoserAudio = (partnerName: string, flag: boolean) => {
-    const partnerStreamId = getKeyById(partnerName);
-
-    subscribers.forEach(sub => {
-      if (
-        sub instanceof Subscriber &&
-        sub.stream.streamId !== partnerStreamId
-      ) {
-        sub?.subscribeToAudio(flag);
-      }
-    });
-  };
-
-  // 내가 매칭 안 된 경우, 매칭 된 참여자들 소리 안 듣기
-  const toggleLoverAudio = (loser: string[], flag: boolean) => {
-    const loserStreamIds = loser
-      .map(loserName => getKeyById(loserName))
-      .filter(id => id !== null);
-
-    if (loserStreamIds.length > 0) {
-      subscribers.forEach(sub => {
-        if (
-          sub instanceof Subscriber &&
-          !loserStreamIds.includes(sub.stream.streamId)
-        ) {
-          sub?.subscribeToAudio(flag);
-        }
-      });
-    }
-  };
-
-  const joinSession = () => {
-    const OV = new OpenVidu();
-    OV.setAdvancedConfiguration({
-      publisherSpeakingEventsOptions: {
-        interval: 100, // Frequency of the polling of audio streams in ms (default 100)
-        threshold: -50, // Threshold volume in dB (default -50)
-      },
-    });
-
-    const newSession = OV.initSession();
-    setSession(newSession);
-    // Connect to the session
-    newSession
-      .connect(token, {
-        clientData: userInfo?.nickname as string, // FIXME 배포시엔 저를 써주세요.
-        // clientData: participantName, // FIXME 배포 시 랜덤닉네임 말고 유저 아이디로
-        gender: userInfo?.gender as string,
-      })
-      .then(async () => {
-        const arStream = captureCanvas();
-        const publisher = await OV.initPublisherAsync(undefined, {
-          audioSource: undefined,
-          // videoSource: undefined, // todo : 테스트용이라 다시 arStream으로 변경
-          videoSource: arStream,
-          publishAudio: true,
-          publishVideo: true,
-          resolution: "640x480",
-          frameRate: 30,
-          insertMode: "APPEND",
-          mirror: false,
-        });
-
-        console.log("Publisher created:", publisher, sessionId);
-        publisher.updatePublisherSpeakingEventsOptions({
-          interval: 100, // 발화자 이벤트 감지 주기 (밀리초)
-          threshold: -50, // 발화자 이벤트 발생 임계값 (데시벨)
-        });
-        newSession.publish(publisher);
-
-        const devices = await OV.getDevices();
-        const videoDevices = devices.filter(
-          device => device.kind === "videoinput",
-        );
-        const currentVideoDeviceId = publisher.stream
-          .getMediaStream()
-          .getVideoTracks()[0]
-          .getSettings().deviceId;
-        const currentVideoDevice = videoDevices.find(
-          device => device.deviceId === currentVideoDeviceId,
-        );
-
-        if (currentVideoDevice) {
-          setCurrentVideoDevice(currentVideoDevice);
-        }
-        setMainStreamManager(publisher);
-        setPublisher(publisher);
-      })
-      .catch(error => {
-        console.log(
-          "There was an error connecting to the session:",
-          error.code,
-          error.message,
-        );
-      });
-
-    newSession.on("streamCreated", event => {
-      // 새로운 스트림이 생성될 때, 해당 스트림을 구독
-      const subscriber = newSession.subscribe(event.stream, undefined);
-      // 구독한 스트림을 구독자 목록에 추가
-      console.log("지금 들어온 사람", subscriber.stream.connection.data);
-      setSubscribers(prevSubscribers => [...prevSubscribers, subscriber]);
-    });
-
-    newSession.on("streamDestroyed", event => {
-      deleteSubscriber(event.stream.streamManager);
-    });
-
-    newSession.on("exception", exception => {
-      console.warn(exception);
-    });
-
-    // 세션에서 발화자 이벤트 리스너 추가
-    newSession.on("publisherStartSpeaking", (event: PublisherSpeakingEvent) => {
-      const streamId = event.connection.stream?.streamId;
-      if (streamId !== undefined) {
-        setSpeakingPublisherIds(prevIds => [...prevIds, streamId]);
-      } else {
-        console.log("streamId undefined");
-      }
-    });
-
-    newSession.on("publisherStopSpeaking", (event: PublisherSpeakingEvent) => {
-      const streamId = event.connection.stream?.streamId;
-      if (streamId !== undefined) {
-        setSpeakingPublisherIds(prevIds =>
-          prevIds.filter(id => id !== streamId),
-        );
-      }
-    });
-  };
 
   // 선택된 표시 제거
   const removeChooseSign = () => {
@@ -317,7 +140,7 @@ const Meeting = () => {
     setPublisher(undefined);
     setSortedSubscribers([]);
     setIsFull(false);
-    setIsLastChoose(false);
+    setChoiceState("");
     setIsChosen(false);
     OffSocketEvent();
 
@@ -330,142 +153,6 @@ const Meeting = () => {
     }
   };
 
-  // 화살표 출발 도착 좌표 계산
-  const findPosition = (
-    fromElement: HTMLDivElement,
-    toElement: HTMLDivElement,
-  ): Array<number> => {
-    const rect1 = fromElement.getBoundingClientRect();
-    const rect2 = toElement.getBoundingClientRect();
-    let acc = 0;
-    if (fromElement.classList.contains("MALE")) {
-      acc = 10;
-    } else {
-      acc = -10;
-    }
-
-    if (
-      fromElement.classList.contains("a") ||
-      fromElement.classList.contains("b") ||
-      fromElement.classList.contains("c")
-    ) {
-      const startX1 = rect1.right;
-      const startY1 = rect1.top + rect1.height / 2;
-      const endX2 = rect2.left;
-      const endY2 = rect2.top + rect2.height / 2;
-      return [startX1, startY1 + acc, endX2, endY2 - acc];
-    } else {
-      const startX1 = rect1.left;
-      const startY1 = rect1.top + rect1.height / 2;
-      const endX2 = rect2.right;
-      const endY2 = rect2.top + rect2.height / 2;
-      return [startX1, startY1 + acc, endX2, endY2 - acc];
-    }
-  };
-
-  // 성별에 따라 화살표 색 변경
-  const setArrowColor = (
-    fromElement: HTMLDivElement,
-    arrow: Array<HTMLDivElement>,
-  ) => {
-    const [Head, Body] = arrow;
-    if (fromElement.classList.contains("MALE")) {
-      Head.style.borderBottom = "20px solid #33C4D7";
-      Body.style.backgroundColor = "#33C4D7";
-      return;
-    }
-    Head.style.borderBottom = "20px solid #fa3689";
-    Body.style.backgroundColor = "#fa3689";
-  };
-
-  const showArrow = (datas: Array<chooseResult>) => {
-    datas.forEach(({ sender, receiver }) => {
-      const fromUser = document.getElementById(sender) as HTMLDivElement;
-      const toUser = document.getElementById(receiver) as HTMLDivElement;
-      const arrowContainer = fromUser?.querySelector(
-        ".arrow-container",
-      ) as HTMLDivElement;
-      const arrowBody = arrowContainer?.querySelector(
-        ".arrow-body",
-      ) as HTMLDivElement;
-      const arrowHead = arrowBody?.querySelector(
-        ".arrow-head",
-      ) as HTMLDivElement;
-
-      const rect1 = fromUser.getBoundingClientRect();
-      const [startX1, startY1, endX2, endY2] = findPosition(fromUser, toUser);
-
-      const deltaX = endX2 - startX1;
-      const deltaY = endY2 - startY1;
-      const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-      setArrowColor(fromUser, [arrowHead, arrowBody]);
-      arrowContainer.style.paddingTop = "1rem";
-      // arrowBody.style.width = distance - 20 + "px";
-      arrowContainer.style.top = startY1 - rect1.top + "px";
-      arrowContainer.style.left = startX1 - rect1.left + "px";
-
-      arrowBody.style.setProperty('--arrow-width', `${distance - 20}px`);
-
-      arrowContainer.style.transform = `rotate(${
-        (Math.atan2(deltaY, deltaX) * 180) / Math.PI
-      }deg)`;
-
-      if(fromUser.classList.contains("a") || fromUser.classList.contains("b") || fromUser.classList.contains("c")) {
-        arrowContainer.classList.remove("hidden");
-        arrowBody.style.animation = 'none';
-        arrowBody.offsetHeight;
-        arrowBody.style.animation = 'growArrow 2s ease-out forwards';
-        return;
-      }
-      setTimeout(() => {
-        arrowContainer.classList.remove("hidden");
-        arrowBody.style.animation = 'none';
-        arrowBody.offsetHeight;
-        arrowBody.style.animation = 'growArrow 2s ease-out forwards';
-      }, 3000);
-    });
-  };
-
-  const hideArrow = () => {
-    const arrowContainers = document.querySelectorAll(".arrow-container");
-    arrowContainers.forEach(arrowContainer => {
-      arrowContainer.classList.add("hidden");
-    });
-  };
-
-  const changeLoveStickMode = (datas: Array<chooseResult>) => {
-    const videoElements = document.querySelectorAll("video");
-    const canvasElements = document.querySelectorAll("canvas");
-    videoElements.forEach(video => {
-      video.style.width = "100%";
-      video.style.height = "100%";
-    });
-    canvasElements.forEach(canvas => {
-      canvas.style.width = "100%";
-      canvas.style.height = "100%";
-    });
-
-    const videoArray = Array.from(subRef.current);
-    videoArray.unshift(pubRef.current);
-    videoArray.forEach((video, idx) => {
-      video?.classList.add(String.fromCharCode(97 + idx));
-    });
-
-    videoContainerRef.current?.classList.add("love-stick");
-    showArrow(datas);
-    return;
-  };
-
-  const undoLoveStickMode = () => {
-    console.log("사랑의 작대기 모드 해제");
-    const videoArray = Array.from(subRef.current);
-    videoArray.unshift(pubRef.current);
-    videoArray.forEach((video, idx) => {
-      video?.classList.remove(String.fromCharCode(97 + idx));
-    });
-    videoContainerRef.current?.classList.remove("love-stick");
-    hideArrow();
-  };
   // time 초 동안 발표 모드 (presenter: 발표자, time: 발표 시간(초), mention: 발표 주제)
   const changePresentationMode = (
     presenter: HTMLDivElement,
@@ -498,25 +185,6 @@ const Meeting = () => {
         keywordRef.current.innerText = "";
       }
     }, time * 1000);
-  };
-
-  const captureCamInit = () => {
-    const videoElement = captureRef.current?.querySelector(
-      "video",
-    ) as HTMLVideoElement;
-    const canvasElement = captureRef.current?.querySelector(
-      "canvas",
-    ) as HTMLCanvasElement;
-    if (videoElement) {
-      videoElement.style.display = "none";
-    }
-    if (canvasElement) {
-      canvasElement.style.display = "none";
-    }
-  };
-
-  const openKeyword = (random: number) => {
-    return keywords[random];
   };
 
   const undoChooseMode = () => {
@@ -557,7 +225,7 @@ const Meeting = () => {
           receiver: subRef.current[subRef.current.length - 1]?.id,
         });
       };
-      if (!isLastChoose) {
+      if (choiceState === "first") {
         emitChoose("choose");
       } else {
         emitChoose("lastChoose");
@@ -588,9 +256,6 @@ const Meeting = () => {
       console.log("상대방이 없습니다.");
     }
     loverElement?.classList.add("b");
-    console.log("컨테이너", videoContainerRef.current);
-    console.log("나자신", streamElements[0]);
-    console.log("상대방: ", loverElement);
     let acc = 2;
     for (let i = 1; i < streamElements.length; i++) {
       if (streamElements[i].classList.contains("b")) {
@@ -618,74 +283,6 @@ const Meeting = () => {
       acc += 1;
     }
     loverElement?.classList.remove("b");
-    console.log("나자신", streamElements[0]);
-    console.log("상대방: ", loverElement);
-  };
-
-
-  //FIXME 시연용 룰렛 함수
-  const randomUser = (keywordIdx: number, pickUser: string) => {
-    const streamElements = document.getElementsByClassName("stream-container");
-    const streamArray = Array.from(streamElements);
-    const tickSound = document.getElementById("tickSound") as HTMLAudioElement;
-
-    const rouletteElements = streamArray.slice(0, streamArray.length / 2).concat(streamArray.slice(streamArray.length / 2).reverse()) as HTMLDivElement[];
-
-    const totalIterations = 36; // 원하는 총 반복 횟수
-    const minDuration = 10; // 초기 강조 시간 간격
-    const maxDuration = 200; // 마지막 강조 시간 간격
-
-    let currentIndex = 0;
-    let iteration = 0;
-    const isAnimating = true;
-
-    for (let i = 0; i < rouletteElements.length; i++) {
-      rouletteElements[i].classList.remove("speaking");
-      if (rouletteElements[i].id === pickUser) {
-        currentIndex += i % 6;
-      }
-    }
-
-    const highlightUser = () => {
-      if (!isAnimating || iteration >= totalIterations) {
-        clearInterval(intervalId);
-        rouletteElements[currentIndex].classList.add("highlighted");
-        tickSound.currentTime = 0;
-        tickSound.play();
-        const randomKeyword = openKeyword(keywordIdx);
-        if (pubRef.current?.id === pickUser) {
-          changePresentationMode(pubRef.current, 11, randomKeyword);
-        } else {
-          const presenterElement = subRef.current?.filter(sub => sub?.id === pickUser)[0];
-          if (presenterElement) {
-            changePresentationMode(presenterElement, 11, randomKeyword);
-          }
-        }
-        setTimeout(() => {
-          for (let i = 0; i < rouletteElements.length; i++) {
-            rouletteElements[i].classList.remove("highlighted");
-          }
-        }, 3000);
-        return;
-      }
-
-      rouletteElements[currentIndex].classList.remove("highlighted");
-      currentIndex = (currentIndex + 1) % rouletteElements.length;
-      rouletteElements[currentIndex].classList.add("highlighted");
-
-      tickSound.currentTime = 0;
-      tickSound.play();
-
-      iteration++;
-
-      // 비선형적으로 증가하는 시간 간격 계산 (제곱 함수 사용)
-      const progress = iteration / totalIterations;
-      const duration = minDuration * Math.pow((maxDuration / minDuration), progress * 1.5);
-      clearInterval(intervalId);
-      intervalId = setInterval(highlightUser, duration);
-    };
-
-    let intervalId = setInterval(highlightUser, minDuration);
   };
 
   const meetingEvent = () => {
@@ -697,6 +294,10 @@ const Meeting = () => {
         if (sessionRef.current) {
           sessionRef.current.classList.add("bg-black");
         }
+        pubRef.current?.classList.add("bright-5");
+        subRef.current.forEach(sub => {
+          sub?.classList.add("bright-5");
+        });
         setTimeout(() => {
           if (keywordRef.current) {
             keywordRef.current.classList.add("text-white");
@@ -705,12 +306,22 @@ const Meeting = () => {
           }
         }, 2000);
         setTimeout(() => {
-          randomUser(parseInt(message.message), message.getRandomParticipant);
+          randomKeywordEvent(
+            parseInt(message.message),
+            message.getRandomParticipant,
+            pubRef.current as HTMLDivElement,
+            subRef.current as HTMLDivElement[],
+            changePresentationMode,
+          );
           setTimeout(() => {
             if (sessionRef.current) {
               sessionRef.current.classList.remove("bg-black");
             }
-            if(keywordRef.current) {
+            pubRef.current?.classList.remove("bright-5");
+            subRef.current.forEach(sub => {
+              sub?.classList.remove("bright-5");
+            });
+            if (keywordRef.current) {
               keywordRef.current.classList.remove("text-white");
             }
           }, 22000);
@@ -756,10 +367,19 @@ const Meeting = () => {
         console.log("chooseResult = ", response);
         undoChooseMode(); // 선택모드 해제
         removeChooseSign(); // 선택된 사람 표시 제거
-        changeLoveStickMode(response.message as Array<chooseResult>);
+        changeLoveStickMode(
+          response.message as Array<chooseResult>,
+          subRef.current as HTMLDivElement[],
+          pubRef.current as HTMLDivElement,
+          videoContainerRef.current as HTMLDivElement,
+        );
         setTimeout(() => {
           console.log("원 위치로 변경");
-          undoLoveStickMode();
+          undoLoveStickMode(
+            subRef.current as HTMLDivElement[],
+            pubRef.current as HTMLDivElement,
+            videoContainerRef.current as HTMLDivElement,
+          );
           if (keywordRef.current) {
             console.log("잠시 후 1:1대화가 시작된다는 멘트 ");
             keywordRef.current.innerText =
@@ -775,7 +395,7 @@ const Meeting = () => {
     socket?.on("cupidTime", (response: string) => {
       try {
         console.log("cupidTime 도착", response);
-        setChooseMode();
+        setChoiceState("first");
       } catch (e: any) {
         console.error(e);
       }
@@ -784,8 +404,7 @@ const Meeting = () => {
     socket?.on("lastCupidTime", (response: any) => {
       try {
         console.log("lastCupidTime 도착", response);
-        setIsLastChoose(true);
-        setChooseMode();
+        setChoiceState("last");
       } catch (e: any) {
         console.error(e);
       }
@@ -797,10 +416,19 @@ const Meeting = () => {
         console.log("lastChooseResult = ", response);
         undoChooseMode(); // 선택모드 해제
         removeChooseSign(); // 선택된 사람 표시 제거
-        changeLoveStickMode(response as Array<chooseResult>);
+        changeLoveStickMode(
+          response.message as Array<chooseResult>,
+          subRef.current as HTMLDivElement[],
+          pubRef.current as HTMLDivElement,
+          videoContainerRef.current as HTMLDivElement,
+        );
         setTimeout(() => {
           console.log("원 위치로 변경");
-          undoLoveStickMode();
+          undoLoveStickMode(
+            subRef.current as HTMLDivElement[],
+            pubRef.current as HTMLDivElement,
+            videoContainerRef.current as HTMLDivElement,
+          );
           if (keywordRef.current) {
             keywordRef.current.innerText = "잠시 후 미팅이 종료됩니다";
           }
@@ -822,7 +450,7 @@ const Meeting = () => {
           // 러버 저장하고 넘겨야해요. 모달로 띄워야되니까
           console.log("제게는 사랑하는 짝이 있어요. 그게 누구냐면..", lover);
           setLover(lover);
-          captureVideoFrame(lover);
+          setCapturedImage(captureVideoFrame(lover) as string);
           setIsMatched(true); // 이게 성공 모달
         }
       } catch (e: any) {
@@ -955,7 +583,6 @@ const Meeting = () => {
         setTimeout(() => {
           console.log("큐피드result로 계산 시작");
           if (lover != "0") {
-            console.log("이거도 없니?", keywordRef.current);
             if (keywordRef.current) {
               console.log("즐거운 시간 보내라고 p 태그 변경");
               keywordRef.current.innerText =
@@ -976,15 +603,14 @@ const Meeting = () => {
             });
 
             setOneToOneMode(loverElement);
-            toggleLoserAudio(lover, false); // 나머지 오디오 차단
+            toggleLoserAudio(subscribers, lover, false); // 나머지 오디오 차단
             setTimeout(() => {
-              // console.log("1:1 모드 해제")
               if (keywordRef.current) {
                 keywordRef.current.innerText = "";
                 console.log("즐거운시간 삭제");
               }
               undoOneToOneMode(loverElement);
-              toggleLoserAudio(lover, true); // 나머지 오디오 재개
+              toggleLoserAudio(subscribers, lover, true); // 나머지 오디오 재개
               loser.forEach(loser => {
                 const loserElementContainer = document.getElementById(
                   loser,
@@ -1012,7 +638,7 @@ const Meeting = () => {
               keywordRef.current.innerText =
                 "당신은 선택받지 못했습니다. 1:1 대화 중인 참여자들의 소리를 들을 수 없어요.";
             }
-            toggleLoverAudio(loser, false); // 매칭된 사람들 오디오 차단
+            toggleLoverAudio(subscribers, loser, false); // 매칭된 사람들 오디오 차단
             loser.forEach(loser => {
               const loserElementContainer = document.getElementById(
                 loser,
@@ -1027,13 +653,11 @@ const Meeting = () => {
                 // }, 60000); // 1분 후 흑백 해제
               }, 20000); //FIXME 시연용 20초 후 원 위치
             });
-            // muteAudio();
             setTimeout(() => {
               if (keywordRef.current) {
                 keywordRef.current.innerText = "";
               }
-              // unMuteAudio();
-              toggleLoverAudio(loser, true); // 오디오 재개
+              toggleLoverAudio(subscribers, loser, true); // 오디오 재개
               // }, 60000); // 1분 후 음소거 해제
             }, 20000); //FIXME 시연용 20초 후 원 위치
           }
@@ -1060,33 +684,13 @@ const Meeting = () => {
             if (keywordRef.current) {
               keywordRef.current.innerText = "";
             }
-            openCam();
+            openCam(publisher as Publisher, setIsOpenCam);
           }
         }, 1000);
       } catch (e: any) {
         console.error(e);
       }
     });
-  };
-
-  const captureVideoFrame = (lover: string) => {
-    const loverVideoContainer = document.getElementById(
-      lover,
-    ) as HTMLDivElement;
-    const loverVideoElement = loverVideoContainer.querySelector(
-      "video",
-    ) as HTMLVideoElement;
-    const canvas = document.createElement("canvas");
-    if (loverVideoElement) {
-      canvas.width = loverVideoElement.videoWidth;
-      canvas.height = loverVideoElement.videoHeight;
-      const context = canvas.getContext("2d");
-      if (context) {
-        context.drawImage(loverVideoElement, 0, 0, canvas.width, canvas.height);
-        const dataUrl = canvas.toDataURL("image/png");
-        setCapturedImage(dataUrl);
-      }
-    }
   };
 
   const OffSocketEvent = () => {
@@ -1105,6 +709,13 @@ const Meeting = () => {
       socket.off("cam");
     }
   };
+
+  useEffect(() => {
+    if (!choiceState) {
+      return;
+    }
+    setChooseMode();
+  }, [choiceState]);
 
   useEffect(() => {
     const timeOut = setTimeout(() => {
@@ -1132,66 +743,34 @@ const Meeting = () => {
     if (!publisher) {
       return;
     }
+    const updateNetwork = setInterval(() => {
+      const networkInfo = getNetworkInfo();
+      const systemInfo = getSystemPerformance();
+      if (networkInfo) {
+        const newConstraints = getVideoConstraints(networkInfo, systemInfo);
+        updatePublisherStream(publisher, newConstraints);
+      }
+    }, 5000);
     meetingCamEvent();
+
+    return () => clearInterval(updateNetwork);
   }, [publisher]);
-
-  const getUserID = (person: StreamManager): string => {
-    const idMatch = person?.stream.connection.data.match(
-      /"clientData":"([a-zA-Z0-9-\uAC00-\uD7A3]+)"/,
-    );
-    const id = idMatch ? idMatch[1] : "";
-    return id;
-  };
-
-  const getUserGender = (person: StreamManager): string => {
-    const genderMatch = person?.stream.connection.data.match(
-      /"gender":"(MALE|FEMALE)"/,
-    );
-    const gender = genderMatch ? genderMatch[1] : "";
-
-    return gender;
-  };
-
-  // 내 성별 기준으로 서브 정렬
-  const sortSubscribers = (myGender: string) => {
-    let oppositeGender = "";
-    if (myGender === "MALE") {
-      oppositeGender = "FEMALE";
-    } else {
-      oppositeGender = "MALE";
-    }
-
-    subscribers.forEach(subscriber => {
-      if (getUserGender(subscriber) === myGender)
-        setSortedSubscribers(prevSortedSubScribers => [
-          ...prevSortedSubScribers,
-          subscriber,
-        ]);
-    });
-    subscribers.forEach(subscriber => {
-      if (getUserGender(subscriber) === oppositeGender)
-        setSortedSubscribers(prevSortedSubScribers => [
-          ...prevSortedSubScribers,
-          subscriber,
-        ]);
-    });
-  };
 
   useEffect(() => {
     console.log("subscribers", subscribers);
     if (!subscribers) {
       return;
     }
-    meetingCupidResultEvent();
 
     if (subscribers.length === 5) {
       if (getUserGender(publisher!) === "MALE") {
-        sortSubscribers("MALE");
+        sortSubscribers("MALE", subscribers, setSortedSubscribers);
       } else {
-        sortSubscribers("FEMALE");
+        sortSubscribers("FEMALE", subscribers, setSortedSubscribers);
       }
       setIsFull(true);
       socket?.emit("startTimer", { sessionId: sessionId });
+      meetingCupidResultEvent();
     }
     if (isFull && subscribers.length !== 5 && !isFinish) {
       if (keywordRef.current) {
@@ -1210,22 +789,17 @@ const Meeting = () => {
       return;
     }
 
-    captureCamInit(); // 캡쳐용 비디오, 캔버스 display none
-    joinSession();
-
-    if (publisher) {
-      publisher.updatePublisherSpeakingEventsOptions({
-        interval: 100, // 발화자 이벤트 감지 주기 (밀리초)
-        threshold: -50, // 발화자 이벤트 발생 임계값 (데시벨)
-      });
-    }
-
-    if (mainStreamManager) {
-      mainStreamManager.updatePublisherSpeakingEventsOptions({
-        interval: 100, // 오디오 스트림 폴링 간격 (ms)
-        threshold: -50, // 볼륨 임계값 (dB)
-      });
-    }
+    captureCamInit(captureRef.current!); // 캡쳐용 비디오, 캔버스 display none
+    joinSession({
+      token,
+      userInfo,
+      captureRef: captureRef.current!,
+      sessionId,
+      setSession,
+      setPublisher,
+      setSubscribers,
+      setSpeakingPublisherIds,
+    });
 
     meetingEvent();
 
@@ -1235,50 +809,21 @@ const Meeting = () => {
   }, [avatar]);
 
   useEffect(() => {
-    if(!isChosen) {
+    if (!isChosen) {
       return;
     }
-    if(chooseTimerRef.current) {
+    if (chooseTimerRef.current) {
       clearTimeout(chooseTimerRef.current);
       chooseTimerRef.current = null;
     }
-  }, [isChosen])
-
-  const leaveHandler = () => {
-    Swal.fire({
-      title: "정말 나가시겠습니까?",
-      text: "지금 나가면 현재 미팅 방이 종료됩니다!",
-      imageUrl: "/img/500.png",
-      imageWidth: 200,
-      imageHeight: 200,
-      imageAlt: "crying eggs",
-      showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
-      confirmButtonText: "나갈게요",
-      cancelButtonText: "취소",
-    }).then(result => {
-      if (result.isConfirmed) {
-        leaveSession();
-      }
-    });
-  };
+  }, [isChosen]);
 
   return !avatar ? (
     <AvatarCollection />
   ) : !isFinish ? (
     <>
       {!isFull ? (
-        <div className="w-[100vw] h-[100vh] flex flex-col justify-center items-center gap-24">
-          <div
-            className="flex flex-col items-center gap-4 text-3xl"
-            ref={loadingRef}
-          >
-            <p>다른 사람들의 접속을 기다리고 있습니다</p>
-            <p>잠시만 기다려주세요</p>
-          </div>
-          <span className="pan"></span>
-        </div>
+        <MeetingLoading ref={loadingRef} />
       ) : (
         <div className="h-full">
           <div
@@ -1290,7 +835,7 @@ const Meeting = () => {
                 className="border-b border-gray-500 text-gray-500 cursor-pointer"
                 type="button"
                 id="buttonLeaveSession"
-                onClick={() => leaveHandler()}
+                onClick={() => leaveHandler(leaveSession)}
                 value="종료하기"
               />
             </div>
@@ -1307,19 +852,18 @@ const Meeting = () => {
               ></audio>
             </div>
           </div>
-          <div id="session" className="h-full flex justify-center items-center transition-colors duration-[1500ms] ease-in-out" ref={sessionRef}>
-            {/* <div ref={captureRef} className="hidden">
-          <UserVideoComponent2 />
-        </div> */}
+          <div
+            id="session"
+            className="h-full flex justify-center items-center transition-colors duration-[1500ms] ease-in-out"
+            ref={sessionRef}
+          >
             <div
               className="relative col-md-6 video-container"
               ref={videoContainerRef}
             >
               {publisher !== undefined ? (
                 <div
-                  // className={`stream-container col-md-6 col-xs-6 pub ${publisher.stream.streamId === speakingPublisherId ? "speaking" : ""} ${getUserGender(publisher)}`}
                   className={`stream-container col-md-6 col-xs-6 pub custom-shadow ${getUserGender(publisher)}`}
-                  // onClick={() => handleMainVideoStream(publisher)}
                   id={getUserID(publisher)}
                   ref={pubRef}
                 >
@@ -1337,9 +881,7 @@ const Meeting = () => {
                 <div
                   key={sub.stream.streamId}
                   data-key={sub.stream.streamId}
-                  // className={`stream-container col-md-6 col-xs-6 sub ${sub.stream.streamId === speakingPublisherId ? "speaking" : ""} ${getUserGender(sub)}`}
                   className={`stream-container col-md-6 col-xs-6 sub custom-shadow ${getUserGender(sub)}`}
-                  // onClick={() => handleMainVideoStream(sub)}
                   id={getUserID(sub)}
                   ref={el => {
                     subRef.current[idx] = el;
@@ -1357,7 +899,12 @@ const Meeting = () => {
                 </div>
               ))}
             </div>
-            <Emoji />
+            <div className="fixed bottom-3 left-0 right-0 flex justify-center">
+              <div className="relative bg-white p-2 rounded-lg shadow-md">
+                <Emoji />
+                <MikeMuteButton publisher={publisher} />
+              </div>
+            </div>
           </div>
         </div>
       )}

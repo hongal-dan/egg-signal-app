@@ -9,9 +9,9 @@ export const meetingSocketState = atom<Socket | null>({
   dangerouslyAllowMutability: true,
 });
 
-export const isLastChooseState = atom<boolean>({
-  key: "isLastChooseState",
-  default: false,
+export const chooseState = atom<string>({
+  key: "chooseState",
+  default: "",
 });
 
 export const isChosenState = atom<boolean>({

@@ -6,7 +6,7 @@ import RecoilRootWrapper from "./store/recoilWrapper";
 const noto_sans_kr = Noto_Sans_KR({ subsets: [] });
 
 export const metadata: Metadata = {
-  title: "Egg Chat",
+  title: "에그톡",
 };
 
 export default function RootLayout({
