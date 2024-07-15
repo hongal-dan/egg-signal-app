@@ -23,6 +23,7 @@ import EggTimer from "@/containers/meeting/EggTimer";
 import MeetingLoading from "@/containers/meeting/MeetingLoading";
 import "animate.css";
 import Emoji from "@/containers/meeting/emoji";
+import MikeMuteButton from "@/containers/meeting/MikeMuteButton";
 import { createRoot } from "react-dom/client";
 import Swal from "sweetalert2";
 import {
@@ -806,7 +807,7 @@ const Meeting = () => {
   };
 
   useEffect(() => {
-    if(!choiceState) {
+    if (!choiceState) {
       return;
     }
     setChooseMode();
@@ -881,7 +882,7 @@ const Meeting = () => {
     if (!subscribers) {
       return;
     }
-    
+
     if (subscribers.length === 5) {
       if (getUserGender(publisher!) === "MALE") {
         sortSubscribers("MALE");
@@ -1039,7 +1040,12 @@ const Meeting = () => {
                 </div>
               ))}
             </div>
-            <Emoji />
+            <div className="fixed bottom-3 left-0 right-0 flex justify-center">
+              <div className="relative bg-white p-2 rounded-lg shadow-md">
+                <Emoji />
+                <MikeMuteButton publisher={publisher} />
+              </div>
+            </div>
           </div>
         </div>
       )}
