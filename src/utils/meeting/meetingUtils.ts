@@ -1,3 +1,9 @@
+import {
+  getNetworkInfo,
+  getSystemPerformance,
+  getVideoConstraints,
+  networkConstraints,
+} from "./openviduUtils";
 import { keywords } from "../../../public/data/keywords.js";
 
 type chooseResult = {
@@ -175,13 +181,30 @@ export const captureVideoFrame = (lover: string) => {
 export const captureCanvas = (captureRef: HTMLDivElement) => {
   console.log("meetingUtils에서 캡쳐 시작");
   const canvas = captureRef.querySelector("canvas") as HTMLCanvasElement;
+  let constraints: networkConstraints;
+  let frameRate: number;
 
   if (!canvas) {
     console.error("캔버스 업슴!!!");
     return;
   }
 
-  const stream = canvas?.captureStream(15); // 30 FPS로 캡처
+  const networkInfo = getNetworkInfo();
+  const systemInfo = getSystemPerformance();
+  if (networkInfo) {
+    constraints = getVideoConstraints(networkInfo, systemInfo);
+    canvas.width = constraints.width;
+    canvas.height = constraints.height;
+    frameRate = constraints.frameRate.ideal;
+  }
+  // 네트워크 정보가 없을 경우 기본값으로 설정
+  else {
+    canvas.width = 640;
+    canvas.height = 480;
+    frameRate = 15;
+  }
+
+  const stream = canvas?.captureStream(frameRate);
   if (!stream) {
     console.error("Stream not found");
   }

@@ -15,6 +15,7 @@ import { winnerSessionState } from "@/app/store/ovInfo";
 import { testState, userState } from "@/app/store/userInfo";
 import { useRouter } from "next/navigation";
 import Swal from "sweetalert2";
+import MikeMuteButton from "@/containers/meeting/MikeMuteButton";
 
 const Matching = () => {
   const [session, setSession] = useState<Session | undefined>(undefined);
@@ -195,7 +196,10 @@ const Matching = () => {
           </div>
         ) : null}
       </div>
-      <div className="flex justify-center py-10">
+      <div className="flex justify-center py-10 relative">
+        <div className="relative bottom-16">
+        <MikeMuteButton publisher={publisher} />
+        </div>
         <button
           onClick={leaveHandler}
           className="bg-red-500 text-white rounded-xl font-bold py-2 px-5 text-3xl"

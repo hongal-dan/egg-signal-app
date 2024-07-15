@@ -22,6 +22,7 @@ import EggTimer from "@/containers/meeting/EggTimer";
 import MeetingLoading from "@/containers/meeting/MeetingLoading";
 import "animate.css";
 import Emoji from "@/containers/meeting/emoji";
+import MikeMuteButton from "@/containers/meeting/MikeMuteButton";
 import { createRoot } from "react-dom/client";
 import {
   changeLoveStickMode,
@@ -39,6 +40,10 @@ import {
   sortSubscribers,
   openCam,
   leaveHandler,
+  getNetworkInfo,
+  getVideoConstraints,
+  updatePublisherStream,
+  getSystemPerformance,
 } from "@/utils/meeting/openviduUtils";
 
 type chooseResult = {
@@ -738,7 +743,17 @@ const Meeting = () => {
     if (!publisher) {
       return;
     }
+    const updateNetwork = setInterval(() => {
+      let networkInfo = getNetworkInfo();
+      let systemInfo = getSystemPerformance();
+      if (networkInfo) {
+        let newConstraints = getVideoConstraints(networkInfo, systemInfo);
+        updatePublisherStream(publisher, newConstraints);
+      }
+    }, 5000);
     meetingCamEvent();
+
+    return () => clearInterval(updateNetwork);
   }, [publisher]);
 
   useEffect(() => {
@@ -884,7 +899,12 @@ const Meeting = () => {
                 </div>
               ))}
             </div>
-            <Emoji />
+            <div className="fixed bottom-3 left-0 right-0 flex justify-center">
+              <div className="relative bg-white p-2 rounded-lg shadow-md">
+                <Emoji />
+                <MikeMuteButton publisher={publisher} />
+              </div>
+            </div>
           </div>
         </div>
       )}
