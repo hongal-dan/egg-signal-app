@@ -8,10 +8,6 @@ html {
   padding: 0;
 }
 
-.speaking {
-  @apply w-full h-full shadow-lg shadow-lime-500;
-}
-
 .MALE {
   @apply border-[#33C4D7];
 }
@@ -96,12 +92,15 @@ video {
 .c {
   grid-area: c;
 }
+
 .d {
   grid-area: d;
 }
+
 .e {
   grid-area: e;
 }
+
 .f {
   grid-area: f;
 }
@@ -184,12 +183,6 @@ p {
 
 .bright-5 {
   filter: brightness(0.5);
-  transition: filter 1.5s ease-in-out;
-}
-
-.bright-100 {
-  filter: brightness(1);
-  transition: filter 1.5s ease-in-out;
 }
 
 .highlighted {

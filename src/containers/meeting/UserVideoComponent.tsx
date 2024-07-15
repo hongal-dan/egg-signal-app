@@ -5,7 +5,6 @@ import { StreamManager } from "openvidu-browser";
 
 export default function UserVideoComponent(props: {
   streamManager: StreamManager;
-  className: string;
 }) {
   const streamComponentRef = useRef<HTMLDivElement>(null);
   const rawData = props.streamManager.stream.connection.data;
@@ -20,7 +19,7 @@ export default function UserVideoComponent(props: {
   return (
     <div className="stream-wrapper relative w-full h-full">
       {props.streamManager !== undefined ? (
-        <div className={props.className}>
+        <div>
           <div className="relative streamcomponent" ref={streamComponentRef}>
             <div className="emoji-container overflow-hidden absolute w-full h-full pointer-events-none flex items-center justify-center">
               {" "}
