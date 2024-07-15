@@ -35,7 +35,7 @@ const FinalResultsStage: React.FC<FinalResultsStageProps> = ({
                 <div className="absolute -top-9 -left-2 p-2">
                   <PiCrownSimpleDuotone className="text-yellow-400 text-4xl bg-white bg-transparent rounded-full" />
                 </div>
-              )}1
+              )}
             </div>
           ))}
         </div>
