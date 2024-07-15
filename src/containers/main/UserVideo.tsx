@@ -116,14 +116,15 @@ class Avatar {
 }
 
 const logMemoryUsage = (label: string) => {
-  if ('memory' in performance) {
+  if ("memory" in performance) {
     const memory: any = (performance as any).memory;
-    console.log(`${label} - JS Heap Size: ${(memory.usedJSHeapSize / 1024 / 1024).toFixed(2)} MB`);
+    console.log(
+      `${label} - JS Heap Size: ${(memory.usedJSHeapSize / 1024 / 1024).toFixed(2)} MB`,
+    );
   } else {
     console.log("Memory performance API is not available in this browser.");
   }
-}
-
+};
 
 function UserVideoComponent2() {
   const avatarName = useRecoilValue(avatarState);
@@ -175,7 +176,7 @@ function UserVideoComponent2() {
       );
       imgTexture.wrapS = THREE.RepeatWrapping;
       imgTexture.wrapT = THREE.RepeatWrapping;
-      
+
       let frame = 0;
       // 받은 정보로 프레임마다 아바타 모양 렌더링
       renderer.setAnimationLoop(() => {
@@ -189,16 +190,18 @@ function UserVideoComponent2() {
         }
         renderer.render(scene, camera);
 
-        if(frame % 60 === 0) {
+        if (frame % 60 === 0) {
           logMemoryUsage("Memory check during animation");
         }
         frame += 1;
       });
     };
-    
 
     const cleanUp = (mindarThree: MindARThree) => {
-      window.removeEventListener("resize", mindarThree._resize.bind(mindarThree));
+      window.removeEventListener(
+        "resize",
+        mindarThree._resize.bind(mindarThree),
+      );
       mindarThree.stop();
 
       // 씬 정리
@@ -223,14 +226,16 @@ function UserVideoComponent2() {
         element.remove();
       });
 
-      const script = document.querySelector("script[src='https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.9/wasm/vision_wasm_internal.js']");
+      const script = document.querySelector(
+        "script[src='https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.9/wasm/vision_wasm_internal.js']",
+      );
       if (script) {
         script.remove();
       }
 
-           // 메모리 사용량을 주기적으로 로그로 출력
-    const memoryLogInterval = setInterval(() => {
-      logMemoryUsage("Memory check");
+      // 메모리 사용량을 주기적으로 로그로 출력
+      const memoryLogInterval = setInterval(() => {
+        logMemoryUsage("Memory check");
       }, 60000); // 1분 간격으로 체크
 
       return () => {
@@ -247,7 +252,7 @@ function UserVideoComponent2() {
 
       if (avatar) {
         avatar.disposeResources();
-      };
+      }
       cleanUp(mindarThree);
     };
   }, [avatarName]);

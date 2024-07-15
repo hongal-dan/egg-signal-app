@@ -744,10 +744,10 @@ const Meeting = () => {
       return;
     }
     const updateNetwork = setInterval(() => {
-      let networkInfo = getNetworkInfo();
-      let systemInfo = getSystemPerformance();
+      const networkInfo = getNetworkInfo();
+      const systemInfo = getSystemPerformance();
       if (networkInfo) {
-        let newConstraints = getVideoConstraints(networkInfo, systemInfo);
+        const newConstraints = getVideoConstraints(networkInfo, systemInfo);
         updatePublisherStream(publisher, newConstraints);
       }
     }, 5000);
