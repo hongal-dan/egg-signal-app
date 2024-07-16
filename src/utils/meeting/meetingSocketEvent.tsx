@@ -102,4 +102,34 @@ export const meetingEvent = (socket: Socket | null, params: meetingEventParams) 
       console.error(e);
     }
   });
+
+  socket?.on("finish", message => {
+    try {
+      console.log(message);
+      // 1차: 모든 참여자 세션 종료
+      let countdown = 5;
+      const intervalId = setInterval(() => {
+        if (countdown > 0) {
+          if (keywordRef.current) {
+            keywordRef.current.innerText = `${countdown}초 뒤 미팅이 종료됩니다.`;
+          }
+          countdown -= 1;
+        } else {
+          clearInterval(intervalId);
+          if (keywordRef.current) {
+            keywordRef.current.innerText = "";
+          }
+          setIsFinish(true);
+          if (session) {
+            session.disconnect();
+            setSession(undefined);
+          }
+          // leaveSession();
+        }
+      }, 1000);
+    } catch (e: any) {
+      console.error(e);
+    }
+  });
+
 };
