@@ -1,9 +1,20 @@
 "use client";
 
 import React, { useRef, useEffect, useState } from "react";
-import * as THREE from "three";
+import {
+  Scene,
+  Bone,
+  Mesh,
+  Object3D,
+  Material,
+  MeshStandardMaterial,
+  Texture,
+  HemisphereLight,
+  VideoTexture,
+  TextureLoader,
+  RepeatWrapping,
+} from "three";
 import { GLTFLoader, GLTF } from "three/examples/jsm/loaders/GLTFLoader";
-import { MindARThree } from "mind-ar/dist/mindar-face-three.prod.js";
 import { useRecoilValue } from "recoil";
 import { avatarState } from "@/app/store/avatar";
 
@@ -17,10 +28,10 @@ interface Blendshapes {
 }
 
 class Avatar {
-  scene: THREE.Scene | null = null;
+  scene: Scene | null = null;
   gltf: GLTF | null = null;
-  root: THREE.Bone | null = null;
-  morphTargetMeshes: THREE.Mesh[] = [];
+  root: Bone | null = null;
+  morphTargetMeshes: Mesh[] = [];
   avatarName: string | null = null;
 
   constructor(avatarName: string | null) {
@@ -40,11 +51,11 @@ class Avatar {
 
     // 모델 뼈대 구조 파악
     gltf.scene.traverse(object => {
-      if ((object as THREE.Bone).isBone && !this.root) {
-        this.root = object as THREE.Bone; // as THREE.Bone;
+      if ((object as Bone).isBone && !this.root) {
+        this.root = object as Bone; // as THREE.Bone;
       }
-      if (!(object as THREE.Mesh).isMesh) return;
-      const mesh = object as THREE.Mesh;
+      if (!(object as Mesh).isMesh) return;
+      const mesh = object as Mesh;
 
       // 모델 형태 변경 정보 파악
       if (!mesh.morphTargetDictionary || !mesh.morphTargetInfluences) return;
@@ -56,9 +67,9 @@ class Avatar {
   // 모델 돌면서 자원 해제
   disposeResources(): void {
     const scene = this.gltf?.scene;
-    scene?.traverse((object: THREE.Object3D) => {
-      if (!(object as THREE.Mesh).isMesh) {
-        const mesh = object as THREE.Mesh;
+    scene?.traverse((object: Object3D) => {
+      if (!(object as Mesh).isMesh) {
+        const mesh = object as Mesh;
         if (mesh.geometry) {
           mesh.geometry.dispose();
         }
@@ -74,7 +85,7 @@ class Avatar {
     });
   }
 
-  disposeMaterial(material: THREE.Material): void {
+  disposeMaterial(material: Material): void {
     const materialsWithMaps = [
       "map",
       "lightMap",
@@ -84,9 +95,9 @@ class Avatar {
     ] as const;
 
     materialsWithMaps.forEach(mapName => {
-      const materialWithMap = material as THREE.MeshStandardMaterial;
+      const materialWithMap = material as MeshStandardMaterial;
       if (materialWithMap[mapName]) {
-        (materialWithMap[mapName] as THREE.Texture).dispose();
+        (materialWithMap[mapName] as Texture).dispose();
       }
     });
 
@@ -132,129 +143,117 @@ function UserVideoComponent2() {
   const [avatar] = useState<Avatar>(new Avatar(avatarName));
 
   useEffect(() => {
-    logMemoryUsage("Before setup");
+    const loadMindAR = async () => {
+      logMemoryUsage("Before setup");
 
-    const mindarThree = new MindARThree({
-      container: containerRef.current!,
-    });
-
-    const { renderer, scene, camera } = mindarThree;
-    // 기본 배경색으로 변경
-    // renderer.setClearColor(0xfae4c9, 1);
-    renderer.setClearColor(0x000000, 0);
-    const light = new THREE.HemisphereLight(0xffffff, 0xbbbbff, 2.5);
-    scene.add(light);
-
-    // 화면 상의 특정 위치를 기준으로 얼굴을 식별하고 추적 여기서 1은 그냥 식별자임
-    const anchor = mindarThree.addAnchor(1);
-
-    const setup = async () => {
-      await avatar!.init();
-      if (avatar!.gltf && avatar!.gltf.scene) {
-        avatar!.gltf.scene.scale.set(2, 2, 2);
-        /// 앵커에 아바타 추가
-        anchor.group.add(avatar!.gltf.scene);
-      }
-
-      await mindarThree.start();
-
-      const video = document.querySelector("video");
-      if (!video) {
-        console.error("비디오 없음!!!");
-        return;
-      }
-
-      const videoTexture = new THREE.VideoTexture(video);
-      videoTexture.wrapS = THREE.RepeatWrapping;
-      videoTexture.repeat.x = -1; // 텍스처 좌우 반전
-
-      scene.background = videoTexture;
-
-      // 얼굴 인식 못할 때 scene 배경
-      const imgTexture = new THREE.TextureLoader().load(
-        `/avatar/${avatarName}.png`,
+      const { MindARThree } = await import(
+        "mind-ar/dist/mindar-face-three.prod.js"
       );
-      imgTexture.wrapS = THREE.RepeatWrapping;
-      imgTexture.wrapT = THREE.RepeatWrapping;
-
-      let frame = 0;
-      // 받은 정보로 프레임마다 아바타 모양 렌더링
-      renderer.setAnimationLoop(() => {
-        // 가장 최근의 추정치를 가져옴
-        const estimate = mindarThree.getLatestEstimate();
-        if (estimate && estimate.blendshapes) {
-          avatar!.updateBlendshapes(estimate.blendshapes);
-          scene.background = videoTexture;
-        } else {
-          scene.background = imgTexture;
-        }
-        renderer.render(scene, camera);
-
-        if (frame % 60 === 0) {
-          logMemoryUsage("Memory check during animation");
-        }
-        frame += 1;
-      });
-    };
-
-    const cleanUp = (mindarThree: MindARThree) => {
-      window.removeEventListener(
-        "resize",
-        mindarThree._resize.bind(mindarThree),
-      );
-      mindarThree.stop();
-
-      // 씬 정리
-      mindarThree.scene.clear();
-      mindarThree.cssScene.clear();
-
-      // 렌더러 정리
-      mindarThree.renderer.dispose();
-
-      // 앵커와 페이스 메쉬 배열 초기화
-      mindarThree.anchors = [];
-      mindarThree.faceMeshes = [];
-
-      const video = containerRef.current?.querySelector("video");
-      if (video) {
-        console.log("비디오 제거");
-        video.pause();
-        video.srcObject = null;
-      }
-      const mindarElements = document.querySelectorAll("[class^='mindar-']");
-      mindarElements.forEach(element => {
-        element.remove();
+      const mindarThree = new MindARThree({
+        container: containerRef.current,
       });
 
-      const script = document.querySelector(
-        "script[src='https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.9/wasm/vision_wasm_internal.js']",
-      );
-      if (script) {
-        script.remove();
-      }
+      const { renderer, scene, camera } = mindarThree;
+      renderer.setClearColor(0x000000, 0);
+      const light = new HemisphereLight(0xffffff, 0xbbbbff, 2.5);
+      scene.add(light);
 
-      // 메모리 사용량을 주기적으로 로그로 출력
-      const memoryLogInterval = setInterval(() => {
-        logMemoryUsage("Memory check");
-      }, 60000); // 1분 간격으로 체크
+      const anchor = mindarThree.addAnchor(1);
+
+      const setup = async () => {
+        await avatar?.init();
+        if (avatar?.gltf?.scene) {
+          avatar.gltf.scene.scale.set(2, 2, 2);
+          anchor.group.add(avatar.gltf.scene);
+        }
+
+        await mindarThree.start();
+
+        const video = document.querySelector("video");
+        if (!video) {
+          console.error("비디오 없음!!!");
+          return;
+        }
+
+        const videoTexture = new VideoTexture(video);
+        videoTexture.wrapS = RepeatWrapping;
+        videoTexture.repeat.x = -1;
+
+        scene.background = videoTexture;
+
+        const imgTexture = new TextureLoader().load(
+          `/avatar/${avatarName}.png`,
+        );
+        imgTexture.wrapS = RepeatWrapping;
+        imgTexture.wrapT = RepeatWrapping;
+
+        let frame = 0;
+        renderer.setAnimationLoop(() => {
+          const estimate = mindarThree.getLatestEstimate();
+          if (estimate?.blendshapes) {
+            avatar.updateBlendshapes(estimate.blendshapes);
+            scene.background = videoTexture;
+          } else {
+            scene.background = imgTexture;
+          }
+          renderer.render(scene, camera);
+
+          if (frame % 60 === 0) {
+            logMemoryUsage("Memory check during animation");
+          }
+          frame += 1;
+        });
+      };
+
+      const cleanUp = (mindarThree: any) => {
+        window.removeEventListener(
+          "resize",
+          mindarThree._resize.bind(mindarThree),
+        );
+        mindarThree.stop();
+        mindarThree.scene.clear();
+        mindarThree.cssScene.clear();
+        mindarThree.renderer.dispose();
+        mindarThree.anchors = [];
+        mindarThree.faceMeshes = [];
+
+        const video = containerRef.current?.querySelector("video");
+        if (video) {
+          console.log("비디오 제거");
+          video.pause();
+          video.srcObject = null;
+        }
+        const mindarElements = document.querySelectorAll("[class^='mindar-']");
+        mindarElements.forEach(element => element.remove());
+
+        const script = document.querySelector(
+          "script[src='https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.9/wasm/vision_wasm_internal.js']",
+        );
+        if (script) {
+          script.remove();
+        }
+
+        const memoryLogInterval = setInterval(() => {
+          logMemoryUsage("Memory check");
+        }, 60000);
+
+        return () => {
+          clearInterval(memoryLogInterval);
+        };
+      };
+
+      await setup();
 
       return () => {
-        clearInterval(memoryLogInterval);
+        renderer.setAnimationLoop(null);
+        renderer.dispose();
+        scene.clear();
+        avatar?.disposeResources();
+        cleanUp(mindarThree);
       };
     };
 
-    setup();
-
-    return () => {
-      renderer.setAnimationLoop(null);
-      renderer.dispose();
-      scene.clear();
-
-      if (avatar) {
-        avatar.disposeResources();
-      }
-      cleanUp(mindarThree);
-    };
+    loadMindAR();
   }, [avatarName]);
 
   return (
