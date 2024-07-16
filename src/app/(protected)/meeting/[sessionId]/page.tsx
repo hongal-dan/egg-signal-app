@@ -316,78 +316,20 @@ const Meeting = () => {
         <DynamicMeetingLoading ref={loadingRef} />
       ) : (
         <div className="h-full">
-          <div
-            id="session-header"
-            className="fixed flex flex-col justify-center items-center w-full"
-          >
-            <div className="flex w-full mb-2 px-[10vw]">
-              <input
-                className="border-b border-gray-500 text-gray-500 cursor-pointer"
-                type="button"
-                id="buttonLeaveSession"
-                onClick={() => leaveHandler(leaveSession)}
-                value="종료하기"
-              />
-            </div>
-            <DynamicEggTimer setTime={5} />
-            <div className="w-full h-6 mt-4">
-              <p
-                className="flex justify-center items-center font-bold h-full text-3xl"
-                ref={keywordRef}
-              ></p>
-              <audio
-                id="tickSound"
-                src="/sound/tick.mp3"
-                className="hidden"
-              ></audio>
-            </div>
-          </div>
-          <div
-            id="session"
-            className="h-full flex justify-center items-center transition-colors duration-[1500ms] ease-in-out"
-            ref={sessionRef}
-          >
-            <div
-              className="relative col-md-6 video-container"
-              ref={videoContainerRef}
-            >
-              {publisher !== undefined ? (
-                <div
-                  className={`stream-container col-md-6 col-xs-6 pub custom-shadow ${getUserGender(publisher)}`}
-                  id={getUserID(publisher)}
-                  ref={pubRef}
-                  style={speakingStyle(publisher, speakingPublisherIds)}
-                >
-                  <UserVideoComponent
-                    streamManager={publisher}
-                  />
-                </div>
-              ) : null}
-              {sortedSubscribers.map((sub, idx) => (
-                <div
-                  key={sub.stream.streamId}
-                  data-key={sub.stream.streamId}
-                  className={`stream-container col-md-6 col-xs-6 sub custom-shadow ${getUserGender(sub)}`}
-                  id={getUserID(sub)}
-                  ref={el => {
-                    (subRef.current as (HTMLDivElement | null)[])[idx] = el;
-                  }}
-                  style={speakingStyle(sub, speakingPublisherIds)}
-                >
-                  <UserVideoComponent
-                    key={sub.stream.streamId}
-                    streamManager={sub}
-                  />
-                </div>
-              ))}
-            </div>
-            <div className="fixed bottom-3 left-0 right-0 flex justify-center">
-              <div className="relative bg-white p-2 rounded-lg shadow-md">
-                <DynamicEmoji />
-                <MikeMuteButton publisher={publisher} />
-              </div>
-            </div>
-          </div>
+          <SessionHeader
+            leaveHandler={leaveHandler}
+            leaveSession={leaveSession}
+            keywordRef={keywordRef}
+          />
+          <SessionComponent
+            publisher={publisher}
+            sortedSubscribers={sortedSubscribers}
+            speakingPublisherIds={speakingPublisherIds}
+            sessionRef={sessionRef}
+            videoContainerRef={videoContainerRef}
+            pubRef={pubRef}
+            subRef={subRef}
+          />
         </div>
       )}
       {isCanvasModalOpen && (
