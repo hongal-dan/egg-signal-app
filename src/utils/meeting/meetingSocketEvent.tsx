@@ -56,6 +56,13 @@ type cupidParams = {
   undoOneToOneMode: (loverElement: HTMLDivElement, params: oneToOneParams) => void;
   setIsChosen(isChosen: boolean): void;
 };
+
+type camEventParams = {
+  keywordRef: React.MutableRefObject<HTMLParagraphElement | null>;
+  publisher: Publisher | null;
+  setIsOpenCam: React.Dispatch<React.SetStateAction<boolean>>;
+};
+
 type cupidResult = {
   lover: string;
   loser: Array<string>;
@@ -484,4 +491,8 @@ export const meetingCupidResultEvent = (socket: Socket | null, refs: cupidParams
       console.error(e);
     }
   });
+};
+
+export const meetingCamEvent = (socket: Socket | null, refs: camEventParams) => {
+};
 };
