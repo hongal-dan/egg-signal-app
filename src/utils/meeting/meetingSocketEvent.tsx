@@ -494,5 +494,28 @@ export const meetingCupidResultEvent = (socket: Socket | null, refs: cupidParams
 };
 
 export const meetingCamEvent = (socket: Socket | null, refs: camEventParams) => {
-};
+  const { keywordRef, publisher, setIsOpenCam } = refs;
+
+  socket?.on("cam", message => {
+    try {
+      console.log("cam Event: ", message);
+      let countdown = 5;
+      const intervalId = setInterval(() => {
+        if (countdown > 0) {
+          if (keywordRef.current) {
+            keywordRef.current.innerText = `${countdown}초 뒤 얼굴이 공개됩니다.`;
+          }
+          countdown -= 1;
+        } else {
+          clearInterval(intervalId);
+          if (keywordRef.current) {
+            keywordRef.current.innerText = "";
+          }
+          openCam(publisher as Publisher, setIsOpenCam);
+        }
+      }, 1000);
+    } catch (e: any) {
+      console.error(e);
+    }
+  });
 };
