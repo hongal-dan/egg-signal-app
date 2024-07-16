@@ -14,6 +14,10 @@ import { openCam, toggleLoverAudio } from "./openviduUtils";
 import { createRoot } from "react-dom/client";
 import Image from "next/image";
 
+type lastCupidResult = {
+  lover: string;
+};
+
 type chooseResult = {
   sender: string;
   receiver: string;
@@ -188,6 +192,35 @@ export const meetingEvent = (socket: Socket | null, params: meetingEventParams) 
     try {
       console.log("lastCupidTime 도착", response);
       setChoiceState("last");
+    } catch (e: any) {
+      console.error(e);
+    }
+  });
+
+  socket?.on("lastChooseResult", response => {
+    try {
+      console.log("lastChooseResult 도착");
+      console.log("lastChooseResult = ", response);
+
+      undoChooseMode(chooseParams); // 선택모드 해제
+      removeChooseSign(); // 선택된 사람 표시 제거
+      changeLoveStickMode(
+        response.message as Array<chooseResult>,
+        subRef.current as HTMLDivElement[],
+        pubRef.current as HTMLDivElement,
+        videoContainerRef.current as HTMLDivElement,
+      );
+      setTimeout(() => {
+        console.log("원 위치로 변경");
+        undoLoveStickMode(
+          subRef.current as HTMLDivElement[],
+          pubRef.current as HTMLDivElement,
+          videoContainerRef.current as HTMLDivElement,
+        );
+        if (keywordRef.current) {
+          keywordRef.current.innerText = "잠시 후 미팅이 종료됩니다";
+        }
+      }, 5000); // 5초 후 원 위치 (시연용)
     } catch (e: any) {
       console.error(e);
     }
