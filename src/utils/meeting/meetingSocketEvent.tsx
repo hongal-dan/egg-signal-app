@@ -174,4 +174,14 @@ export const meetingEvent = (socket: Socket | null, params: meetingEventParams) 
     }
   });
 
+  // 선택시간 신호 받고 선택 모드로 변경
+  socket?.on("cupidTime", (response: string) => {
+    try {
+      console.log("cupidTime 도착", response);
+      setChoiceState("first");
+    } catch (e: any) {
+      console.error(e);
+    }
+  });
+
 };
