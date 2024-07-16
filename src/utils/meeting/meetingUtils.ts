@@ -426,3 +426,21 @@ export const setChooseMode = (params: chooseParams) => {
     }, 5000);
   };
   
+  export const undoChooseMode = (refs: chooseRefs) => {
+    const { keywordRef, subRef, setIsChosen } = refs;
+    setIsChosen(false);
+    // 선택 모드 일 때는 마우스 하버시에 선택 가능한 상태로 변경
+    // 클릭 시에 선택된 상태로 변경
+    if (keywordRef.current) {
+      keywordRef.current.innerText = "";
+      console.log("선택모드 p태그 삭제");
+    }
+  
+    const oppositeRef = subRef.current.slice(2);
+  
+    oppositeRef.forEach(subContainer => {
+      const chooseBtn = subContainer!.getElementsByClassName("choose-btn")[0];
+      chooseBtn.classList.add("hidden");
+    });
+  };
+  
