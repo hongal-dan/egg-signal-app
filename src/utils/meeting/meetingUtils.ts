@@ -478,3 +478,23 @@ export const setChooseMode = (params: chooseParams) => {
     acc += 1;
   }
 };
+
+export const undoOneToOneMode = (loverElement: HTMLDivElement, params: oneToOneParams) => {
+  const { setIsChosen, videoContainerRef } = params;
+  console.log("1:1 모드 해제");
+  setIsChosen(false);
+  const streamElements = document.getElementsByClassName("stream-container");
+  videoContainerRef.current?.classList.remove("one-one-four");
+  streamElements[0].classList.remove("a");
+  let acc = 2;
+  for (let i = 1; i < streamElements.length; i++) {
+    if (streamElements[i].classList.contains("b")) {
+      continue;
+    }
+    const className = String.fromCharCode(97 + acc);
+    streamElements[i].classList.remove(className);
+    acc += 1;
+  }
+  loverElement?.classList.remove("b");
+};
+
