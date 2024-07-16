@@ -40,7 +40,6 @@ const FriendList: React.FC<FriendListPros> = ({ friendsList }) => {
     setSelectedFriend(friend);
     setIsChatVisible(prev => {
       if (prev === true) {
-        console.log("closeChat: ", selectedFriend?.chatRoomId);
         commonSocket?.emit("closeChat", {
           chatRoomId: selectedFriend?.chatRoomId,
         });
@@ -64,7 +63,6 @@ const FriendList: React.FC<FriendListPros> = ({ friendsList }) => {
 
   const isNewMessageSender = (friend: Friend) => {
     if (newMessageSenders.find(el => el === friend.chatRoomId)) {
-      console.log(friend.friend, " 알람 보냄");
       return true;
     }
     return false;
@@ -81,7 +79,6 @@ const FriendList: React.FC<FriendListPros> = ({ friendsList }) => {
             newList.push(key);
           }
         });
-        console.log("friend state new List!!", newList);
         setOnlineList(newList);
         sessionStorage.setItem("onlineFriends", JSON.stringify(newList));
       });
