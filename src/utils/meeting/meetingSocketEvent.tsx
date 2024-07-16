@@ -277,4 +277,31 @@ export const meetingEvent = (socket: Socket | null, params: meetingEventParams) 
     }, 20000);
   });
 
+  /**이모티콘 */
+  socket?.on("emojiBroadcast", ({ nickname, emojiIndex }) => {
+    const targetVideo = document.getElementById(nickname);
+    const emojiContainer = targetVideo?.querySelector(".emoji-container");
+
+    if (emojiContainer) {
+      const emojiElement = document.createElement("div");
+      emojiElement.className =
+        "emoji absolute text-5xl animate__animated animate__bounceInUp";
+      const emojiImage = (
+        <Image src={emojiIndex} alt="" width={56} height={56} />
+      );
+      createRoot(emojiElement).render(emojiImage);
+
+      emojiContainer.appendChild(emojiElement);
+
+      emojiElement.onanimationend = () => {
+        emojiElement.classList.replace(
+          "animate__bounceInUp",
+          "animate__bounceOutUp",
+        );
+        emojiElement.onanimationend = () =>
+          emojiContainer.removeChild(emojiElement);
+      };
+    }
+  });
+
 };
