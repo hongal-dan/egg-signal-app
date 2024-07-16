@@ -398,7 +398,7 @@ const Meeting = () => {
       )}
       {!isOpenCam ? (
         <div ref={captureRef} className="hidden">
-          <UserVideoComponent2 />
+          <ARComponent />
         </div>
       ) : null}
     </>
