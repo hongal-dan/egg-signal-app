@@ -53,4 +53,53 @@ export const meetingEvent = (socket: Socket | null, params: meetingEventParams) 
     setKeywordsIndex,
     setIsChosen,
   } = params;
+
+  socket?.on("keyword", message => {
+    try {
+      console.log("keyword Event: ", message);
+      console.log("random user: ", message.getRandomParticipant);
+
+      if (sessionRef.current) {
+        sessionRef.current.classList.add("bg-black");
+      }
+      setTimeout(() => {
+        pubRef.current?.classList.add("bright-5");
+        subRef.current.forEach(sub => {
+          sub?.classList.add("bright-5");
+        });
+      }, 500); // 0.5초 후 밝기 하락
+      setTimeout(() => {
+        if (keywordRef.current) {
+          keywordRef.current.classList.add("text-white");
+          keywordRef.current.innerText =
+            "곧 한 참가자가 선택됩니다. 선택된 사람은 질문에 답변해주세요";
+        }
+      }, 2000);
+      setTimeout(() => {
+        randomKeywordEvent(
+          parseInt(message.message),
+          message.getRandomParticipant,
+          pubRef.current as HTMLDivElement,
+          subRef.current as HTMLDivElement[],
+          {keywordRef, pubRef, subRef, videoContainerRef},
+        );
+        setTimeout(() => {
+          if (sessionRef.current) {
+            sessionRef.current.classList.remove("bg-black");
+          }
+          setTimeout(() => {
+            pubRef.current?.classList.remove("bright-5");
+            subRef.current.forEach(sub => {
+              sub?.classList.remove("bright-5");
+            });
+            if (keywordRef.current) {
+              keywordRef.current.classList.remove("text-white");
+            }
+          }, 500); // 0.5초 후 밝기 해제
+        }, 21000); // 총 발표 시간
+      }, 5000); // 어두워 지고 5초 후 이벤트 시작
+    } catch (e: any) {
+      console.error(e);
+    }
+  });
 };
