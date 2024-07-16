@@ -519,3 +519,20 @@ export const meetingCamEvent = (socket: Socket | null, refs: camEventParams) => 
     }
   });
 };
+
+export const OffSocketEvent = (socket: Socket | null) => {
+  if (socket) {
+    socket.off("keyword");
+    socket.off("finish");
+    socket.off("chooseResult");
+    socket.off("cupidTime");
+    socket.off("lastCupidTime");
+    socket.off("lastChooseResult");
+    socket.off("matching");
+    socket.off("choice");
+    socket.off("drawingContest");
+    socket.off("introduce");
+    socket.off("cupidResult");
+    socket.off("cam");
+  }
+};
