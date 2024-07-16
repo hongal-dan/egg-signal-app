@@ -14,6 +14,11 @@ import { openCam, toggleLoverAudio } from "./openviduUtils";
 import { createRoot } from "react-dom/client";
 import Image from "next/image";
 
+type chooseResult = {
+  sender: string;
+  receiver: string;
+};
+
 type meetingEventParams = {
   sessionRef: React.MutableRefObject<HTMLDivElement | null>;
   pubRef: React.MutableRefObject<HTMLDivElement | null>;
@@ -53,6 +58,12 @@ export const meetingEvent = (socket: Socket | null, params: meetingEventParams) 
     setKeywordsIndex,
     setIsChosen,
   } = params;
+
+  const chooseParams = {
+    keywordRef,
+    subRef,
+    setIsChosen,
+  }
 
   socket?.on("keyword", message => {
     try {
@@ -127,6 +138,37 @@ export const meetingEvent = (socket: Socket | null, params: meetingEventParams) 
           // leaveSession();
         }
       }, 1000);
+    } catch (e: any) {
+      console.error(e);
+    }
+  });
+
+  // 선택 결과 받고 사랑의 작대기 모드로 변경
+  socket?.on("chooseResult", response => {
+    try {
+      console.log("chooseResult 도착");
+      console.log("chooseResult = ", response);
+      undoChooseMode(chooseParams); // 선택모드 해제
+      removeChooseSign(); // 선택된 사람 표시 제거
+      changeLoveStickMode(
+        response.message as Array<chooseResult>,
+        subRef.current as HTMLDivElement[],
+        pubRef.current as HTMLDivElement,
+        videoContainerRef.current as HTMLDivElement,
+      );
+      setTimeout(() => {
+        console.log("원 위치로 변경");
+        undoLoveStickMode(
+          subRef.current as HTMLDivElement[],
+          pubRef.current as HTMLDivElement,
+          videoContainerRef.current as HTMLDivElement,
+        );
+        if (keywordRef.current) {
+          console.log("잠시 후 1:1대화가 시작된다는 멘트 ");
+          keywordRef.current.innerText =
+            "잠시 후 매칭된 사람과의 1:1 대화가 시작됩니다.";
+        }
+      }, 10000); // 5초 후 원 위치
     } catch (e: any) {
       console.error(e);
     }
