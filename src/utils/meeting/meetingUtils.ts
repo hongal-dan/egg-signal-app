@@ -5,6 +5,8 @@ import {
   networkConstraints,
 } from "./openviduUtils";
 import { keywords } from "../../../public/data/keywords.js";
+import { Publisher, StreamManager } from "openvidu-browser";
+import { Socket } from "socket.io-client";
 
 type chooseResult = {
   sender: string;
@@ -270,11 +272,7 @@ export const randomKeywordEvent = (
   pickUser: string,
   pubContainer: HTMLDivElement,
   subContainer: HTMLDivElement[],
-  changePresentationMode: (
-    presenter: HTMLDivElement,
-    time: number,
-    mention?: string,
-  ) => void,
+  refs: presentRefs,
 ) => {
   const streamElements = document.getElementsByClassName("stream-container");
   const streamArray = Array.from(streamElements);
@@ -308,13 +306,13 @@ export const randomKeywordEvent = (
       tickSound.play();
       const randomKeyword = keywords[keywordIdx];
       if (pubContainer?.id === pickUser) {
-        changePresentationMode(pubContainer, 12, randomKeyword);
+        changePresentationMode(pubContainer, 12, randomKeyword, refs);
       } else {
         const presenterElement = subContainer?.filter(
           sub => sub?.id === pickUser,
         )[0];
         if (presenterElement) {
-          changePresentationMode(presenterElement, 12, randomKeyword);
+          changePresentationMode(presenterElement, 12, randomKeyword, refs);
         }
       }
       setTimeout(() => {
@@ -346,3 +344,42 @@ export const randomKeywordEvent = (
 
   let intervalId = setInterval(highlightUser, minDuration);
 };
+
+
+
+// time 초 동안 발표 모드 (presenter: 발표자, time: 발표 시간(초), mention: 발표 주제)
+export const changePresentationMode = (
+  presenter: HTMLDivElement,
+  time: number,
+  mention: string = "",
+  refs: presentRefs,
+) => {
+  const { keywordRef, pubRef, subRef, videoContainerRef } = refs;
+  if (keywordRef.current) {
+    keywordRef.current.innerText = mention;
+  }
+  const videoSet = new Set<HTMLDivElement | null>();
+  videoSet.add(presenter); // 발표자 추가
+  videoSet.add(pubRef.current); // 다음으로 퍼블리셔 추가
+  subRef.current.forEach(sub => {
+    videoSet.add(sub); // 나머지 사람들 다 추가
+  });
+  const videoArray = Array.from(videoSet); // 중복 제거된 순서대로 발표자 > 나 > 나머지 순서대로 정렬
+  videoContainerRef.current?.classList.add("presentation-mode");
+  // 비디오 그리드 a: main , bcdef
+  videoArray.forEach((video, idx) => {
+    video?.classList.add(String.fromCharCode(97 + idx));
+  });
+  
+  // time 초 후 원래대로
+  setTimeout(() => {
+    videoArray.forEach((video, idx) => {
+      video?.classList.remove(String.fromCharCode(97 + idx));
+    });
+    videoContainerRef.current?.classList.remove("presentation-mode");
+    if (keywordRef.current) {
+      keywordRef.current.innerText = "";
+    }
+  }, time * 1000);
+};
+
