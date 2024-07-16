@@ -5,11 +5,41 @@ import {
   networkConstraints,
 } from "./openviduUtils";
 import { keywords } from "../../../public/data/keywords.js";
+import { Publisher, StreamManager } from "openvidu-browser";
+import { Socket } from "socket.io-client";
 
 type chooseResult = {
   sender: string;
   receiver: string;
 };
+
+type presentRefs = {
+  keywordRef: React.MutableRefObject<HTMLParagraphElement | null>;
+  pubRef: React.MutableRefObject<HTMLDivElement | null>;
+  subRef: React.MutableRefObject<HTMLDivElement[]>;
+  videoContainerRef: React.MutableRefObject<HTMLDivElement | null>;
+};
+
+type chooseRefs = {
+  keywordRef: React.MutableRefObject<HTMLParagraphElement | null>;
+  subRef: React.MutableRefObject<HTMLDivElement[]>;
+  setIsChosen(isChosen: boolean): void;
+};
+
+type chooseParams = {
+    socket: Socket | null;
+    nickname: string;
+    subRef: React.MutableRefObject<HTMLDivElement[]>;
+    keywordRef: React.MutableRefObject<HTMLParagraphElement | null>;
+    setIsChosen(isChosen: boolean): void;
+    choiceState: string;
+    chooseTimerRef: React.MutableRefObject<NodeJS.Timeout | null>;
+};
+
+export type oneToOneParams = {
+  setIsChosen(isChosen: boolean): void;
+  videoContainerRef: React.MutableRefObject<HTMLDivElement | null>;
+}
 
 // 화살표 출발 도착 좌표 계산
 export const findPosition = (
@@ -242,11 +272,7 @@ export const randomKeywordEvent = (
   pickUser: string,
   pubContainer: HTMLDivElement,
   subContainer: HTMLDivElement[],
-  changePresentationMode: (
-    presenter: HTMLDivElement,
-    time: number,
-    mention?: string,
-  ) => void,
+  refs: presentRefs,
 ) => {
   const streamElements = document.getElementsByClassName("stream-container");
   const streamArray = Array.from(streamElements);
@@ -280,13 +306,13 @@ export const randomKeywordEvent = (
       tickSound.play();
       const randomKeyword = keywords[keywordIdx];
       if (pubContainer?.id === pickUser) {
-        changePresentationMode(pubContainer, 12, randomKeyword);
+        changePresentationMode(pubContainer, 12, randomKeyword, refs);
       } else {
         const presenterElement = subContainer?.filter(
           sub => sub?.id === pickUser,
         )[0];
         if (presenterElement) {
-          changePresentationMode(presenterElement, 12, randomKeyword);
+          changePresentationMode(presenterElement, 12, randomKeyword, refs);
         }
       }
       setTimeout(() => {
@@ -317,4 +343,168 @@ export const randomKeywordEvent = (
   };
 
   let intervalId = setInterval(highlightUser, minDuration);
+};
+
+
+
+// time 초 동안 발표 모드 (presenter: 발표자, time: 발표 시간(초), mention: 발표 주제)
+export const changePresentationMode = (
+  presenter: HTMLDivElement,
+  time: number,
+  mention: string = "",
+  refs: presentRefs,
+) => {
+  const { keywordRef, pubRef, subRef, videoContainerRef } = refs;
+  if (keywordRef.current) {
+    keywordRef.current.innerText = mention;
+  }
+  const videoSet = new Set<HTMLDivElement | null>();
+  videoSet.add(presenter); // 발표자 추가
+  videoSet.add(pubRef.current); // 다음으로 퍼블리셔 추가
+  subRef.current.forEach(sub => {
+    videoSet.add(sub); // 나머지 사람들 다 추가
+  });
+  const videoArray = Array.from(videoSet); // 중복 제거된 순서대로 발표자 > 나 > 나머지 순서대로 정렬
+  videoContainerRef.current?.classList.add("presentation-mode");
+  // 비디오 그리드 a: main , bcdef
+  videoArray.forEach((video, idx) => {
+    video?.classList.add(String.fromCharCode(97 + idx));
+  });
+  
+  // time 초 후 원래대로
+  setTimeout(() => {
+    videoArray.forEach((video, idx) => {
+      video?.classList.remove(String.fromCharCode(97 + idx));
+    });
+    videoContainerRef.current?.classList.remove("presentation-mode");
+    if (keywordRef.current) {
+      keywordRef.current.innerText = "";
+    }
+  }, time * 1000);
+};
+
+// 선택된 표시 제거
+export const removeChooseSign = () => {
+  const chosenElements = document.getElementsByClassName("chosen-stream");
+  const opacityElements = document.getElementsByClassName("opacity");
+  Array.from(chosenElements).forEach(chosenElement => {
+    chosenElement.classList.remove("chosen-stream");
+  });
+  Array.from(opacityElements).forEach(opacityElement => {
+    opacityElement.classList.remove("opacity");
+  });
+};
+
+export const setChooseMode = (params: chooseParams) => {
+    // 선택 모드 일 때는 마우스 하버시에 선택 가능한 상태로 변경
+    // 클릭 시에 선택된 상태로 변경
+    const { socket, nickname, subRef, keywordRef, setIsChosen, choiceState, chooseTimerRef } = params;
+    
+    if (keywordRef.current) {
+      keywordRef.current.innerText = "대화해보고 싶은 사람을 선택해주세요";
+    }
+    // 이성만 선택 버튼 활성화
+    const oppositeRef = subRef.current.slice(2);
+    
+    oppositeRef.forEach(subContainer => {
+      const chooseBtn = subContainer!.getElementsByClassName("choose-btn")[0];
+      chooseBtn.classList.remove("hidden");
+    });
+    setIsChosen(false);
+    chooseTimerRef.current = setTimeout(() => {
+      const emitChoose = (eventName: string) => {
+        socket?.emit(eventName, {
+          sender: nickname,
+          receiver: subRef.current[subRef.current.length - 1]?.id,
+        });
+      };
+      if (choiceState === "first") {
+        emitChoose("choose");
+      } else {
+        emitChoose("lastChoose");
+      }
+    }, 5000);
+  };
+  
+  export const undoChooseMode = (refs: chooseRefs) => {
+    const { keywordRef, subRef, setIsChosen } = refs;
+    setIsChosen(false);
+    // 선택 모드 일 때는 마우스 하버시에 선택 가능한 상태로 변경
+    // 클릭 시에 선택된 상태로 변경
+    if (keywordRef.current) {
+      keywordRef.current.innerText = "";
+      console.log("선택모드 p태그 삭제");
+    }
+  
+    const oppositeRef = subRef.current.slice(2);
+  
+    oppositeRef.forEach(subContainer => {
+      const chooseBtn = subContainer!.getElementsByClassName("choose-btn")[0];
+      chooseBtn.classList.add("hidden");
+    });
+  };
+  
+
+  export const setOneToOneMode = (loverElement: HTMLDivElement, videoContainerRef: React.MutableRefObject<HTMLDivElement | null>) => {
+    console.log("1:1 모드로 시작");
+    const videoElements = document.querySelectorAll("video");
+    const canvasElements = document.querySelectorAll("canvas");
+    const streamElements = document.getElementsByClassName(
+      "stream-container",
+  ) as HTMLCollectionOf<HTMLDivElement>;
+  videoElements.forEach(video => {
+    video.style.width = "100%";
+    video.style.height = "100%";
+  });
+  canvasElements.forEach(canvas => {
+    canvas.style.width = "100%";
+    canvas.style.height = "100%";
+  });
+  // if (!isOneToOneMode) {
+  console.log("1:1 모드로 변경");
+  videoContainerRef.current?.classList.add("one-one-four");
+  streamElements[0].classList.add("a");
+  if (!loverElement) {
+    console.log("상대방이 없습니다.");
+  }
+  loverElement?.classList.add("b");
+  let acc = 2;
+  for (let i = 1; i < streamElements.length; i++) {
+    if (streamElements[i].classList.contains("b")) {
+      continue;
+    }
+    const className = String.fromCharCode(97 + acc);
+    streamElements[i].classList.add(className);
+    acc += 1;
+  }
+};
+
+export const undoOneToOneMode = (loverElement: HTMLDivElement, params: oneToOneParams) => {
+  const { setIsChosen, videoContainerRef } = params;
+  console.log("1:1 모드 해제");
+  setIsChosen(false);
+  const streamElements = document.getElementsByClassName("stream-container");
+  videoContainerRef.current?.classList.remove("one-one-four");
+  streamElements[0].classList.remove("a");
+  let acc = 2;
+  for (let i = 1; i < streamElements.length; i++) {
+    if (streamElements[i].classList.contains("b")) {
+      continue;
+    }
+    const className = String.fromCharCode(97 + acc);
+    streamElements[i].classList.remove(className);
+    acc += 1;
+  }
+  loverElement?.classList.remove("b");
+};
+
+export const speakingStyle = (streamManager: Publisher | StreamManager, speakingPublisherIds:string[]) => {
+  if(!speakingPublisherIds.includes(streamManager.stream.streamId)) {
+    return {};
+  }
+  return {
+    width: "100%",
+    height: "100%",
+    boxShadow: "0 0 10px 10px rgba(50, 205, 50, 0.7)",
+  };
 };

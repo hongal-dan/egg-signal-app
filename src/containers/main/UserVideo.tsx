@@ -137,7 +137,7 @@ const logMemoryUsage = (label: string) => {
   }
 };
 
-function UserVideoComponent2() {
+function ARComponent() {
   const avatarName = useRecoilValue(avatarState);
   const containerRef = useRef<HTMLDivElement>(null);
   const [avatar] = useState<Avatar>(new Avatar(avatarName));
@@ -263,4 +263,4 @@ function UserVideoComponent2() {
   );
 }
 
-export default UserVideoComponent2;
+export default ARComponent;
