@@ -11,6 +11,34 @@ type chooseResult = {
   receiver: string;
 };
 
+type presentRefs = {
+  keywordRef: React.MutableRefObject<HTMLParagraphElement | null>;
+  pubRef: React.MutableRefObject<HTMLDivElement | null>;
+  subRef: React.MutableRefObject<HTMLDivElement[]>;
+  videoContainerRef: React.MutableRefObject<HTMLDivElement | null>;
+};
+
+type chooseRefs = {
+  keywordRef: React.MutableRefObject<HTMLParagraphElement | null>;
+  subRef: React.MutableRefObject<HTMLDivElement[]>;
+  setIsChosen(isChosen: boolean): void;
+};
+
+type chooseParams = {
+    socket: Socket | null;
+    nickname: string;
+    subRef: React.MutableRefObject<HTMLDivElement[]>;
+    keywordRef: React.MutableRefObject<HTMLParagraphElement | null>;
+    setIsChosen(isChosen: boolean): void;
+    choiceState: string;
+    chooseTimerRef: React.MutableRefObject<NodeJS.Timeout | null>;
+};
+
+export type oneToOneParams = {
+  setIsChosen(isChosen: boolean): void;
+  videoContainerRef: React.MutableRefObject<HTMLDivElement | null>;
+}
+
 // 화살표 출발 도착 좌표 계산
 export const findPosition = (
   fromElement: HTMLDivElement,
