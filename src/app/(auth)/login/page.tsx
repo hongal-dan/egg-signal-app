@@ -45,7 +45,7 @@ const Login = () => {
     <div className="flex items-center justify-center px-6 py-8 mx-auto h-full w-full max-w-[1200px]">
       <div className="w-1/2 p-5 px-20 bg-amber-50 rounded-2xl custom-shadow min-w-[500px]">
         <div className="p-6 space-y-4 md:space-y-6 sm:p-8">
-          <p className="text-4xl text-center">에그 챗</p>
+          <p className="text-4xl text-center">에그톡</p>
         </div>
         <Formik
           initialValues={initialValues}
