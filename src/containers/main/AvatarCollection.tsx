@@ -20,7 +20,6 @@ const AvatarCollection = () => {
   ];
 
   const chooseAvatar = (avatarName: string) => {
-    console.log(avatarName);
     setAvatar(avatarName);
   };
 

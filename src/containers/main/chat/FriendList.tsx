@@ -40,7 +40,6 @@ const FriendList: React.FC<FriendListPros> = ({ friendsList }) => {
     setSelectedFriend(friend);
     setIsChatVisible(prev => {
       if (prev === true) {
-        console.log("closeChat: ", selectedFriend?.chatRoomId);
         commonSocket?.emit("closeChat", {
           chatRoomId: selectedFriend?.chatRoomId,
         });
@@ -64,7 +63,6 @@ const FriendList: React.FC<FriendListPros> = ({ friendsList }) => {
 
   const isNewMessageSender = (friend: Friend) => {
     if (newMessageSenders.find(el => el === friend.chatRoomId)) {
-      console.log(friend.friend, " 알람 보냄");
       return true;
     }
     return false;
@@ -74,28 +72,35 @@ const FriendList: React.FC<FriendListPros> = ({ friendsList }) => {
     if (commonSocket) {
       commonSocket.emit("friendStat");
       commonSocket.on("friendStat", res => {
+        const newList: string[] = [];
+        res.forEach((el: any) => {
+          const key = Object.keys(el)[0];
+          if (el[key]) {
+            newList.push(key);
+          }
+        });
+        setOnlineList(newList);
+        sessionStorage.setItem("onlineFriends", JSON.stringify(newList));
+      });
+
+      commonSocket.on("friendOnline", (res: string) => {
         const onlineList = sessionStorage.getItem("onlineFriends");
         if (!onlineList || onlineList.length === 0) {
-          const newList: string[] = [];
-          res.forEach((el: any) => {
-            const key = Object.keys(el)[0];
-            if (el[key]) {
-              newList.push(key);
-            }
-          });
-          console.log("friend state new List!!", newList);
-          setOnlineList(newList);
-          sessionStorage.setItem("onlineFriends", JSON.stringify(newList));
+          sessionStorage.setItem("onlineFriends", JSON.stringify([res]));
         } else {
           const prevList = JSON.parse(onlineList);
-          res.forEach((el: any) => {
-            const key = Object.keys(el)[0];
-            if (el[key]) {
-              prevList.push(key);
-            }
-          });
+          prevList.push(res);
           const newList = Array.from(new Set(prevList)) as string[];
-          console.log("update online list: ", newList);
+          sessionStorage.setItem("onlineFriends", JSON.stringify(newList));
+          setOnlineList(newList);
+        }
+      });
+
+      commonSocket.on("friendOffline", (res: string) => {
+        const onlineList = sessionStorage.getItem("onlineFriends");
+        if (onlineList) {
+          const prevList = JSON.parse(onlineList);
+          const newList = prevList.filter((el: string) => el !== res);
           sessionStorage.setItem("onlineFriends", JSON.stringify(newList));
           setOnlineList(newList);
         }
@@ -104,6 +109,8 @@ const FriendList: React.FC<FriendListPros> = ({ friendsList }) => {
 
     return () => {
       commonSocket?.off("friendStat");
+      commonSocket?.off("friendOnline");
+      commonSocket?.off("friendOffline");
     };
   }, []);
 

@@ -49,7 +49,6 @@ const Notification: React.FC<NotificationProps> = ({ noti }) => {
 
 const Notifications: React.FC = () => {
   const notiList = useRecoilValue(notiListState);
-  useEffect(() => console.log(notiList));
 
   return (
     <div>

@@ -144,29 +144,6 @@ const MainContent = () => {
       setNewMessageSenders(prev => [...prev, res]);
     });
 
-    newCommonSocket.on("friendOnline", (res: string) => {
-      const onlineList = sessionStorage.getItem("onlineFriends");
-      if (!onlineList || onlineList.length === 0) {
-        sessionStorage.setItem("onlineFriends", JSON.stringify([res]));
-      } else {
-        const prevList = JSON.parse(onlineList);
-        prevList.push(res);
-        const newList = Array.from(new Set(prevList)) as string[];
-        sessionStorage.setItem("onlineFriends", JSON.stringify(newList));
-        setOnlineList(newList);
-      }
-    });
-
-    newCommonSocket.on("friendOffline", (res: string) => {
-      const onlineList = sessionStorage.getItem("onlineFriends");
-      if (onlineList) {
-        const prevList = JSON.parse(onlineList);
-        const newList = prevList.filter((el: string) => el !== res);
-        sessionStorage.setItem("onlineFriends", JSON.stringify(newList));
-        setOnlineList(newList);
-      }
-    });
-
     newCommonSocket.emit("reqGetNotifications");
 
     newCommonSocket.on("resGetNotifications", (res: Notification[]) => {
@@ -190,33 +167,6 @@ const MainContent = () => {
 
     newCommonSocket.on("friendRequestAccepted", res => {
       updateUserInfo();
-    });
-
-    // 내가 접속하기 전부터 접속한 친구 확인용
-    newCommonSocket.on("friendStat", res => {
-      const onlineList = sessionStorage.getItem("onlineFriends");
-      if (!onlineList || onlineList.length === 0) {
-        const newList: string[] = [];
-        res.forEach((el: any) => {
-          const key = Object.keys(el)[0];
-          if (el[key]) {
-            newList.push(key);
-          }
-        });
-        setOnlineList(newList);
-        sessionStorage.setItem("onlineFriends", JSON.stringify(newList));
-      } else {
-        const prevList = JSON.parse(onlineList);
-        res.forEach((el: any) => {
-          const key = Object.keys(el)[0];
-          if (el[key]) {
-            prevList.push(key);
-          }
-        });
-        const newList = Array.from(new Set(prevList)) as string[];
-        sessionStorage.setItem("onlineFriends", JSON.stringify(newList));
-        setOnlineList(newList);
-      }
     });
   }, []);
 
