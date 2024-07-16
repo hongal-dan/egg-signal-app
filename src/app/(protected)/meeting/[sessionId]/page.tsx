@@ -382,7 +382,7 @@ const Meeting = () => {
                   className={`stream-container col-md-6 col-xs-6 pub custom-shadow ${getUserGender(publisher)}`}
                   id={getUserID(publisher)}
                   ref={pubRef}
-                  style={speakingStyle(publisher)}
+                  style={speakingStyle(publisher, speakingPublisherIds)}
                 >
                   <UserVideoComponent
                     streamManager={publisher}
@@ -396,9 +396,9 @@ const Meeting = () => {
                   className={`stream-container col-md-6 col-xs-6 sub custom-shadow ${getUserGender(sub)}`}
                   id={getUserID(sub)}
                   ref={el => {
-                    subRef.current[idx] = el;
+                    (subRef.current as (HTMLDivElement | null)[])[idx] = el;
                   }}
-                  style={speakingStyle(sub)}
+                  style={speakingStyle(sub, speakingPublisherIds)}
                 >
                   <UserVideoComponent
                     key={sub.stream.streamId}
