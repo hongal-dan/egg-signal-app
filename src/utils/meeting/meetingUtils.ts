@@ -444,3 +444,37 @@ export const setChooseMode = (params: chooseParams) => {
     });
   };
   
+
+  export const setOneToOneMode = (loverElement: HTMLDivElement, videoContainerRef: React.MutableRefObject<HTMLDivElement | null>) => {
+    console.log("1:1 모드로 시작");
+    const videoElements = document.querySelectorAll("video");
+    const canvasElements = document.querySelectorAll("canvas");
+    const streamElements = document.getElementsByClassName(
+      "stream-container",
+  ) as HTMLCollectionOf<HTMLDivElement>;
+  videoElements.forEach(video => {
+    video.style.width = "100%";
+    video.style.height = "100%";
+  });
+  canvasElements.forEach(canvas => {
+    canvas.style.width = "100%";
+    canvas.style.height = "100%";
+  });
+  // if (!isOneToOneMode) {
+  console.log("1:1 모드로 변경");
+  videoContainerRef.current?.classList.add("one-one-four");
+  streamElements[0].classList.add("a");
+  if (!loverElement) {
+    console.log("상대방이 없습니다.");
+  }
+  loverElement?.classList.add("b");
+  let acc = 2;
+  for (let i = 1; i < streamElements.length; i++) {
+    if (streamElements[i].classList.contains("b")) {
+      continue;
+    }
+    const className = String.fromCharCode(97 + acc);
+    streamElements[i].classList.add(className);
+    acc += 1;
+  }
+};
