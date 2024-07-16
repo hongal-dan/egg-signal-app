@@ -498,3 +498,13 @@ export const undoOneToOneMode = (loverElement: HTMLDivElement, params: oneToOneP
   loverElement?.classList.remove("b");
 };
 
+export const speakingStyle = (streamManager: Publisher | StreamManager, speakingPublisherIds:string[]) => {
+  if(!speakingPublisherIds.includes(streamManager.stream.streamId)) {
+    return {};
+  }
+  return {
+    width: "100%",
+    height: "100%",
+    boxShadow: "0 0 10px 10px rgba(50, 205, 50, 0.7)",
+  };
+};
