@@ -383,3 +383,15 @@ export const changePresentationMode = (
   }, time * 1000);
 };
 
+// 선택된 표시 제거
+export const removeChooseSign = () => {
+  const chosenElements = document.getElementsByClassName("chosen-stream");
+  const opacityElements = document.getElementsByClassName("opacity");
+  Array.from(chosenElements).forEach(chosenElement => {
+    chosenElement.classList.remove("chosen-stream");
+  });
+  Array.from(opacityElements).forEach(opacityElement => {
+    opacityElement.classList.remove("opacity");
+  });
+};
+
