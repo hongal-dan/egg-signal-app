@@ -47,7 +47,6 @@ const Chat: React.FC<Props> = ({ friend, onClose }) => {
   };
 
   useEffect(() => {
-    console.log("joinChat emit: ", friend.chatRoomId);
     if (commonSocket) {
       commonSocket.emit("joinChat", {
         newChatRoomId: friend.chatRoomId,
