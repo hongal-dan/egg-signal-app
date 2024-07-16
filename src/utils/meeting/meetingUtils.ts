@@ -395,3 +395,34 @@ export const removeChooseSign = () => {
   });
 };
 
+export const setChooseMode = (params: chooseParams) => {
+    // 선택 모드 일 때는 마우스 하버시에 선택 가능한 상태로 변경
+    // 클릭 시에 선택된 상태로 변경
+    const { socket, nickname, subRef, keywordRef, setIsChosen, choiceState, chooseTimerRef } = params;
+    
+    if (keywordRef.current) {
+      keywordRef.current.innerText = "대화해보고 싶은 사람을 선택해주세요";
+    }
+    // 이성만 선택 버튼 활성화
+    const oppositeRef = subRef.current.slice(2);
+    
+    oppositeRef.forEach(subContainer => {
+      const chooseBtn = subContainer!.getElementsByClassName("choose-btn")[0];
+      chooseBtn.classList.remove("hidden");
+    });
+    setIsChosen(false);
+    chooseTimerRef.current = setTimeout(() => {
+      const emitChoose = (eventName: string) => {
+        socket?.emit(eventName, {
+          sender: nickname,
+          receiver: subRef.current[subRef.current.length - 1]?.id,
+        });
+      };
+      if (choiceState === "first") {
+        emitChoose("choose");
+      } else {
+        emitChoose("lastChoose");
+      }
+    }, 5000);
+  };
+  
