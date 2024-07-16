@@ -1,8 +1,6 @@
 "use client";
 
 import React, { useEffect, useState, useRef } from "react";
-import { createRoot } from "react-dom/client";
-import Image from "next/image";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useRecoilValue, useRecoilState } from "recoil";
@@ -17,33 +15,28 @@ import { avatarState } from "@/app/store/avatar";
 import { userState } from "@/app/store/userInfo";
 import { defaultSessionState, winnerSessionState } from "@/app/store/ovInfo";
 import UserVideoComponent from "@/containers/meeting/UserVideoComponent";
-import UserVideoComponent2 from "@/containers/main/UserVideo";
+import ARComponent from "@/containers/main/UserVideo";
 import {
-  changeLoveStickMode,
-  undoLoveStickMode,
-  captureVideoFrame,
   captureCamInit,
-  randomKeywordEvent,
+  setChooseMode,
+  setOneToOneMode,
+  speakingStyle,
+  undoOneToOneMode,
 } from "@/utils/meeting/meetingUtils";
 import {
   joinSession,
   toggleLoserAudio,
-  toggleLoverAudio,
   getUserID,
   getUserGender,
   sortSubscribers,
-  openCam,
   leaveHandler,
   getNetworkInfo,
   getVideoConstraints,
   updatePublisherStream,
   getSystemPerformance,
 } from "@/utils/meeting/openviduUtils";
-
-type chooseResult = {
-  sender: string;
-  receiver: string;
-};
+import { meetingCamEvent, meetingCupidResultEvent, meetingEvent, OffSocketEvent } from "@/utils/meeting/meetingSocketEvent";
+import MikeMuteButton from "@/containers/meeting/MikeMuteButton";
 
 const DynamicAvatarCollection = dynamic(
   () => import("@/containers/main/AvatarCollection"),
@@ -73,13 +66,6 @@ const DynamicEmoji = dynamic(() => import("@/containers/meeting/emoji"), {
   ssr: false,
 });
 
-const DynamicMikeMuteButton = dynamic(
-  () => import("@/containers/meeting/MikeMuteButton"),
-  {
-    ssr: false,
-  },
-);
-
 const Meeting = () => {
   const [session, setSession] = useState<Session | undefined>(undefined);
   const [publisher, setPublisher] = useState<Publisher | undefined>(undefined);
@@ -97,7 +83,7 @@ const Meeting = () => {
   const captureRef = useRef<HTMLDivElement>(null);
   const keywordRef = useRef<HTMLParagraphElement>(null);
   const pubRef = useRef<HTMLDivElement>(null);
-  const subRef = useRef<Array<HTMLDivElement | null>>([]);
+  const subRef = useRef<Array<HTMLDivElement>>([]);
   const videoContainerRef = useRef<HTMLDivElement>(null);
   const loadingRef = useRef<HTMLDivElement>(null);
   const sessionRef = useRef<HTMLDivElement>(null);
@@ -112,7 +98,7 @@ const Meeting = () => {
   const [choiceState, setChoiceState] = useRecoilState(chooseState);
   const [lover, setLover] = useState<string>("");
 
-  const { sessionId, token, participantName } =
+  const { sessionId, token } =
     useRecoilValue(defaultSessionState);
   const [, setSessionInfo] = useRecoilState(winnerSessionState);
 
@@ -144,18 +130,6 @@ const Meeting = () => {
     };
   }, []);
 
-  // 선택된 표시 제거
-  const removeChooseSign = () => {
-    const chosenElements = document.getElementsByClassName("chosen-stream");
-    const opacityElements = document.getElementsByClassName("opacity");
-    Array.from(chosenElements).forEach(chosenElement => {
-      chosenElement.classList.remove("chosen-stream");
-    });
-    Array.from(opacityElements).forEach(opacityElement => {
-      opacityElement.classList.remove("opacity");
-    });
-  };
-
   const leaveSession = (isSucceedFlag = false) => {
     if (session) {
       session.disconnect();
@@ -171,7 +145,7 @@ const Meeting = () => {
     setIsFull(false);
     setChoiceState("");
     setIsChosen(false);
-    OffSocketEvent();
+    OffSocketEvent(socket);
 
     if (!isSucceedFlag) {
       router.push("/main");
