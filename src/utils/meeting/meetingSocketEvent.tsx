@@ -377,5 +377,111 @@ export const meetingEvent = (socket: Socket | null, params: meetingEventParams) 
 };
 
 export const meetingCupidResultEvent = (socket: Socket | null, refs: cupidParams) => {
-};
+  const {
+    keywordRef,
+    videoContainerRef,
+    subscribers,
+    setOneToOneMode,
+    toggleLoserAudio,
+    undoOneToOneMode,
+    setIsChosen,
+  } = refs;
+  // 선택 결과 받고 1:1 모드로 변경
+  socket?.on("cupidResult", response => {
+    try {
+      console.log("cupidResult 도착", response);
+      const { lover, loser } = response as cupidResult;
+      console.log(lover, loser);
+
+      // 매칭 된 사람의 경우
+      setTimeout(() => {
+        console.log("큐피드result로 계산 시작");
+        if (lover != "0") {
+          if (keywordRef.current) {
+            console.log("즐거운 시간 보내라고 p 태그 변경");
+            keywordRef.current.innerText =
+              "즐거운 시간 보내세요~ 1:1 대화 소리는 다른 참여자들이 들을 수 없어요.";
+          }
+          const loverElement = document
+            .getElementById(lover)
+            ?.closest(".stream-container") as HTMLDivElement;
+
+          loser.forEach(loser => {
+            const loserElementContainer = document.getElementById(
+              loser,
+            ) as HTMLDivElement;
+            const loserElement = loserElementContainer.querySelector(
+              ".stream-wrapper",
+            ) as HTMLDivElement;
+            loserElement.classList.add("black-white");
+          });
+
+          setOneToOneMode(loverElement, videoContainerRef);
+          toggleLoserAudio(subscribers, lover, false); // 나머지 오디오 차단
+          setTimeout(() => {
+            if (keywordRef.current) {
+              keywordRef.current.innerText = "";
+              console.log("즐거운시간 삭제");
+            }
+            const params = {
+              videoContainerRef,
+              setIsChosen,
+            }
+            undoOneToOneMode(loverElement, params);
+            toggleLoserAudio(subscribers, lover, true); // 나머지 오디오 재개
+            loser.forEach(loser => {
+              const loserElementContainer = document.getElementById(
+                loser,
+              ) as HTMLDivElement;
+              const loserElement = loserElementContainer.querySelector(
+                ".stream-wrapper",
+              ) as HTMLDivElement;
+              loserElement.classList.remove("black-white");
+            });
+            // }, 60000); // 1분 후 원 위치
+          }, 20000); //FIXME 시연용 20초 후 원 위치
+        }
+        // 매칭 안된 사람들의 경우
+        else {
+          // const pubElement = document.getElementsByClassName("pub")[0] as HTMLDivElement;
+          // pubElement.classList.toggle("black-white");
+          if (loser.length === 6) {
+            if (keywordRef.current) {
+              keywordRef.current.innerText =
+                "매칭 된 사람이 없습니다. 사이좋게 대화하세요";
+            }
+            return;
+          }
+          if (keywordRef.current) {
+            keywordRef.current.innerText =
+              "당신은 선택받지 못했습니다. 1:1 대화 중인 참여자들의 소리를 들을 수 없어요.";
+          }
+          toggleLoverAudio(subscribers, loser, false); // 매칭된 사람들 오디오 차단
+          loser.forEach(loser => {
+            const loserElementContainer = document.getElementById(
+              loser,
+            ) as HTMLDivElement;
+            const loserElement = loserElementContainer.querySelector(
+              ".stream-wrapper",
+            ) as HTMLDivElement;
+            loserElement.classList.add("black-white");
+            setTimeout(() => {
+              // pubElement.classList.toggle("black-white");
+              loserElement.classList.remove("black-white");
+              // }, 60000); // 1분 후 흑백 해제
+            }, 20000); //FIXME 시연용 20초 후 원 위치
+          });
+          setTimeout(() => {
+            if (keywordRef.current) {
+              keywordRef.current.innerText = "";
+            }
+            toggleLoverAudio(subscribers, loser, true); // 오디오 재개
+            // }, 60000); // 1분 후 음소거 해제
+          }, 20000); //FIXME 시연용 20초 후 원 위치
+        }
+      }, 13000); // 결과 도착 후 13초뒤에 1:1 대화 진행
+    } catch (e: any) {
+      console.error(e);
+    }
+  });
 };
