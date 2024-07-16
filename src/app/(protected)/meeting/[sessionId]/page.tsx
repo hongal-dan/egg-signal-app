@@ -796,7 +796,13 @@ const Meeting = () => {
         updatePublisherStream(publisher, newConstraints);
       }
     }, 5000);
-    meetingCamEvent();
+
+    const camEventParams = {
+      keywordRef,
+      publisher,
+      setIsOpenCam,
+    }
+    meetingCamEvent(socket, camEventParams);
 
     return () => clearInterval(updateNetwork);
   }, [publisher]);
