@@ -241,4 +241,12 @@ export const meetingEvent = (socket: Socket | null, params: meetingEventParams) 
       console.error(e);
     }
   });
+
+  socket?.on("choice", response => {
+    console.log("choice 도착!~~~~~~~~~~~~~~", response);
+    const { sessionId, token } = response;
+    setSessionInfo({ sessionId: sessionId, token: token });
+    leaveSession(true);
+  });
+
 };
