@@ -384,7 +384,7 @@ const Meeting = () => {
             <div className="fixed bottom-3 left-0 right-0 flex justify-center">
               <div className="relative bg-white p-2 rounded-lg shadow-md">
                 <DynamicEmoji />
-                <DynamicMikeMuteButton publisher={publisher} />
+                <MikeMuteButton publisher={publisher} />
               </div>
             </div>
           </div>
