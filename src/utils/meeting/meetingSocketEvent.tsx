@@ -184,4 +184,13 @@ export const meetingEvent = (socket: Socket | null, params: meetingEventParams) 
     }
   });
 
+  socket?.on("lastCupidTime", (response: any) => {
+    try {
+      console.log("lastCupidTime 도착", response);
+      setChoiceState("last");
+    } catch (e: any) {
+      console.error(e);
+    }
+  });
+
 };
