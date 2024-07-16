@@ -42,6 +42,25 @@ type meetingEventParams = {
   setKeywordsIndex(index: number): void;
   setIsChosen(isChosen: boolean): void;
 };
+
+type cupidParams = {
+  keywordRef: React.MutableRefObject<HTMLParagraphElement | null>;
+  videoContainerRef: React.MutableRefObject<HTMLDivElement | null>;
+  subscribers: StreamManager[];
+  setOneToOneMode: (loverElement: HTMLDivElement, videoContainerRef: React.MutableRefObject<HTMLDivElement | null>) => void;
+  toggleLoserAudio: (
+    subscribers: StreamManager[],
+    lover: string,
+    isMute: boolean,
+  ) => void;
+  undoOneToOneMode: (loverElement: HTMLDivElement, params: oneToOneParams) => void;
+  setIsChosen(isChosen: boolean): void;
+};
+type cupidResult = {
+  lover: string;
+  loser: Array<string>;
+};
+
 export const meetingEvent = (socket: Socket | null, params: meetingEventParams) => {
   const {
     sessionRef,
@@ -355,5 +374,8 @@ export const meetingEvent = (socket: Socket | null, params: meetingEventParams) 
       console.error(e);
     }
   });
+};
+
+export const meetingCupidResultEvent = (socket: Socket | null, refs: cupidParams) => {
 };
 };
