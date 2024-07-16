@@ -846,7 +846,27 @@ const Meeting = () => {
       setSpeakingPublisherIds,
     });
 
-    meetingEvent();
+    const meetingEventParams = {
+      sessionRef,
+      pubRef,
+      subRef,
+      keywordRef,
+      videoContainerRef,
+      session,
+      setIsFinish,
+      setSession,
+      leaveSession,
+      setSessionInfo,
+      setLover,
+      setCapturedImage,
+      setIsMatched,
+      setChoiceState,
+      setIsCanvasModalOpen,
+      setKeywordsIndex,
+      setIsChosen,
+    };
+
+    meetingEvent(socket, meetingEventParams);
 
     return () => {
       setAvatar(null);
