@@ -32,7 +32,7 @@ const AvatarCollection = () => {
             <div className="flex flex-col items-center" key={idx}>
               <div
                 style={{
-                  backgroundImage: `url(./avatar/${avatar[1]}.png)`,
+                  backgroundImage: `url(/avatar/${avatar[1]}.png)`,
                 }}
                 className="custom-shadow bg-cover bg-no-repeat bg-center w-28 h-24 border-4 border-[#F8B85F] rounded-xl cursor-pointer hover:border-[hotpink] transition-all duration-300 ease-in-out p-4  bg-[#F6FDEB]"
                 onClick={() => chooseAvatar(avatar[1])}
