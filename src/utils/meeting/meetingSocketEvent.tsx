@@ -304,4 +304,56 @@ export const meetingEvent = (socket: Socket | null, params: meetingEventParams) 
     }
   });
 
+  // 자기소개 시간
+  socket?.on("introduce", response => {
+    try {
+      if (keywordRef.current) {
+        keywordRef.current.innerText =
+          "잠시 후 화면에 표시된 사람은 자기소개를 시작해주세요";
+      }
+      console.log(response);
+      const presentRefs = {
+        keywordRef,
+        pubRef,
+        subRef,
+        videoContainerRef,
+      };
+
+      setTimeout(() => {
+        // const participantsArray: Array<string> = response;
+        const participantsArray: string = response;
+        console.log("Introduce 도착", participantsArray);
+        // let idx = 0;
+        const participantElement = document.getElementById(
+          // participantsArray[idx],
+          participantsArray, //FIXME 시연용
+        ) as HTMLDivElement;
+        changePresentationMode(
+          participantElement,
+          // 10,
+          // "20초간 자기소개 해주세요",
+          5, //FIXME 시연용
+          "자기소개 해주세요", //FIXME 시연용
+          presentRefs
+        ); // FIXME 테스트용 10초 나중에 원래대로 돌리기
+        // const timeInterval = setInterval(() => {
+        //   idx += 1;
+        //   const participantElement = document.getElementById(
+        //     participantsArray[idx],
+        //   ) as HTMLDivElement;
+        //   changePresentationMode(
+        //     participantElement,
+        //     10,
+        //     "20초간 자기소개 해주세요",
+        //   ); // FIXME 테스트용 10초 나중에 원래대로 돌리기
+        //   if (idx == 5) {
+        //     clearInterval(timeInterval);
+        //   }
+        // }, 10100); // FIXME 테스트용 10초 나중에 원래대로 돌리기
+      }, 5000);
+    } catch (e: any) {
+      console.error(e);
+    }
+  });
+};
 };
