@@ -806,6 +806,15 @@ const Meeting = () => {
     if (!subscribers) {
       return;
     }
+    const cupidParams = {
+      keywordRef,
+      videoContainerRef,
+      subscribers,
+      setOneToOneMode,
+      toggleLoserAudio,
+      undoOneToOneMode,
+      setIsChosen,
+    }
 
     if (subscribers.length === 5) {
       if (getUserGender(publisher!) === "MALE") {
@@ -815,7 +824,7 @@ const Meeting = () => {
       }
       setIsFull(true);
       socket?.emit("startTimer", { sessionId: sessionId });
-      meetingCupidResultEvent();
+      meetingCupidResultEvent(socket, cupidParams);
     }
     if (isFull && subscribers.length !== 5 && !isFinish) {
       if (keywordRef.current) {
