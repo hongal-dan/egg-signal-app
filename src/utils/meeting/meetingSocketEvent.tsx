@@ -72,6 +72,7 @@ type camEventParams = {
 type cupidResult = {
   lover: string;
   loser: Array<string>;
+  time: number;
 };
 
 export const meetingEvent = (
@@ -255,7 +256,7 @@ export const meetingEvent = (
         if (keywordRef.current) {
           keywordRef.current.innerText = "잠시 후 미팅이 종료됩니다";
         }
-      }, 5000); // 5초 후 원 위치 (시연용)
+      }, 10000); // 5초 후 원 위치 (시연용)
     } catch (e: any) {
       console.error(e);
     }
@@ -409,7 +410,7 @@ export const meetingCupidResultEvent = (
   socket?.on("cupidResult", response => {
     try {
       console.log("cupidResult 도착", response);
-      const { lover, loser } = response as cupidResult;
+      const { lover, loser, time } = response as cupidResult;
       console.log(lover, loser);
 
       // 매칭 된 사람의 경우
@@ -498,7 +499,7 @@ export const meetingCupidResultEvent = (
             // }, 60000); // 1분 후 음소거 해제
           }, 20000); //FIXME 시연용 20초 후 원 위치
         }
-      }, 13000); // 결과 도착 후 13초뒤에 1:1 대화 진행
+      }, time); // 결과 도착 후 13초뒤에 1:1 대화 진행
     } catch (e: any) {
       console.error(e);
     }
