@@ -14,19 +14,18 @@ import {
 import { avatarState } from "@/app/store/avatar";
 import { userState } from "@/app/store/userInfo";
 import { defaultSessionState, winnerSessionState } from "@/app/store/ovInfo";
-import UserVideoComponent from "@/containers/meeting/UserVideoComponent";
+import SessionHeader from "@/containers/meeting/SessionHeader";
+import SessionComponent from "@/containers/meeting/Session";
 import ARComponent from "@/containers/main/UserVideo";
 import {
   captureCamInit,
   setChooseMode,
   setOneToOneMode,
-  speakingStyle,
   undoOneToOneMode,
 } from "@/utils/meeting/meetingUtils";
 import {
   joinSession,
   toggleLoserAudio,
-  getUserID,
   getUserGender,
   sortSubscribers,
   leaveHandler,
@@ -35,8 +34,12 @@ import {
   updatePublisherStream,
   getSystemPerformance,
 } from "@/utils/meeting/openviduUtils";
-import { meetingCamEvent, meetingCupidResultEvent, meetingEvent, OffSocketEvent } from "@/utils/meeting/meetingSocketEvent";
-import MikeMuteButton from "@/containers/meeting/MikeMuteButton";
+import {
+  meetingCamEvent,
+  meetingCupidResultEvent,
+  meetingEvent,
+  OffSocketEvent,
+} from "@/utils/meeting/meetingSocketEvent";
 
 const DynamicAvatarCollection = dynamic(
   () => import("@/containers/main/AvatarCollection"),
@@ -53,18 +56,10 @@ const DynamicMatchingResult = dynamic(
   { ssr: false },
 );
 
-const DynamicEggTimer = dynamic(() => import("@/containers/meeting/EggTimer"), {
-  ssr: false,
-});
-
 const DynamicMeetingLoading = dynamic(
   () => import("@/containers/meeting/MeetingLoading"),
   { ssr: false },
 );
-
-const DynamicEmoji = dynamic(() => import("@/containers/meeting/emoji"), {
-  ssr: false,
-});
 
 const Meeting = () => {
   const [session, setSession] = useState<Session | undefined>(undefined);
@@ -98,8 +93,7 @@ const Meeting = () => {
   const [choiceState, setChoiceState] = useRecoilState(chooseState);
   const [lover, setLover] = useState<string>("");
 
-  const { sessionId, token } =
-    useRecoilValue(defaultSessionState);
+  const { sessionId, token } = useRecoilValue(defaultSessionState);
   const [, setSessionInfo] = useRecoilState(winnerSessionState);
 
   const router = useRouter();
@@ -108,27 +102,6 @@ const Meeting = () => {
   const [isFinish, setIsFinish] = useState(false);
 
   const chooseTimerRef = useRef<NodeJS.Timeout | null>(null);
-
-  // 어떻게든 종료 하면 세션에서 나가게함.
-  useEffect(() => {
-    console.log("메인이 실행되었습니다.");
-    const handleBeforeUnload = () => leaveSession();
-    window.addEventListener("beforeunload", handleBeforeUnload);
-
-    const preventGoBack = () => {
-      history.pushState(null, "", location.href);
-      leaveHandler(leaveSession);
-      setSubscribers([]); // 리렌더링용
-    };
-    history.pushState(null, "", location.href);
-    window.addEventListener("popstate", preventGoBack);
-
-    return () => {
-      window.removeEventListener("beforeunload", handleBeforeUnload);
-      window.removeEventListener("popstate", preventGoBack);
-      console.log("메인이 종료되었습니다.");
-    };
-  }, []);
 
   const leaveSession = (isSucceedFlag = false) => {
     if (session) {
@@ -155,6 +128,28 @@ const Meeting = () => {
       return;
     }
   };
+
+  // 어떻게든 종료 하면 세션에서 나가게함.
+  useEffect(() => {
+    console.log("메인이 실행되었습니다.");
+    const handleBeforeUnload = () => leaveSession();
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    const preventGoBack = () => {
+      history.pushState(null, "", location.href);
+      leaveHandler(leaveSession);
+      setSubscribers([]); // 리렌더링용
+    };
+    history.pushState(null, "", location.href);
+    window.addEventListener("popstate", preventGoBack);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      window.removeEventListener("popstate", preventGoBack);
+      console.log("메인이 종료되었습니다.");
+    };
+  }, []);
+
 
   useEffect(() => {
     if (!choiceState) {
@@ -211,7 +206,7 @@ const Meeting = () => {
       keywordRef,
       publisher,
       setIsOpenCam,
-    }
+    };
     meetingCamEvent(socket, camEventParams);
 
     return () => clearInterval(updateNetwork);
@@ -230,7 +225,7 @@ const Meeting = () => {
       toggleLoserAudio,
       undoOneToOneMode,
       setIsChosen,
-    }
+    };
 
     if (subscribers.length === 5) {
       if (getUserGender(publisher!) === "MALE") {
@@ -316,78 +311,20 @@ const Meeting = () => {
         <DynamicMeetingLoading ref={loadingRef} />
       ) : (
         <div className="h-full">
-          <div
-            id="session-header"
-            className="fixed flex flex-col justify-center items-center w-full"
-          >
-            <div className="flex w-full mb-2 px-[10vw]">
-              <input
-                className="border-b border-gray-500 text-gray-500 cursor-pointer"
-                type="button"
-                id="buttonLeaveSession"
-                onClick={() => leaveHandler(leaveSession)}
-                value="종료하기"
-              />
-            </div>
-            <DynamicEggTimer setTime={5} />
-            <div className="w-full h-6 mt-4">
-              <p
-                className="flex justify-center items-center font-bold h-full text-3xl"
-                ref={keywordRef}
-              ></p>
-              <audio
-                id="tickSound"
-                src="/sound/tick.mp3"
-                className="hidden"
-              ></audio>
-            </div>
-          </div>
-          <div
-            id="session"
-            className="h-full flex justify-center items-center transition-colors duration-[1500ms] ease-in-out"
-            ref={sessionRef}
-          >
-            <div
-              className="relative col-md-6 video-container"
-              ref={videoContainerRef}
-            >
-              {publisher !== undefined ? (
-                <div
-                  className={`stream-container col-md-6 col-xs-6 pub custom-shadow ${getUserGender(publisher)}`}
-                  id={getUserID(publisher)}
-                  ref={pubRef}
-                  style={speakingStyle(publisher, speakingPublisherIds)}
-                >
-                  <UserVideoComponent
-                    streamManager={publisher}
-                  />
-                </div>
-              ) : null}
-              {sortedSubscribers.map((sub, idx) => (
-                <div
-                  key={sub.stream.streamId}
-                  data-key={sub.stream.streamId}
-                  className={`stream-container col-md-6 col-xs-6 sub custom-shadow ${getUserGender(sub)}`}
-                  id={getUserID(sub)}
-                  ref={el => {
-                    (subRef.current as (HTMLDivElement | null)[])[idx] = el;
-                  }}
-                  style={speakingStyle(sub, speakingPublisherIds)}
-                >
-                  <UserVideoComponent
-                    key={sub.stream.streamId}
-                    streamManager={sub}
-                  />
-                </div>
-              ))}
-            </div>
-            <div className="fixed bottom-3 left-0 right-0 flex justify-center">
-              <div className="relative bg-white p-2 rounded-lg shadow-md">
-                <DynamicEmoji />
-                <MikeMuteButton publisher={publisher} />
-              </div>
-            </div>
-          </div>
+          <SessionHeader
+            leaveHandler={leaveHandler}
+            leaveSession={leaveSession}
+            keywordRef={keywordRef}
+          />
+          <SessionComponent
+            publisher={publisher}
+            sortedSubscribers={sortedSubscribers}
+            speakingPublisherIds={speakingPublisherIds}
+            sessionRef={sessionRef}
+            videoContainerRef={videoContainerRef}
+            pubRef={pubRef}
+            subRef={subRef}
+          />
         </div>
       )}
       {isCanvasModalOpen && (
