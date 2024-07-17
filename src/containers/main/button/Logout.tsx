@@ -19,7 +19,7 @@ const Logout: React.FC<LogoutProps> = ({ commonSocket }) => {
   const handleLogout = async () => {
     try {
       localStorage.removeItem("token");
-      sessionStorage.removeItem("onlineFriends");
+      sessionStorage.clear();
       offCommonSocketEvent();
       commonSocket?.disconnect();
       window.location.reload();
