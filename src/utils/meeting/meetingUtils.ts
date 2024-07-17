@@ -302,8 +302,6 @@ export const randomKeywordEvent = (
     if (!isAnimating || iteration >= totalIterations) {
       clearInterval(intervalId);
       rouletteElements[currentIndex].classList.add("highlighted");
-      tickSound.currentTime = 0;
-      tickSound.play();
       const randomKeyword = keywords[keywordIdx];
       if (pubContainer?.id === pickUser) {
         changePresentationMode(pubContainer, 12, randomKeyword, refs);
