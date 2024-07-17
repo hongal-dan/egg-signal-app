@@ -7,12 +7,10 @@ import {
   Session,
   Publisher,
   StreamManager,
-  Device,
-  PublisherSpeakingEvent,
 } from "openvidu-browser";
 import { useRecoilValue } from "recoil";
 import { winnerSessionState } from "@/app/store/ovInfo";
-import { testState, userState } from "@/app/store/userInfo";
+import { userState } from "@/app/store/userInfo";
 import { useRouter } from "next/navigation";
 import Swal from "sweetalert2";
 import MikeMuteButton from "@/containers/meeting/MikeMuteButton";
@@ -23,15 +21,9 @@ const Matching = () => {
   const [subscriber, setSubscriber] = useState<StreamManager | undefined>(
     undefined,
   );
-  const [, setMainStreamManager] = useState<StreamManager>();
-  const [, setCurrentVideoDevice] = useState<Device | null>(null);
   const ovInfo = useRecoilValue(winnerSessionState);
   const userInfo = useRecoilValue(userState);
-  const testName = useRecoilValue(testState);
   const router = useRouter();
-  const [speakingPublisherIds, setSpeakingPublisherIds] = useState<string[]>(
-    [],
-  );
 
   const leaveSession = () => {
     if (session) {
@@ -61,21 +53,13 @@ const Matching = () => {
 
   const joinSession = () => {
     const OV = new OpenVidu();
-    console.log("새 세션 조인중", userInfo);
-    OV.setAdvancedConfiguration({
-      publisherSpeakingEventsOptions: {
-        interval: 100, // Frequency of the polling of audio streams in ms (default 100)
-        threshold: -50, // Threshold volume in dB (default -50)
-      },
-    });
 
     const newSession = OV.initSession();
     setSession(newSession);
     // Connect to the session
     newSession
       .connect(ovInfo.token, {
-        clientData: userInfo.nickname, // FIXME 이놈으로 바꿔야합니다. .. 테스트네임말고
-        // clientData: testName,
+        clientData: userInfo.nickname, 
       })
       .then(async () => {
         const publisher = await OV.initPublisherAsync(undefined, {
@@ -89,29 +73,7 @@ const Matching = () => {
           mirror: false,
         });
 
-        console.log("Publisher created:", publisher, ovInfo.sessionId);
-        publisher.updatePublisherSpeakingEventsOptions({
-          interval: 100, // 발화자 이벤트 감지 주기 (밀리초)
-          threshold: -50, // 발화자 이벤트 발생 임계값 (데시벨)
-        });
         newSession.publish(publisher);
-
-        const devices = await OV.getDevices();
-        const videoDevices = devices.filter(
-          device => device.kind === "videoinput",
-        );
-        const currentVideoDeviceId = publisher.stream
-          .getMediaStream()
-          .getVideoTracks()[0]
-          .getSettings().deviceId;
-        const currentVideoDevice = videoDevices.find(
-          device => device.deviceId === currentVideoDeviceId,
-        );
-
-        if (currentVideoDevice) {
-          setCurrentVideoDevice(currentVideoDevice);
-        }
-        setMainStreamManager(publisher);
         setPublisher(publisher);
       })
       .catch(error => {
@@ -134,38 +96,6 @@ const Matching = () => {
     newSession.on("exception", exception => {
       console.warn(exception);
     });
-
-    // 세션에서 발화자 이벤트 리스너 추가
-    newSession.on("publisherStartSpeaking", (event: PublisherSpeakingEvent) => {
-      // console.log("Publisher started speaking:", event.connection);
-      const streamId = event.connection.stream?.streamId;
-      if (streamId !== undefined) {
-        setSpeakingPublisherIds(prevIds => [...prevIds, streamId]);
-      } else {
-        console.log("streamId undefined");
-      }
-    });
-
-    newSession.on("publisherStopSpeaking", (event: PublisherSpeakingEvent) => {
-      const streamId = event.connection.stream?.streamId;
-      if (streamId !== undefined) {
-        setSpeakingPublisherIds(prevIds =>
-          prevIds.filter(id => id !== streamId),
-        );
-      }
-      // console.log("Publisher stopped speaking:", event.connection);
-    });
-  };
-
-  const speakingStyle = (streamManager: Publisher | StreamManager) => {
-    if(!speakingPublisherIds.includes(streamManager.stream.streamId)) {
-      return {};
-    }
-    return {
-      width: "100%",
-      height: "100%",
-      boxShadow: "0 0 10px 10px rgba(50, 205, 50, 0.7)",
-    };
   };
 
   useEffect(() => {
@@ -183,14 +113,14 @@ const Matching = () => {
     <div className="flex flex-col h-[100vh] justify-center items-center gap-20">
       <div className="col-md-6 flex w-[60vw] gap-20">
         {publisher !== undefined ? (
-          <div className="stream-container col-md-6 col-xs-6" style={speakingStyle(publisher)}>
+          <div className="stream-container col-md-6 col-xs-6">
             <UserVideoComponent
               streamManager={publisher}
             />
           </div>
         ) : null}
         {subscriber !== undefined ? (
-          <div className="stream-container col-md-6 col-xs-6" style={speakingStyle(subscriber)}>
+          <div className="stream-container col-md-6 col-xs-6">
             <UserVideoComponent
               streamManager={subscriber!}
             />
