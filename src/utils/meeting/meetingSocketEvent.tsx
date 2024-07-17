@@ -26,7 +26,7 @@ type chooseResult = {
 type meetingEventParams = {
   sessionRef: React.MutableRefObject<HTMLDivElement | null>;
   pubRef: React.MutableRefObject<HTMLDivElement | null>;
-  subRef: React.MutableRefObject<(HTMLDivElement)[]>;
+  subRef: React.MutableRefObject<HTMLDivElement[]>;
   keywordRef: React.MutableRefObject<HTMLParagraphElement | null>;
   videoContainerRef: React.MutableRefObject<HTMLDivElement | null>;
   session: Session | undefined;
@@ -47,13 +47,19 @@ type cupidParams = {
   keywordRef: React.MutableRefObject<HTMLParagraphElement | null>;
   videoContainerRef: React.MutableRefObject<HTMLDivElement | null>;
   subscribers: StreamManager[];
-  setOneToOneMode: (loverElement: HTMLDivElement, videoContainerRef: React.MutableRefObject<HTMLDivElement | null>) => void;
+  setOneToOneMode: (
+    loverElement: HTMLDivElement,
+    videoContainerRef: React.MutableRefObject<HTMLDivElement | null>,
+  ) => void;
   toggleLoserAudio: (
     subscribers: StreamManager[],
     lover: string,
     isMute: boolean,
   ) => void;
-  undoOneToOneMode: (loverElement: HTMLDivElement, params: oneToOneParams) => void;
+  undoOneToOneMode: (
+    loverElement: HTMLDivElement,
+    params: oneToOneParams,
+  ) => void;
   setIsChosen(isChosen: boolean): void;
 };
 
@@ -68,7 +74,10 @@ type cupidResult = {
   loser: Array<string>;
 };
 
-export const meetingEvent = (socket: Socket | null, params: meetingEventParams) => {
+export const meetingEvent = (
+  socket: Socket | null,
+  params: meetingEventParams,
+) => {
   const {
     sessionRef,
     pubRef,
@@ -93,7 +102,7 @@ export const meetingEvent = (socket: Socket | null, params: meetingEventParams) 
     keywordRef,
     subRef,
     setIsChosen,
-  }
+  };
 
   socket?.on("keyword", message => {
     try {
@@ -122,7 +131,7 @@ export const meetingEvent = (socket: Socket | null, params: meetingEventParams) 
           message.getRandomParticipant,
           pubRef.current as HTMLDivElement,
           subRef.current as HTMLDivElement[],
-          {keywordRef, pubRef, subRef, videoContainerRef},
+          { keywordRef, pubRef, subRef, videoContainerRef },
         );
         setTimeout(() => {
           if (sessionRef.current) {
@@ -231,7 +240,7 @@ export const meetingEvent = (socket: Socket | null, params: meetingEventParams) 
       undoChooseMode(chooseParams); // 선택모드 해제
       removeChooseSign(); // 선택된 사람 표시 제거
       changeLoveStickMode(
-        response.message as Array<chooseResult>,
+        response as Array<chooseResult>,
         subRef.current as HTMLDivElement[],
         pubRef.current as HTMLDivElement,
         videoContainerRef.current as HTMLDivElement,
@@ -360,7 +369,7 @@ export const meetingEvent = (socket: Socket | null, params: meetingEventParams) 
           // "20초간 자기소개 해주세요",
           5, //FIXME 시연용
           "자기소개 해주세요", //FIXME 시연용
-          presentRefs
+          presentRefs,
         ); // FIXME 테스트용 10초 나중에 원래대로 돌리기
         // const timeInterval = setInterval(() => {
         //   idx += 1;
@@ -383,7 +392,10 @@ export const meetingEvent = (socket: Socket | null, params: meetingEventParams) 
   });
 };
 
-export const meetingCupidResultEvent = (socket: Socket | null, refs: cupidParams) => {
+export const meetingCupidResultEvent = (
+  socket: Socket | null,
+  refs: cupidParams,
+) => {
   const {
     keywordRef,
     videoContainerRef,
@@ -433,7 +445,7 @@ export const meetingCupidResultEvent = (socket: Socket | null, refs: cupidParams
             const params = {
               videoContainerRef,
               setIsChosen,
-            }
+            };
             undoOneToOneMode(loverElement, params);
             toggleLoserAudio(subscribers, lover, true); // 나머지 오디오 재개
             loser.forEach(loser => {
@@ -493,7 +505,10 @@ export const meetingCupidResultEvent = (socket: Socket | null, refs: cupidParams
   });
 };
 
-export const meetingCamEvent = (socket: Socket | null, refs: camEventParams) => {
+export const meetingCamEvent = (
+  socket: Socket | null,
+  refs: camEventParams,
+) => {
   const { keywordRef, publisher, setIsOpenCam } = refs;
 
   socket?.on("cam", message => {
