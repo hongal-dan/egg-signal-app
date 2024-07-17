@@ -3,6 +3,8 @@
 
 [에그톡](https://egg-signal-app.syeong.link/)은 가볍게 즐길 수 있는 온라인 3대3 소개팅 서비스입니다.
 
+![에그톡](https://github.com/user-attachments/assets/3638687a-5c51-4883-83dc-417aa931b80a)
+
 <hr />
 
 ### 서비스 소개
