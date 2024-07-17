@@ -40,6 +40,8 @@ Three.js (3D 동물 아바타 렌더링)
 
 [MindAR](https://hiukim.github.io/mind-ar-js-doc/) (Face mesh 얼굴 인식)
 
+Socket.io
+
 <hr />
 
 ### How to start
