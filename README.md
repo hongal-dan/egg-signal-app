@@ -3,6 +3,8 @@
 
 [에그톡](https://egg-signal-app.syeong.link/)은 가볍게 즐길 수 있는 온라인 3대3 소개팅 서비스입니다.
 
+<hr />
+
 ### 서비스 소개
 
 #### 3대3 블라인트 소개팅
@@ -25,6 +27,20 @@
 ![image](https://github.com/user-attachments/assets/91cc4659-4f4c-4a2e-b02d-51d7c9e54db2)
 
 최종 매칭이 되면 친구 신청 및 1:1 대화방으로 이동이 가능합니다. 친구가 되면 1:1 채팅을 할 수 있어요!
+
+<hr />
+
+### FrontEnd Stack
+
+Next.js
+
+Recoil
+
+Three.js (3D 동물 아바타 렌더링)
+
+[MindAR](https://hiukim.github.io/mind-ar-js-doc/) (Face mesh 얼굴 인식)
+
+<hr />
 
 ### How to start
 
