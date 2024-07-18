@@ -98,6 +98,7 @@ class Avatar {
     const categories = blendshapes.categories;
     const coefsMap = new Map();
     for (let i = 0; i < categories.length; ++i) {
+      if(i <= 18 && i >= 13 || i <= 5) continue;
       coefsMap.set(categories[i].categoryName, categories[i].score);
     }
     for (const mesh of this.morphTargetMeshes) {
