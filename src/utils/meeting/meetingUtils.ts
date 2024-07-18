@@ -421,7 +421,7 @@ export const setChooseMode = (params: chooseParams) => {
       } else {
         emitChoose("lastChoose");
       }
-    }, 5000);
+    }, 10000);
   };
   
   export const undoChooseMode = (refs: chooseRefs) => {
