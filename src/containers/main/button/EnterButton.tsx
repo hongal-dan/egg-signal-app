@@ -43,13 +43,15 @@ const EnterButton = () => {
 
   const handleLoadingOn = async () => {
     let newMeetingSocket = meetingSocket;
-    if(!newMeetingSocket){
+    if (!newMeetingSocket) {
       newMeetingSocket = (await connectSocket()) as Socket | null;
     }
+    console.log("지금 ready 호출 하기 직전! 쌈@뽕");
     newMeetingSocket?.emit("ready", {
       participantName: currentUser.nickname,
       gender: currentUser.gender,
     });
+    console.log("지금 ready 호출! 쌈@뽕");
     setIsLoading(true);
 
     newMeetingSocket?.on("startCall", async (ovInfo: ovInfo) => {
