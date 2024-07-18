@@ -459,7 +459,7 @@ export const meetingCupidResultEvent = (
               loserElement.classList.remove("black-white");
             });
             // }, 60000); // 1분 후 원 위치
-          }, 17000); //FIXME 시연용 20초 후 원 위치
+          }, 20000); //FIXME 시연용 20초 후 원 위치
         }
         // 매칭 안된 사람들의 경우
         else {
@@ -489,7 +489,7 @@ export const meetingCupidResultEvent = (
               // pubElement.classList.toggle("black-white");
               loserElement.classList.remove("black-white");
               // }, 60000); // 1분 후 흑백 해제
-            }, 17000); //FIXME 시연용 20초 후 원 위치
+            }, 20000); //FIXME 시연용 20초 후 원 위치
           });
           setTimeout(() => {
             if (keywordRef.current) {
@@ -497,7 +497,7 @@ export const meetingCupidResultEvent = (
             }
             toggleLoverAudio(subscribers, loser, true); // 오디오 재개
             // }, 60000); // 1분 후 음소거 해제
-          }, 17000); //FIXME 시연용 20초 후 원 위치
+          }, 20000); //FIXME 시연용 20초 후 원 위치
         }
       }, time); // 결과 도착 후 13초뒤에 1:1 대화 진행
     } catch (e: any) {
