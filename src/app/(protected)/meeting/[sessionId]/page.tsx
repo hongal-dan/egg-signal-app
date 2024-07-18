@@ -102,6 +102,8 @@ const Meeting = () => {
   const [isFinish, setIsFinish] = useState(false);
 
   const chooseTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const exitTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const [isExit, setIsExit] = useState(false);
 
   const leaveSession = (isSucceedFlag = false) => {
     if (session) {
@@ -242,7 +244,7 @@ const Meeting = () => {
         keywordRef.current.innerText =
           "누군가가 연결을 해제하여 10초 후 메인으로 이동합니다.";
       }
-      setTimeout(() => {
+      exitTimerRef.current = setTimeout(() => {
         leaveSession();
       }, 10000); // 누군가 탈주하면 10초 뒤에 세션 종료
     }
@@ -303,6 +305,16 @@ const Meeting = () => {
     }
   }, [isChosen]);
 
+  useEffect(() => {
+    if(!isExit) {
+      return;
+    }
+    if(exitTimerRef.current) {
+      clearTimeout(exitTimerRef.current);
+      exitTimerRef.current = null;
+    }
+  }, [isExit]);
+
   return !avatar ? (
     <DynamicAvatarCollection />
   ) : !isFinish ? (
@@ -315,6 +327,7 @@ const Meeting = () => {
             leaveHandler={leaveHandler}
             leaveSession={leaveSession}
             keywordRef={keywordRef}
+            setIsExit={setIsExit}
           />
           <SessionComponent
             publisher={publisher}
