@@ -9,9 +9,14 @@ interface SessionHeaderProps {
   leaveHandler: (leaveSession: () => void) => void;
   leaveSession: () => void;
   keywordRef: RefObject<HTMLParagraphElement>;
+  setIsExit: (flag: boolean) => void;
 }
 
-const SessionHeader: React.FC<SessionHeaderProps> = ({ leaveHandler, leaveSession, keywordRef }) => {
+const SessionHeader: React.FC<SessionHeaderProps> = ({ leaveHandler, leaveSession, keywordRef, setIsExit }) => {
+  const onLeave = () => {
+    leaveHandler(leaveSession);
+    setIsExit(true);
+  };
   return (
     <div
       id="session-header"
@@ -22,7 +27,7 @@ const SessionHeader: React.FC<SessionHeaderProps> = ({ leaveHandler, leaveSessio
           className="border-b border-gray-500 text-gray-500 cursor-pointer"
           type="button"
           id="buttonLeaveSession"
-          onClick={() => leaveHandler(leaveSession)}
+          onClick={() => onLeave()}
           value="종료하기"
         />
       </div>
