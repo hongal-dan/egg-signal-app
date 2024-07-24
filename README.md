@@ -12,11 +12,11 @@
 |                             메인 화면                             |                           아바타 선택                           |
 | :---------------------------------------------------------------: | :-------------------------------------------------------------: |
 | <img src="public/static/main_page.png" alt="화면 1" width="350"/> | <img src="public/static/avatar.png" alt="화면 2" width="350"/>  |
-|                          **로그인 화면**                          |                          **대시보드**                           |
+|                           **미팅 화면**                           |                          **서로 선택**                          |
 |  <img src="public/static/random.gif" alt="화면 1" width="350"/>   |  <img src="public/static/love.gif" alt="화면 2" width="350"/>   |
 |                       **미팅 중 1:1 대화**                        |                      **미팅 중 그림 대회**                      |
 |  <img src="public/static/oneone.png" alt="화면 1" width="350"/>   | <img src="public/static/drawing.png" alt="화면 2" width="350"/> |
-|                           **1:1 대화**                            |                          **친구 채팅**                          |
+|                           **1:1 통화**                            |                          **친구 채팅**                          |
 | <img src="public/static/lastpick.png" alt="화면 1" width="350"/>  |  <img src="public/static/chat.png" alt="화면 2" width="350"/>   |
 
 </div>
@@ -48,21 +48,25 @@
 
 ### Front-End
 
+<div style="display: flex;">
 <img src="https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white" />
 <img src="https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white" />
 <img src="https://img.shields.io/badge/Recoil-3578E5?style=for-the-badge&logo=recoil&logoColor=white" />
 <img src="https://img.shields.io/badge/Three.js-000000?style=for-the-badge&logo=threedotjs&logoColor=white" />
 <img src="https://img.shields.io/badge/Socket.io-010101?style=for-the-badge&logo=socketdotio&logoColor=white" />
 <img src="https://img.shields.io/badge/Tailwind%20CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" />
+</div>
 
 ### Back-End
 
+<div style="display: flex;">
 <img src="https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white" />
 <img src="https://img.shields.io/badge/NestJS-E0234E?style=for-the-badge&logo=nestjs&logoColor=white" />
 <img src="https://img.shields.io/badge/Socket.io-010101?style=for-the-badge&logo=socketdotio&logoColor=white" />
 <img src="https://img.shields.io/badge/OpenVidu-1D74DA?style=for-the-badge&logo=openvidu&logoColor=white" />
 <img src="https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white" />
 <img src="https://img.shields.io/badge/MongoDB-47A248?style=for-the-badge&logo=mongodb&logoColor=white" />
+</div>
 
 ## 📙 시작 가이드
 
