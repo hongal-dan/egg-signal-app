@@ -7,15 +7,19 @@
 
 ### 서비스 화면
 
+<div align="center">
+
 |                             메인 화면                             |                           아바타 선택                           |
 | :---------------------------------------------------------------: | :-------------------------------------------------------------: |
-| <img src="public/static/main_page.png" alt="화면 1" width="400"/> | <img src="public/static/avatar.png" alt="화면 2" width="400"/>  |
+| <img src="public/static/main_page.png" alt="화면 1" width="350"/> | <img src="public/static/avatar.png" alt="화면 2" width="350"/>  |
 |                          **로그인 화면**                          |                          **대시보드**                           |
-|  <img src="public/static/random.gif" alt="화면 1" width="400"/>   |  <img src="public/static/love.gif" alt="화면 2" width="400"/>   |
+|  <img src="public/static/random.gif" alt="화면 1" width="350"/>   |  <img src="public/static/love.gif" alt="화면 2" width="350"/>   |
 |                       **미팅 중 1:1 대화**                        |                      **미팅 중 그림 대회**                      |
-|  <img src="public/static/oneone.png" alt="화면 1" width="400"/>   | <img src="public/static/drawing.png" alt="화면 2" width="400"/> |
+|  <img src="public/static/oneone.png" alt="화면 1" width="350"/>   | <img src="public/static/drawing.png" alt="화면 2" width="350"/> |
 |                           **1:1 대화**                            |                          **친구 채팅**                          |
-| <img src="public/static/lastpick.png" alt="화면 1" width="400"/>  |  <img src="public/static/chat.png" alt="화면 2" width="400"/>   |
+| <img src="public/static/lastpick.png" alt="화면 1" width="350"/>  |  <img src="public/static/chat.png" alt="화면 2" width="350"/>   |
+
+</div>
 
 ### 서비스 소개
 
